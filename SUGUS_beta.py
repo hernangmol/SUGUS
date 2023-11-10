@@ -30,6 +30,7 @@ from matplotlib.figure import Figure
 # wE - Visualización de proyectos
 # wF - Modificación de proyectos
 # wG - Modificación de tareas
+# wH - Modificación de ordenes de laboratorio
 ###########################################################################
 def main():
     global my_conn
@@ -140,11 +141,11 @@ def main():
     L17 = Label(w1, text = "Laboratorio")
     L17.place(x=75, y=435)
     global B20
-    B20=Button(w1,text="Ver pedidos", width=12)
+    B20=Button(w1,text="Ord. trabajo", width=12, command = lambda: V_modLab('T'))
     B20.place(x=210, y=435)
     B20['state'] = DISABLED
     global B21
-    B21=Button(w1,text="Activos", width=12)
+    B21=Button(w1,text="Ord. Internas", width=12)
     B21.place(x=320, y=435)
     B21['state'] = DISABLED
     # Octavo piso ######################
@@ -469,7 +470,7 @@ def traceCB(*args, var):
 def viewDocs():
     w1.withdraw()
     global w9
-    w9=Toplevel()
+    w9=Toplevel() 
     #style = ttk.Style(w9)
     #style.theme_use('clam')
     w9.state("zoomed")
@@ -1673,7 +1674,7 @@ def B_assign():
                 menuFrom(w7)
 
             elif tipoSal == 'Asistencias': 
-                # crea entrada tabla asitencias
+                # crea entrada tabla asistencias
                 try:    
                     my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Asistencias', 'Abierto', 0)
@@ -1697,6 +1698,33 @@ def B_assign():
 
                 messagebox.showinfo(message="Pedido asignado al área de Asistencias técnicas.", title="Aviso del sistema")
                 menuFrom(w7)
+
+            elif tipoSal == 'Laboratorio': 
+                # crea entrada tabla ordenes
+                try:    
+                    my_cursor = my_conn.cursor()
+                    statement = '''INSERT INTO ordenes (ID_solicitud, tipo, numero_cdf)
+                        VALUES('{}', '{}')'''.format(idSol, 'T', 0 )
+                    my_cursor.execute(statement)
+                    my_conn.commit() 
+
+                except Exception as e:
+                    print("error", e)  
+            
+                # actualiza tabla de pedidos
+                try:
+                    my_cursor = my_conn.cursor()
+                    statement = "UPDATE solicitudes SET tipo_salida = %s  , fecha_salida = %s , descripcion_salida = %s WHERE ID_solicitud = %s" 
+                    values = (tipoSal, fechaSal, descripcion, idSol )
+                    my_cursor.execute(statement, values)
+                    my_conn.commit() 
+
+                except Exception as e:
+                    print("error", e)
+
+                messagebox.showinfo(message="Pedido asignado al área de Laboratorio.", title="Aviso del sistema")
+                menuFrom(w7)
+
 
             elif tipoSal == 'Cierre':  
                         # actualiza tabla de pedidos
@@ -2728,7 +2756,7 @@ def B_elimTar(modo):
     curItem = wG.tabla2.focus()
     numTar = wG.tabla2.item(curItem).get('text')
     if len(numTar)!=0:
-        if (messagebox.askokcancel(message="Eliminar tarea?", title="Título")):
+        if (messagebox.askokcancel(message="Eliminar tarea?", title="Confirmación de acción")):
             refresh_conn(my_conn)
             try:
                 my_cursor = my_conn.cursor()
@@ -3312,7 +3340,113 @@ def refresh_conn(conn):
         #print("Connected")
         pass
     else:
-        #print("Reconnecting...")
-        conn.reconnect(attempts=3, delay=0)
+        try:
+            conn.reconnect(attempts=1, delay=0)
+        except:
+
+            w1.quit    ################## NO FUNCIONA ##################################################
+
+def V_modLab(tipo):
+    w1.withdraw()
+    global wH
+    wH=Toplevel()
+    wH.state("zoomed")
+    wH.iconphoto(False, photo)
+    # Titulo de la ventana (dependiente de modo)
+    if tipo == 'T':
+        wH.title("CENADIF - Laboratorio - Ordenes de trabajo")
+    if tipo == 'I':
+        wF.title("CENADIF - Laboratorio - Ordenes internas") 
+    wH.frame = Frame(wH)
+    wH.frame.grid(rowspan=2, column=1, row=1)
+    wH.tabla = ttk.Treeview(wH.frame, height=15)
+    wH.tabla.grid(column=1, row=1)
+
+    ladox = Scrollbar(wH.frame, orient = VERTICAL, command= wH.tabla.yview)
+    ladox.grid(column=0, row = 1, sticky='ew') 
+    ladoy = Scrollbar(wH.frame, orient =HORIZONTAL, command = wH.tabla.xview)
+    ladoy.grid(column = 1, row = 0, sticky='ns')
+    wH.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+       
+    wH.tabla['columns'] = ('descripcion', 'responsable', 'fin', 'informe', 'pedido','cliente')
+    wH.tabla.column('#0', minwidth=50, width=60, anchor='center')
+    wH.tabla.column('descripcion', minwidth=100, width=450, anchor='center')
+    wH.tabla.column('responsable', minwidth=80, width=100 , anchor='center')
+    wH.tabla.column('fin', minwidth=100, width=100 , anchor='center')
+    wH.tabla.column('informe', minwidth=100, width=250, anchor='center' )
+    wH.tabla.column('pedido', minwidth=100, width=150 , anchor='center')
+    wH.tabla.column('cliente', minwidth=100, width=200, anchor='center')   
+
+       # Titulo del número CENADIF y nombre (dependientes del modo)
+    if tipo == 'T':
+        wH.tabla.heading('#0', text='N° O/T', anchor ='e')
+    if tipo == 'I':
+        wH.tabla.heading('#0', text='N° O/I', anchor ='e')
+    
+    # Parte común a todos los modos
+    wH.tabla.heading('descripcion', text='Descripción', anchor ='center')
+    wH.tabla.heading('responsable', text='Responsable', anchor ='center')
+    wH.tabla.heading('fin', text='Fecha fin', anchor ='center')
+    wH.tabla.heading('informe', text='Informe', anchor ='center')
+    wH.tabla.heading('pedido', text='Pedido', anchor ='center')
+    wH.tabla.heading('cliente', text='Cliente', anchor ='center')
+
+    #   BOTONES #####################
+    # boton Precarga
+    BH4=Button(wH, text="Seleccionar", width=12)
+    BH4.place(x=175, y=680)
+
+    # boton Modificar
+    global BH2
+    BH2=Button(wH,text="Modificar", width=12, state = DISABLED)
+    BH2.place(x=340, y=680)
+    
+    # boton Tareas
+    BH3=Button(wH, text="Tareas", width=12)
+    BH3.place(x=510, y=680)
+
+    # boton Volver
+    BH3=Button(wH, text="Volver", width=12, command=lambda: menuFrom(wH))
+    BH3.place(x=340, y=730)
+
+    # boton Salir
+    BH1=Button(wH, text="Salir", width=12, command = w1.quit)
+    BH1.place(x=510, y=730)
+
+    wH.tabla.delete(*wH.tabla.get_children())
+    # preparacion de los datos
+    refresh_conn(my_conn)
+    if tipo == 'T':    
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM ordenes WHERE tipo = 'T'" # ordenes de trabajo
+            my_cursor.execute(statement)
+            resultados = my_cursor.fetchall()
+            #print(resultados) 
+        except Exception as e:
+            print("error 3430", e)
+        for fila in resultados:
+            try:
+                my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT filiacion_cliente FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
+                values = (fila[4],)
+                my_cursor.execute(statement, values)
+                cliente = my_cursor.fetchone()
+                #print(cliente)
+            except Exception as e:
+                print("error 3435", e)
+    # muestra de los datos
+            wH.tabla.insert('',index = fila[2], iid=None, text = str(fila[2]), values = [fila[5], fila[3], fila[7],fila[6], fila[4], cliente,])
+    elif tipo == 'I':    
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM ordenes WHERE tipo = 'I'" # ordenes de trabajo
+            my_cursor.execute(statement)
+            resultados = my_cursor.fetchall()
+            print(resultados) 
+        except Exception as e:
+            print("error 3439)", e)
+    else:
+        pass # To Do: insertar manejo de error de tipo 
 
 main()
