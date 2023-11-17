@@ -31,6 +31,7 @@ from matplotlib.figure import Figure
 # wF - Modificación de proyectos
 # wG - Modificación de tareas
 # wH - Modificación de ordenes de laboratorio
+# wI - Modificación de ordenes de servicio
 ###########################################################################
 def main():
     global my_conn
@@ -1511,7 +1512,7 @@ def V_accSchedule():
             #values=(actualID)
             my_cursor.execute(statement, (actualUser,))
             resultados = my_cursor.fetchall()
-            print(f"Agenda del usuario: {resultados}") 
+            #print(f"Agenda del usuario: {resultados}") 
     except Exception as e:
         print("error", e)
     
@@ -1704,12 +1705,12 @@ def B_assign():
                 try:    
                     my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO ordenes (ID_solicitud, tipo, numero_cdf)
-                        VALUES('{}', '{}')'''.format(idSol, 'T', 0 )
+                        VALUES('{}', '{}','0')'''.format(idSol, 'T' )
                     my_cursor.execute(statement)
                     my_conn.commit() 
 
                 except Exception as e:
-                    print("error", e)  
+                    print("error 1712", e)  
             
                 # actualiza tabla de pedidos
                 try:
@@ -2846,7 +2847,7 @@ def B_selTar(modo):
                 CGE.set('')                     # Integrante 6
                 if resultado[13] is not None:
                     CGE.set(resultado[13])
-            TG1.delete("1.0","end")         # Descripción
+            TG1.delete("1.0","end")             # Descripción
             if resultado[4] is not None:
                 TG1.insert("1.0", resultado[4])
             
@@ -3359,7 +3360,7 @@ def V_modLab(tipo):
         wF.title("CENADIF - Laboratorio - Ordenes internas") 
     wH.frame = Frame(wH)
     wH.frame.grid(rowspan=2, column=1, row=1)
-    wH.tabla = ttk.Treeview(wH.frame, height=15)
+    wH.tabla = ttk.Treeview(wH.frame, height=28)
     wH.tabla.grid(column=1, row=1)
 
     ladox = Scrollbar(wH.frame, orient = VERTICAL, command= wH.tabla.yview)
@@ -3391,27 +3392,75 @@ def V_modLab(tipo):
     wH.tabla.heading('pedido', text='Pedido', anchor ='center')
     wH.tabla.heading('cliente', text='Cliente', anchor ='center')
 
+    ## PRIMER PISO ##########################
+    F1 = 650 # altura fila 1
+   
+    # N° O/T:
+    LH6 = Label(wH, text = "N° O/T:")
+    LH6.place(x=20, y=F1)
+
+    global EH6
+    EH6 = Entry(wH)
+    EH6.place(x=90, y=F1)
+
+# Nombre de la tarea
+    LH1 = Label(wH, text = "Descripción")
+    LH1.place(x=250, y=F1)
+
+    global EH1
+    EH1 = Entry(wH)
+    EH1.place(x=325, y=F1, width=320)
+
+    # Responsable
+    LH3 = Label(wH, text = "Responsable")
+    LH3.place(x=670, y=F1)
+
+    list = userList()
+    global CH3
+    CH3 = ttk.Combobox(wH, state="readonly", width = 17, values = list)
+    CH3.place(x=760, y=F1)
+
+# Fin  
+    LH5 = Label(wH, text = "Fin")
+    LH5.place(x=920, y=F1)
+
+    global EH5
+    EH5 = Entry(wH)
+    EH5.place(x=970, y=F1)
+
+# Informe
+    LH4 = Label(wH, text = "Informe")
+    LH4.place(x=1120, y=F1)
+
+    global EH4
+    EH4 = Entry(wH)
+    EH4.place(x=1170, y=F1)
+
     #   BOTONES #####################
     # boton Precarga
-    BH4=Button(wH, text="Seleccionar", width=12)
-    BH4.place(x=175, y=680)
+    BH4=Button(wH, text="Seleccionar", width=12, command=lambda:B_selecOrden(tipo))
+    BH4.place(x=170, y=700)
 
     # boton Modificar
     global BH2
-    BH2=Button(wH,text="Modificar", width=12, state = DISABLED)
-    BH2.place(x=340, y=680)
+    BH2=Button(wH,text="Modificar", width=12, state = DISABLED, command=lambda:B_modOrden(tipo))
+    BH2.place(x=340, y=700)
     
-    # boton Tareas
-    BH3=Button(wH, text="Tareas", width=12)
-    BH3.place(x=510, y=680)
+    # boton Ordenes de servicio
+    BH3=Button(wH, text="Ord. Servicio", width=12, command=lambda:V_modServ(tipo))
+    BH3.place(x=510, y=700)
+
+    # boton Muestras
+    BH6=Button(wH, text="Muestras", width=12, command=lambda:V_modMue(tipo))
+    BH6.place(x=680, y=700)
 
     # boton Volver
-    BH3=Button(wH, text="Volver", width=12, command=lambda: menuFrom(wH))
-    BH3.place(x=340, y=730)
+    BH5=Button(wH, text="Volver", width=12, command=lambda: menuFrom(wH))
+    BH5.place(x=1020, y=700)
 
     # boton Salir
     BH1=Button(wH, text="Salir", width=12, command = w1.quit)
-    BH1.place(x=510, y=730)
+    BH1.place(x=1190, y=700)
 
     wH.tabla.delete(*wH.tabla.get_children())
     # preparacion de los datos
@@ -3449,4 +3498,732 @@ def V_modLab(tipo):
     else:
         pass # To Do: insertar manejo de error de tipo 
 
-main()
+def B_selecOrden(modo):
+    curItem = wH.tabla.focus()
+    numOrd = wH.tabla.item(curItem).get('text')
+    if len(numOrd)!=0:
+        #print(numOrd)
+        refresh_conn(my_conn)
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM ordenes WHERE tipo = %s AND numero_cdf = %s"
+            values = (modo, numOrd,) 
+            my_cursor.execute(statement, values)
+            resultado = my_cursor.fetchone()
+            #print(resultado)
+        except Exception as e:
+            print("error", e)
+            
+        # Precarga de los entry
+        EH6.delete(0, END)              # Numero de orden
+        if resultado[2] is not None:
+            EH6.insert(0, resultado[2])
+        EH1.delete(0, END)              # Descripción
+        if resultado[5] is not None:
+            EH1.insert(0, resultado[5])
+        CH3.set('')                     # Responsable
+        if resultado[3] is not None:
+            CH3.set( resultado[3])
+        EH5.delete(0, END)              # Fecha finalización
+        if resultado[7] is not None:
+            EH5.insert(0, resultado[7])
+        EH4.delete(0, END)              # Informe
+        if resultado[6] is not None:
+            EH4.insert(0, resultado[6])
+        BH2['state'] = NORMAL           # habilitación del botón Modificar
+            #####################################################################     
+                     
+    else:
+        messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+
+def B_modOrden(modo):
+    curItem = wH.tabla.focus()
+    numOrd = wH.tabla.item(curItem).get('text')
+    refresh_conn(my_conn)
+    if len(numOrd)!=0:
+        ######### Actualización del numero de proyecto
+        NnumOrd = EH6.get()
+        if len(NnumOrd) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE ordenes SET numero_cdf = %s WHERE tipo = %s and numero_cdf = %s"
+                val = (NnumOrd, modo, numOrd)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+                numOrd = NnumOrd       
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de la descripción de la orden
+        descOrd = EH1.get()
+        if len(descOrd) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE ordenes SET descripcion = %s WHERE tipo = %s and numero_cdf = %s"
+                val = (descOrd, modo, numOrd)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización del responsable
+        respo = CH3.get()
+        if len(respo) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE ordenes SET responsable = %s WHERE tipo= %s and numero_cdf = %s"
+                val = (respo, modo, numOrd)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de fecha de finalización
+        fechaFin = EH5.get()
+        if len(fechaFin) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE ordenes SET fecha_fin = %s WHERE tipo = %s and numero_cdf = %s"
+                val = (fechaFin, modo, numOrd)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización del informe
+        infor = EH4.get()
+        if len(infor) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE ordenes SET informe = %s WHERE tipo = %s and numero_cdf = %s"
+                val = (infor, modo, numOrd)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ############ Refresco de la ventana
+        wH.destroy() 
+        V_modLab(modo)
+    else:
+        messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+
+def V_modServ(modo):
+    curItem = wH.tabla.focus()
+    numOrd = wH.tabla.item(curItem).get('text')
+    if len(numOrd)!=0:
+        ### esconde la pantalla de llamado
+        wH.withdraw()
+        global wI
+        wI=Toplevel()
+        #wG.geometry("1500x800")
+        wI.state("zoomed")
+        wI.iconphoto(False, photo)
+        wI.title("CENADIF Base de datos - Ordenes de servicio ")
+        refresh_conn(my_conn)
+        
+        try:
+            my_cursor = my_conn.cursor(buffered=True)            
+            statement = "SELECT * FROM ordenes WHERE tipo = %s and numero_cdf = %s" 
+            values = (modo, numOrd,)
+            my_cursor.execute(statement, values)
+            ordData = my_cursor.fetchone()
+            #print(ordData)
+            #print(ordData[0]) 
+        except Exception as e:
+            print("error 3624", e)
+
+        try:
+            my_cursor = my_conn.cursor(buffered=True)
+            statement = "SELECT filiacion_cliente FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
+            values = (ordData[4],)
+            my_cursor.execute(statement, values)
+            cliente = my_cursor.fetchone()
+            #print(cliente)
+        except Exception as e:
+            print("error 3634", e)
+
+        wI.frame = Frame(wI)
+        wI.frame.grid(rowspan=2, column=1, row=1)
+        wI.tabla = ttk.Treeview(wI.frame, height=1)
+        wI.tabla.grid(column=1, row=1)
+
+        ladox = Scrollbar(wI.frame, orient = VERTICAL, command= wI.tabla.yview)
+        ladox.grid(column=0, row = 2, sticky='ew')
+        #ladox.pack(side ='right', fill ='x') 
+        ladoy = Scrollbar(wI.frame, orient =HORIZONTAL, command = wI.tabla.xview)
+        ladoy.grid(column = 1, row = 0, sticky='ns')
+        wI.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+
+        wI.tabla['columns'] = ('descripcion', 'responsable', 'fin', 'informe', 'pedido','cliente')
+        wI.tabla.column('#0', minwidth=50, width=60, anchor='center')
+        wI.tabla.column('descripcion', minwidth=100, width=450, anchor='center')
+        wI.tabla.column('responsable', minwidth=80, width=100 , anchor='center')
+        wI.tabla.column('fin', minwidth=100, width=100 , anchor='center')
+        wI.tabla.column('informe', minwidth=100, width=250, anchor='center' )
+        wI.tabla.column('pedido', minwidth=100, width=150 , anchor='center')
+        wI.tabla.column('cliente', minwidth=100, width=200, anchor='center') 
+
+        # Titulo del número CENADIF y nombre (dependientes del modo)
+        if modo == 'T':
+            wI.tabla.heading('#0', text='N° O/T', anchor ='e')
+        if modo == 'I':
+            wI.tabla.heading('#0', text='N° O/I', anchor ='e')
+        
+        # Parte común a todos los modos
+        wI.tabla.heading('descripcion', text='Descripción', anchor ='center')
+        wI.tabla.heading('responsable', text='Responsable', anchor ='center')
+        wI.tabla.heading('fin', text='Fecha fin', anchor ='center')
+        wI.tabla.heading('informe', text='Informe', anchor ='center')
+        wI.tabla.heading('pedido', text='Pedido', anchor ='center')
+        wI.tabla.heading('cliente', text='Cliente', anchor ='center')
+
+        # muestra de los datos
+        wI.tabla.insert('',index = ordData[2], iid=None, text = str(ordData[2]), values = [ordData[5], ordData[3], ordData[7], ordData[6], ordData[4], cliente,])
+        
+        ### Tabla de servicios ########################################################
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM servicios WHERE ID_orden = %s" 
+            values = (ordData[0],)
+            my_cursor.execute(statement, values)
+            resultados = my_cursor.fetchall()
+            #print(resultados) 
+        except Exception as e:
+            print("error 3683", e)
+
+        wI.frame2 = Frame(wI)
+        wI.frame2.grid(rowspan=2, column=1, row=2)
+        wI.frame2.place(y=70)
+        wI.tabla2 = ttk.Treeview(wI.frame2, height=15)
+        wI.tabla2.grid(column=1, row=1)
+
+        ladox2 = Scrollbar(wI.frame2, orient = VERTICAL, command= wI.tabla2.yview)
+        ladox2.grid(column=0, row = 1, sticky='ew') 
+        ladoy2 = Scrollbar(wI.frame2, orient =HORIZONTAL, command = wI.tabla2.xview)
+        ladoy2.grid(column = 1, row = 0, sticky='ns')
+        #wG.tabla2.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+
+        wI.tabla2['columns'] = ('tarea', 'tipo', 'responsable', 'operador', 'fecha_inicio', 'fecha_fin')
+        wI.tabla2.column('#0', minwidth=50, width=60, anchor='w')
+        wI.tabla2.column('tarea', minwidth=200, width=650, anchor='center')
+        wI.tabla2.column('tipo', minwidth=80, width=100 , anchor='center')
+        wI.tabla2.column('responsable', minwidth=100, width=150 , anchor='center')
+        wI.tabla2.column('operador', minwidth=100, width=150, anchor='center' )
+        wI.tabla2.column('fecha_inicio', minwidth=100, width=100 , anchor='center')
+        wI.tabla2.column('fecha_fin', minwidth=100, width=100 , anchor='center')
+
+        wI.tabla2.heading('#0', text='OS', anchor ='center')
+        wI.tabla2.heading('tarea', text='Tarea', anchor ='center')
+        wI.tabla2.heading('tipo', text='Tipo', anchor ='center')
+        wI.tabla2.heading('responsable', text='Responsable', anchor ='center')
+        wI.tabla2.heading('operador', text='Operador', anchor ='center')
+        wI.tabla2.heading('fecha_inicio', text='Inicio', anchor ='center')
+        wI.tabla2.heading('fecha_fin', text='Finaliz.', anchor ='center')
+        
+        try:
+            for fila in resultados:
+                wI.tabla2.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [fila[3], fila[2], fila[1], fila[5], fila[6], fila[7]])        
+        except:
+            print("error 3722")
+        #wF.after(1, lambda: wF.focus_force())
+
+    ## ALTURAS
+        F1 = 460
+        F2 = 510
+        F3 = 560
+        F4 = 610
+       
+    ## PRIMER PISO ##########################
+
+    # Nombre de la tarea
+        LI1 = Label(wI, text = "Tarea")
+        LI1.place(x=20, y=F1)
+
+        global EI1
+        EI1 = Entry(wI)
+        EI1.place(x=110, y=F1, width=500)
+
+    ## SEGUNDO PISO #########################
+        # Responsable
+        LI3 = Label(wI, text = "Responsable")
+        LI3.place(x=20, y=F2)
+
+        list = userList()
+        global CI3
+        CI3 = ttk.Combobox(wI, state="readonly", width = 17, values = list)
+        CI3.place(x=110, y=F2)
+
+    # inicio
+        LI4 = Label(wI, text = "Inicio")
+        LI4.place(x=250, y=F2)
+
+        global EI4
+        EI4 = Entry(wI)
+        EI4.place(x=300, y=F2)
+
+    # Fin  
+        LI5 = Label(wI, text = "Fin")
+        LI5.place(x=430, y=F2)
+
+        global EI5
+        EI5 = Entry(wI)
+        EI5.place(x=480, y=F2)
+
+    ## TERCER PISO #########################
+    
+    # H/H prog
+        LI7 = Label(wI, text = "horas")
+        LI7.place(x=250, y=F3)
+
+        global EI7
+        EI7 = Entry(wI)
+        EI7.place(x=300, y=F3)
+
+        # Operador
+        LI9 = Label(wI, text = "Operador")
+        LI9.place(x=20, y=F3)
+
+        #global EG9
+        #EG9 = Entry(wG)
+        #EG9.place(x=110, y=530)
+
+        global CI9
+        CI9 = ttk.Combobox(wI, state="readonly", width = 17, values = list)
+        CI9.place(x=110, y=F3)
+    # Tipo
+        LI2 = Label(wI, text = "Tipo")
+        LI2.place(x=430, y=F3)
+
+        global CI2
+        CI2 = ttk.Combobox(wI, state="readonly", width = 17, values = ('Laboratorio', 'Taller'))
+        CI2.place(x=480, y=F3)
+
+    ## CUARTO PISO #########################
+    # Equipos
+        LIA = Label(wI, text = "Equipamiento")
+        LIA.place(x=20, y=F4)
+
+        global EIA
+        EIA = Entry(wI)
+        EIA.place(x=110, y=F4, width=500)
+    ##################################################### 
+        # Descripción (ATE)
+        LIB = Label(wI, text = "Observaciones: ")
+        LIB.place(x=650, y=F2)
+
+        global TI1
+        TI1 = Text(wI, width = 61, height = 7)
+        TI1.place(x=740, y=F2)
+     
+    #   BOTONES #####################
+        H_bot = 680
+        # boton Precarga
+        BI4=Button(wI, text="Seleccionar", width=12, command = lambda: B_selServ(modo))
+        BI4.place(x=115, y=H_bot)
+
+        # boton Modificar
+        global BI2
+        BI2=Button(wI,text="Modificar", width=12, command = lambda: B_modServ(modo), state = DISABLED)
+        BI2.place(x=245, y=H_bot)
+
+        # boton Eliminar
+        global BI6
+        BI6=Button(wI, text="Eliminar", width=12, command = lambda: B_elimServ(modo))
+        BI6.place(x=375, y=H_bot)
+
+        # boton Nueva
+        BI3=Button(wI, text="Nueva", width=12, command = lambda: B_nuevoServ(ordData[0], modo))
+        BI3.place(x=505, y=H_bot)
+
+        # boton Volver
+        BI5=Button(wI, text="Volver", width=12, command=lambda: menuFrom(wI))
+        BI5.place(x=765, y=H_bot)
+
+        # boton Salir
+        BI1=Button(wI, text="Salir", width=12, command = w1.quit)
+        BI1.place(x=895, y=H_bot)
+
+    else:
+        messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+
+def B_selServ(modo):
+    curItem = wI.tabla2.focus()
+    numServ = wI.tabla2.item(curItem).get('text')
+    if len(numServ)!=0:
+        refresh_conn(my_conn)
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM servicios WHERE ID_servicio = %s"
+            values = (numServ,) 
+            my_cursor.execute(statement, values)
+            resultado = my_cursor.fetchone()
+        except Exception as e:
+            print("error", e)
+        # Precarga de los entry
+        EI1.delete(0, END)              # Tarea
+        if resultado[3] is not None:
+            EI1.insert(0, resultado[3])
+        CI3.set('')                     # Responsable
+        if resultado[1] is not None:
+            CI3.set( resultado[1])
+        EI4.delete(0, END)              # Inicio
+        if resultado[6] is not None:
+            EI4.insert(0, resultado[6])
+        EI5.delete(0, END)              # Fin
+        if resultado[7] is not None:
+            EI5.insert(0, resultado[7])
+        EI7.delete(0, END)              # Horas
+        if resultado[8] is not None:
+            EI7.insert(0, resultado[8])
+        CI9.set('')                     # Operador
+        if resultado[5] is not None:
+            CI9.set( resultado[5])
+        CI2.set('')                     # Tipo
+        if resultado[2] is not None:
+            CI2.set( resultado[2])
+        EIA.delete(0, END)              # Equipamiento
+        if resultado[4] is not None:
+            EIA.insert(0, resultado[4])
+        TI1.delete("1.0","end")         # Descripción
+        if resultado[9] is not None:
+            TI1.insert("1.0", resultado[9])
+        BI2['state'] = NORMAL # habilitación del botón Modificar
+
+    else:
+        messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+
+def B_modServ(modo): # se puede sacar MODO?????? NOOOO
+    curItem = wI.tabla2.focus()
+    numServ = wI.tabla2.item(curItem).get('text')
+    refresh_conn(my_conn)
+    if len(numServ)!=0:
+        ######### Actualización de la tarea
+        tareaServ = EI1.get()
+        if len(tareaServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET tarea = %s WHERE ID_servicio = %s"
+                val = (tareaServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+                ######### Actualización de la tarea
+        respoServ = CI3.get()
+        if len(respoServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET responsable = %s WHERE ID_servicio = %s"
+                val = (respoServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de la fecha de inicio
+        iniServ = EI4.get()
+        if len(iniServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET fecha_inicio = %s WHERE ID_servicio = %s"
+                val = (iniServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de la fecha de finalización
+        finServ = EI5.get()
+        if len(finServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET fecha_fin = %s WHERE ID_servicio = %s"
+                val = (finServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de las horas
+        horasServ = EI7.get()
+        if len(finServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET horas = %s WHERE ID_servicio = %s"
+                val = (horasServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización del operador
+        operServ = CI9.get()
+        if len(operServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET operador = %s WHERE ID_servicio = %s"
+                val = (operServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización del tipo
+        tipoServ = CI2.get()
+        if len(operServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET tipo = %s WHERE ID_servicio = %s"
+                val = (tipoServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización del equipamiento
+        equipServ = EIA.get()
+        if len(equipServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET equipos = %s WHERE ID_servicio = %s"
+                val = (equipServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización del equipamiento
+        obsServ = TI1.get("1.0",'end-1c')
+        if len(equipServ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE servicios SET observaciones = %s WHERE ID_servicio = %s"
+                val = (obsServ, numServ)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        
+        # TI1 Descripción
+        wI.destroy() 
+        V_modServ(modo)
+
+    else:
+        messagebox.showinfo(message="Seleccione una orden de servicio.", title="Aviso del sistema")
+
+def B_elimServ(modo):
+    curItem = wI.tabla2.focus()
+    numServ = wI.tabla2.item(curItem).get('text')
+    if len(numServ)!=0:
+        if (messagebox.askokcancel(message="Eliminar orden?", title="Confirmación de acción")):
+            refresh_conn(my_conn)
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "DELETE FROM servicios WHERE ID_servicio = %s"
+                val = (numServ,)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+            wI.destroy() 
+            V_modServ(modo)
+        ############ Refresco de la ventana
+    else:
+        messagebox.showinfo(message="Seleccione una tarea.", title="Aviso del sistema")  
+
+############################### Función del botón Nueva orden de servicio ############################################
+def B_nuevoServ(orden, modo):
+#    print('nueva tarea')
+    refresh_conn(my_conn)
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "INSERT INTO servicios SET tarea = %s, ID_orden = %s"
+        val = ('Nueva orden de servicio', orden)
+        my_cursor.execute(statement,val)
+        my_conn.commit()
+    except Exception as e:
+        print("error", e)
+    wI.destroy() 
+    V_modServ(modo)
+
+def V_modMue(modo):
+    curItem = wH.tabla.focus()
+    numOrd = wH.tabla.item(curItem).get('text')
+    if len(numOrd)!=0:
+        ### esconde la pantalla de llamado
+        wH.withdraw()
+        global wJ
+        wJ=Toplevel()
+        #wG.geometry("1500x800")
+        wJ.state("zoomed")
+        wJ.iconphoto(False, photo)
+        wJ.title("CENADIF Base de datos - Muestras ")
+        refresh_conn(my_conn)
+
+        try:
+            my_cursor = my_conn.cursor(buffered=True)            
+            statement = "SELECT * FROM ordenes WHERE tipo = %s and numero_cdf = %s" 
+            values = (modo, numOrd,)
+            my_cursor.execute(statement, values)
+            ordData = my_cursor.fetchone()
+            #print(ordData)
+            #print(ordData[0]) 
+        except Exception as e:
+            print("error 3624", e)
+
+        try:
+            my_cursor = my_conn.cursor(buffered=True)
+            statement = "SELECT filiacion_cliente FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
+            values = (ordData[4],)
+            my_cursor.execute(statement, values)
+            cliente = my_cursor.fetchone()
+            #print(cliente)
+        except Exception as e:
+            print("error 3634", e)
+
+        wJ.frame = Frame(wJ)
+        wJ.frame.grid(rowspan=2, column=1, row=1)
+        wJ.tabla = ttk.Treeview(wJ.frame, height=1)
+        wJ.tabla.grid(column=1, row=1)
+
+        ladox = Scrollbar(wJ.frame, orient = VERTICAL, command= wJ.tabla.yview)
+        ladox.grid(column=0, row = 2, sticky='ew')
+        #ladox.pack(side ='right', fill ='x') 
+        ladoy = Scrollbar(wJ.frame, orient =HORIZONTAL, command = wJ.tabla.xview)
+        ladoy.grid(column = 1, row = 0, sticky='ns')
+        wJ.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+
+        wJ.tabla['columns'] = ('descripcion', 'responsable', 'fin', 'informe', 'pedido','cliente')
+        wJ.tabla.column('#0', minwidth=50, width=60, anchor='center')
+        wJ.tabla.column('descripcion', minwidth=100, width=450, anchor='center')
+        wJ.tabla.column('responsable', minwidth=80, width=100 , anchor='center')
+        wJ.tabla.column('fin', minwidth=100, width=100 , anchor='center')
+        wJ.tabla.column('informe', minwidth=100, width=250, anchor='center' )
+        wJ.tabla.column('pedido', minwidth=100, width=150 , anchor='center')
+        wJ.tabla.column('cliente', minwidth=100, width=200, anchor='center') 
+
+        # Titulo del número CENADIF y nombre (dependientes del modo)
+        if modo == 'T':
+            wJ.tabla.heading('#0', text='N° O/T', anchor ='e')
+        if modo == 'I':
+            wJ.tabla.heading('#0', text='N° O/I', anchor ='e')
+        
+        # Parte común a todos los modos
+        wJ.tabla.heading('descripcion', text='Descripción', anchor ='center')
+        wJ.tabla.heading('responsable', text='Responsable', anchor ='center')
+        wJ.tabla.heading('fin', text='Fecha fin', anchor ='center')
+        wJ.tabla.heading('informe', text='Informe', anchor ='center')
+        wJ.tabla.heading('pedido', text='Pedido', anchor ='center')
+        wJ.tabla.heading('cliente', text='Cliente', anchor ='center')
+
+        # muestra de los datos
+        wJ.tabla.insert('',index = ordData[2], iid=None, text = str(ordData[2]), values = [ordData[5], ordData[3], ordData[7], ordData[6], ordData[4], cliente,])
+
+        ### Tabla de muestras ########################################################
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM muestras WHERE ID_orden = %s" 
+            values = (ordData[0],)
+            my_cursor.execute(statement, values)
+            resultados = my_cursor.fetchall()
+            #print(resultados) 
+        except Exception as e:
+            print("error 3683", e)
+
+        wJ.frame2 = Frame(wJ)
+        wJ.frame2.grid(rowspan=2, column=1, row=2)
+        wJ.frame2.place(y=70)
+        wJ.tabla2 = ttk.Treeview(wJ.frame2, height=15)
+        wJ.tabla2.grid(column=1, row=1)
+
+        ladox2 = Scrollbar(wJ.frame2, orient = VERTICAL, command= wJ.tabla2.yview)
+        ladox2.grid(column=0, row = 1, sticky='ew') 
+        ladoy2 = Scrollbar(wJ.frame2, orient =HORIZONTAL, command = wJ.tabla2.xview)
+        ladoy2.grid(column = 1, row = 0, sticky='ns')
+
+        wJ.tabla2['columns'] = ('ID', 'corresp', 'observ', 'ingreso')
+        wJ.tabla2.column('#0', minwidth=50, width=60, anchor='w')
+        wJ.tabla2.column('ID', minwidth=100, width=150, anchor='center')
+        wJ.tabla2.column('corresp', minwidth=150, width=300 , anchor='center')
+        wJ.tabla2.column('observ', minwidth=100, width=650 , anchor='center')
+        wJ.tabla2.column('ingreso', minwidth=100, width=150, anchor='center' )
+
+        wJ.tabla2.heading('#0', text='Tipo', anchor ='center')
+        wJ.tabla2.heading('ID', text='ID muestra', anchor ='center')
+        wJ.tabla2.heading('corresp', text='Corresponde a', anchor ='center')
+        wJ.tabla2.heading('observ', text='Observaciones', anchor ='center')
+        wJ.tabla2.heading('ingreso', text='Ingresó', anchor ='center')
+        
+        try:
+            for fila in resultados:
+                #wJ.tabla2.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [fila[3], fila[2], fila[1], fila[5], fila[6], fila[6]])
+                wJ.tabla2.insert('',index = fila[0], iid=None, text = str(fila[5]), values = [fila[0], fila[3],fila[4], fila[2],])        
+        except:
+            print("error 4154")
+    
+    ## ALTURAS
+        F1 = 450
+       
+    ## PRIMER PISO ##########################
+
+    # Nombre de la tarea
+        LJ1 = Label(wJ, text = "Tarea")
+        LJ1.place(x=560, y=F1)
+
+        global EJ1
+        EJ1 = Entry(wJ)
+        EJ1.place(x=610, y=F1, width=500)
+
+    ## SEGUNDO PISO #########################
+        # Responsable
+        LJ3 = Label(wJ, text = "Tipo")
+        LJ3.place(x=20, y=F1)
+
+        list = userList()
+        global CJ3
+        CJ3 = ttk.Combobox(wJ, state="readonly", width = 17, values = list)
+        CJ3.place(x=80, y=F1)
+
+    # inicio
+        LJ4 = Label(wJ, text = "Corresponde a:")
+        LJ4.place(x=230, y=F1)
+
+        global EJ4
+        EJ4 = Entry(wJ)
+        EJ4.place(x=320, y=F1, width=230)
+
+    # Fin  
+        LJ5 = Label(wJ, text = "Fin")
+        LJ5.place(x=1150, y=F1)
+
+        global EJ5
+        EJ5 = Entry(wJ)
+        EJ5.place(x=1200, y=F1)
+
+    #   BOTONES #####################
+        H_bot = 550
+        # boton Precarga
+        #BJ4=Button(wJ, text="Seleccionar", width=12, command = lambda: B_selServ(modo))
+        BJ4=Button(wJ, text="Seleccionar", width=12)
+        BJ4.place(x=115, y=H_bot)
+
+        # boton Modificar
+        global BJ2
+        #BJ2=Button(wJ,text="Modificar", width=12, command = lambda: B_modServ(modo), state = DISABLED)
+        BJ2=Button(wJ,text="Modificar", width=12)
+        BJ2.place(x=245, y=H_bot)
+
+        # boton Eliminar
+        global BJ6
+        #"BJ6=Button(wJ, text="Eliminar", width=12, command = lambda: B_elimServ(modo))
+        BJ6=Button(wJ, text="Eliminar", width=12)
+        BJ6.place(x=375, y=H_bot)
+
+        # boton Nueva
+        #BJ3=Button(wJ, text="Nueva", width=12, command = lambda: B_nuevoServ(ordData[0], modo))
+        BJ3=Button(wJ, text="Nueva", width=12)
+        BJ3.place(x=505, y=H_bot)
+
+        # boton Volver
+        BJ5=Button(wJ, text="Volver", width=12, command=lambda: menuFrom(wJ))
+        BJ5.place(x=765, y=H_bot)
+
+        # boton Salir
+        BJ1=Button(wJ, text="Salir", width=12, command = w1.quit)
+        BJ1.place(x=895, y=H_bot)
+
+    else:
+        messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+
+
+
+main() 
