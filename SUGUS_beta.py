@@ -32,6 +32,8 @@ from matplotlib.figure import Figure
 # wG - Modificación de tareas
 # wH - Modificación de ordenes de laboratorio
 # wI - Modificación de ordenes de servicio
+# wJ - Modificación de muestras
+# wK - Ventana de ingreso se ordenes internos
 ###########################################################################
 def main():
     global my_conn
@@ -47,7 +49,7 @@ def main():
         print("error", e)
 
     refresh_conn(my_conn)
-    ######### MENU PRINCIPAL ################
+    ######### ventana de MENU PRINCIPAL ###############################################################################
     global w1
     w1=Tk()
     global photo
@@ -76,7 +78,10 @@ def main():
     B12=Button(w1,text="Ing. pedido", width=12, command = ingresar)
     B12.place(x=320, y=135)
     B12['state'] = DISABLED
-    #B12['state'] = NORMAL
+    global B1B
+    B1B=Button(w1,text="Ord.Int.Lab", width=12, command = V_oIntLab)
+    B1B.place(x=430, y=135)
+    B1B['state'] = DISABLED
     # Segundo piso
     L13 = Label(w1, text = "Asignación de trabajo")
     L13.place(x=75, y=185)
@@ -146,7 +151,7 @@ def main():
     B20.place(x=210, y=435)
     B20['state'] = DISABLED
     global B21
-    B21=Button(w1,text="Ord. Internas", width=12)
+    B21=Button(w1,text="Ord. Internas", width=12, command = lambda: V_modLab('I'))
     B21.place(x=320, y=435)
     B21['state'] = DISABLED
     # Octavo piso ######################
@@ -1256,7 +1261,7 @@ def privChange():
     w1.withdraw()
     global wA
     wA=Toplevel()
-    wA.geometry("500x560")
+    wA.geometry("500x600")
     wA.iconphoto(False, photo)
     wA.title("CENADIF Base de datos - Gestión de permisos")
     # Entry Usuario
@@ -1395,16 +1400,23 @@ def privChange():
     global CA15
     CA15=tk.Checkbutton(wA, variable = modPro, onvalue = 1, offvalue = 0)
     CA15.place(x=410, y=400)
-
+    # Modificar Proyectos
+    LA18 = Label(wA, text = "Orden int. Laboratorio")
+    LA18.place(x=50, y=440)
+    global OILab
+    OILab = IntVar()
+    global CA18
+    CA18=tk.Checkbutton(wA, variable = OILab, onvalue = 1, offvalue = 0)
+    CA18.place(x=190, y=440)
 
     # Boton Volver
     BA2=Button(wA,text="Volver", width=12, command = lambda: menuFrom(wA))
-    BA2.place(x=250, y=470)
+    BA2.place(x=250, y=510)
 
     # Boton 
     global BA3
     BA3=Button(wA,text="Modificar", width=12, command= modPriv, state = DISABLED)
-    BA3.place(x=360, y=470)
+    BA3.place(x=360, y=510)
 
     wA.focus_force()
 
@@ -2576,6 +2588,8 @@ def precUsu():
        CA14.select()
     if resultado[0] & 16384:
        CA15.select()
+    if resultado[0] & 32768:
+       CA18.select()
 
     BA3['state'] = NORMAL
 
@@ -2615,6 +2629,8 @@ def modPriv():
         privileges |= 8192
     if modPro.get() ==1:
         privileges |= 16384
+    if OILab.get() ==1:
+        privileges |= 32768
 
     refresh_conn(my_conn)
     try:
@@ -3066,10 +3082,8 @@ def verify():
             statement = "SELECT contraseña, rol, ID_usuarios FROM usuarios WHERE nombre_usuario = %s"
             my_cursor.execute(statement, (actualUser,))
             resultados = my_cursor.fetchone()
-
         except Exception as e:
             print("error", e)
-
         #aux = tuple([user, password])
         #print(aux)
         if  password == resultados[0]:
@@ -3104,6 +3118,8 @@ def verify():
                 B22['state'] = NORMAL
             if int(resultados[1]) & 4096:
                 B23['state'] = NORMAL
+            if int(resultados[1]) & 32768:
+                B1B['state'] = NORMAL
         else:
             messagebox.showinfo(message="Nombre de usuario y/o contraseña incorrectos.", title="Aviso del sistema")
         #print("FIN")        
@@ -3353,11 +3369,7 @@ def V_modLab(tipo):
     wH=Toplevel()
     wH.state("zoomed")
     wH.iconphoto(False, photo)
-    # Titulo de la ventana (dependiente de modo)
-    if tipo == 'T':
-        wH.title("CENADIF - Laboratorio - Ordenes de trabajo")
-    if tipo == 'I':
-        wF.title("CENADIF - Laboratorio - Ordenes internas") 
+
     wH.frame = Frame(wH)
     wH.frame.grid(rowspan=2, column=1, row=1)
     wH.tabla = ttk.Treeview(wH.frame, height=28)
@@ -3369,28 +3381,45 @@ def V_modLab(tipo):
     ladoy.grid(column = 1, row = 0, sticky='ns')
     wH.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
        
-    wH.tabla['columns'] = ('descripcion', 'responsable', 'fin', 'informe', 'pedido','cliente')
-    wH.tabla.column('#0', minwidth=50, width=60, anchor='center')
-    wH.tabla.column('descripcion', minwidth=100, width=450, anchor='center')
-    wH.tabla.column('responsable', minwidth=80, width=100 , anchor='center')
-    wH.tabla.column('fin', minwidth=100, width=100 , anchor='center')
-    wH.tabla.column('informe', minwidth=100, width=250, anchor='center' )
-    wH.tabla.column('pedido', minwidth=100, width=150 , anchor='center')
-    wH.tabla.column('cliente', minwidth=100, width=200, anchor='center')   
-
-       # Titulo del número CENADIF y nombre (dependientes del modo)
     if tipo == 'T':
+        wH.title("CENADIF - Laboratorio - Ordenes de trabajo")
+        wH.tabla['columns'] = ('descripcion', 'responsable', 'fin', 'informe', 'pedido','cliente')
+        wH.tabla.column('#0', minwidth=50, width=60, anchor='center')
+        wH.tabla.column('descripcion', minwidth=100, width=450, anchor='center')
+        wH.tabla.column('responsable', minwidth=80, width=100 , anchor='center')
+        wH.tabla.column('fin', minwidth=100, width=100 , anchor='center')
+        wH.tabla.column('informe', minwidth=100, width=250, anchor='center' )
+        wH.tabla.column('pedido', minwidth=100, width=150 , anchor='center')
+        wH.tabla.column('cliente', minwidth=100, width=200, anchor='center')   
+
+       # Titulos 
         wH.tabla.heading('#0', text='N° O/T', anchor ='e')
+        wH.tabla.heading('descripcion', text='Descripción', anchor ='center')
+        wH.tabla.heading('responsable', text='Responsable', anchor ='center')
+        wH.tabla.heading('fin', text='Fecha fin', anchor ='center')
+        wH.tabla.heading('informe', text='Informe', anchor ='center')
+        wH.tabla.heading('pedido', text='Pedido', anchor ='center')
+        wH.tabla.heading('cliente', text='Cliente', anchor ='center')
+ 
     if tipo == 'I':
+        wH.title("CENADIF - Laboratorio - Ordenes internas")
+        wH.tabla['columns'] = ('descripcion', 'solicitante', 'inicio', 'fin', 'informe', 'responsable')
+        wH.tabla.column('#0', minwidth=50, width=60, anchor='center')
+        wH.tabla.column('descripcion', minwidth=100, width=450, anchor='center')
+        wH.tabla.column('solicitante', minwidth=80, width=100 , anchor='center')
+        wH.tabla.column('inicio', minwidth=100, width=100 , anchor='center')
+        wH.tabla.column('fin', minwidth=100, width=250, anchor='center' )
+        wH.tabla.column('informe', minwidth=100, width=150 , anchor='center')
+        wH.tabla.column('responsable', minwidth=100, width=200, anchor='center')   
+
+       # Titulo
         wH.tabla.heading('#0', text='N° O/I', anchor ='e')
-    
-    # Parte común a todos los modos
-    wH.tabla.heading('descripcion', text='Descripción', anchor ='center')
-    wH.tabla.heading('responsable', text='Responsable', anchor ='center')
-    wH.tabla.heading('fin', text='Fecha fin', anchor ='center')
-    wH.tabla.heading('informe', text='Informe', anchor ='center')
-    wH.tabla.heading('pedido', text='Pedido', anchor ='center')
-    wH.tabla.heading('cliente', text='Cliente', anchor ='center')
+        wH.tabla.heading('descripcion', text='Descripción', anchor ='center')
+        wH.tabla.heading('solicitante', text='Solicitante', anchor ='center')
+        wH.tabla.heading('inicio', text='Fecha inicio', anchor ='center')
+        wH.tabla.heading('fin', text='Fecha fin ', anchor ='center')
+        wH.tabla.heading('informe', text='Informe', anchor ='center')
+        wH.tabla.heading('responsable', text='Responsable', anchor ='center')
 
     ## PRIMER PISO ##########################
     F1 = 650 # altura fila 1
@@ -3492,9 +3521,12 @@ def V_modLab(tipo):
             statement = "SELECT * FROM ordenes WHERE tipo = 'I'" # ordenes de trabajo
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
-            print(resultados) 
+            #print(resultados) 
         except Exception as e:
             print("error 3439)", e)
+    # muestra de los datos
+        for fila in resultados:
+            wH.tabla.insert('',index = fila[2], iid=None, text = str(fila[2]), values = [fila[5], fila[3], fila[7],fila[6], fila[4]])
     else:
         pass # To Do: insertar manejo de error de tipo 
 
@@ -3602,7 +3634,7 @@ def B_modOrden(modo):
         V_modLab(modo)
     else:
         messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
-
+############################################# Ventana de modificación de ordenes de servicio #######################################################
 def V_modServ(modo):
     curItem = wH.tabla.focus()
     numOrd = wH.tabla.item(curItem).get('text')
@@ -4034,7 +4066,7 @@ def B_nuevoServ(orden, modo):
         print("error", e)
     wI.destroy() 
     V_modServ(modo)
-
+##########################################################################################################################################
 def V_modMue(modo):
     curItem = wH.tabla.focus()
     numOrd = wH.tabla.item(curItem).get('text')
@@ -4155,20 +4187,20 @@ def V_modMue(modo):
        
     ## PRIMER PISO ##########################
 
-    # Nombre de la tarea
-        LJ1 = Label(wJ, text = "Tarea")
+    # Observaciones
+        LJ1 = Label(wJ, text = "Observaciones")
         LJ1.place(x=560, y=F1)
 
         global EJ1
         EJ1 = Entry(wJ)
-        EJ1.place(x=610, y=F1, width=500)
+        EJ1.place(x=650, y=F1, width=500)
 
     ## SEGUNDO PISO #########################
         # Responsable
         LJ3 = Label(wJ, text = "Tipo")
         LJ3.place(x=20, y=F1)
 
-        list = userList()
+        list = ['MC', 'MP', 'MR', 'ML', 'MG', 'MM']
         global CJ3
         CJ3 = ttk.Combobox(wJ, state="readonly", width = 17, values = list)
         CJ3.place(x=80, y=F1)
@@ -4181,8 +4213,8 @@ def V_modMue(modo):
         EJ4 = Entry(wJ)
         EJ4.place(x=320, y=F1, width=230)
 
-    # Fin  
-        LJ5 = Label(wJ, text = "Fin")
+    # Fecha ingreso 
+        LJ5 = Label(wJ, text = "Ingresó")
         LJ5.place(x=1150, y=F1)
 
         global EJ5
@@ -4192,25 +4224,23 @@ def V_modMue(modo):
     #   BOTONES #####################
         H_bot = 550
         # boton Precarga
-        #BJ4=Button(wJ, text="Seleccionar", width=12, command = lambda: B_selServ(modo))
-        BJ4=Button(wJ, text="Seleccionar", width=12)
+        BJ4=Button(wJ, text="Seleccionar", width=12, command = lambda: B_selMue())
+        #BJ4=Button(wJ, text="Seleccionar", width=12)
         BJ4.place(x=115, y=H_bot)
 
         # boton Modificar
         global BJ2
-        #BJ2=Button(wJ,text="Modificar", width=12, command = lambda: B_modServ(modo), state = DISABLED)
-        BJ2=Button(wJ,text="Modificar", width=12)
+        BJ2=Button(wJ,text="Modificar", width=12, command = lambda: B_modMue(modo), state = DISABLED)
+        #BJ2=Button(wJ,text="Modificar", width=12)
         BJ2.place(x=245, y=H_bot)
 
         # boton Eliminar
         global BJ6
-        #"BJ6=Button(wJ, text="Eliminar", width=12, command = lambda: B_elimServ(modo))
-        BJ6=Button(wJ, text="Eliminar", width=12)
+        BJ6=Button(wJ, text="Eliminar", width=12, command = lambda: B_elimMue(modo))
         BJ6.place(x=375, y=H_bot)
 
         # boton Nueva
-        #BJ3=Button(wJ, text="Nueva", width=12, command = lambda: B_nuevoServ(ordData[0], modo))
-        BJ3=Button(wJ, text="Nueva", width=12)
+        BJ3=Button(wJ, text="Nueva", width=12, command = lambda: B_nuevaMue(modo, ordData[0]))
         BJ3.place(x=505, y=H_bot)
 
         # boton Volver
@@ -4223,7 +4253,226 @@ def V_modMue(modo):
 
     else:
         messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+################## Boton de selección de muestra #############################################################################
+def B_selMue():
+    curItem = wJ.tabla2.focus()
+    numMue = wJ.tabla2.item(curItem).get('values')
+    if len(numMue)!=0:
+        refresh_conn(my_conn)
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM muestras WHERE ID_muestra = %s"
+            values = (numMue[0],) 
+            my_cursor.execute(statement, values)
+            resultado = my_cursor.fetchone()
+            #print(resultado[5])
+        except Exception as e:
+            print("error", e)
+            # Precarga de los entry
+        CJ3.set('')                     # Tipo
+        if resultado[5] is not None:
+            CJ3.set( resultado[5])
+        EJ1.delete(0, END)              # Observaciones
+        if resultado[4] is not None:
+            EJ1.insert(0, resultado[4])
+        EJ4.delete(0, END)              # Correspondencia
+        if resultado[3] is not None:
+            EJ4.insert(0, resultado[3])
+        EJ5.delete(0, END)              # fecha de ingreso
+        if resultado[2] is not None:
+            EJ5.insert(0, resultado[2])
+        BJ2['state'] = NORMAL # habilitación del botón Modificar
+    else:
+        messagebox.showinfo(message="Seleccione una muestra.", title="Aviso del sistema")
+
+############################### Función del botón Modificar muestra ############################################
+def B_modMue(modo):
+    curItem = wJ.tabla2.focus()
+    numMue = wJ.tabla2.item(curItem).get('values')
+    if len(numMue)!=0:
+        refresh_conn(my_conn)
+        ######### Actualización del tipo de muestra
+        tipoMue = CJ3.get()
+        if len(tipoMue) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE muestras SET tipo = %s WHERE ID_muestra = %s"
+                val = (tipoMue, numMue[0])
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de observaciones
+        obsMue = EJ1.get()
+        if len(obsMue) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE muestras SET observaciones = %s WHERE ID_muestra = %s"
+                val = (obsMue, numMue[0])
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de correspondencia
+        corMue = EJ4.get()
+        if len(corMue) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE muestras SET correspondencia = %s WHERE ID_muestra = %s"
+                val = (corMue, numMue[0])
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de fecha de ingreso
+        fechaMue = EJ5.get()
+        if len(fechaMue) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE muestras SET ingreso = %s WHERE ID_muestra = %s"
+                val = (fechaMue, numMue[0])
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+                ############ Refresco de la ventana
+        wJ.destroy() 
+        V_modMue(modo)
+    else:
+        messagebox.showinfo(message="Seleccione una muestra.", title="Aviso del sistema")
+
+############################### Función del botón Nueva muestra ############################################
+def B_nuevaMue(modo, orden):
+    refresh_conn(my_conn)
+    try:
+        my_cursor = my_conn.cursor()
+        #statement = "INSERT INTO muestras SET tipo = 'XX', observaciones = 'Nueva muestra', ID_orden = %s"
+        statement = "INSERT INTO muestras (ID_orden, tipo, observaciones) VALUES(%s, %s, %s)"
+        val = (orden, 'XX', 'Nueva muestra')
+        my_cursor.execute(statement,val)
+        my_conn.commit()
+    except Exception as e:
+        print("error", e)
+    wJ.destroy() 
+    V_modMue(modo)
+############################### Función del botón Eliminar muestra  #############################################
+def B_elimMue(modo):
+    curItem = wJ.tabla2.focus()
+    numMue = wJ.tabla2.item(curItem).get('values')
+    if len(numMue)!=0:
+        if (messagebox.askokcancel(message="Eliminar muestra?", title="Confirmación de acción")):
+            refresh_conn(my_conn)
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "DELETE FROM muestras WHERE ID_muestra = %s"
+                val = (numMue[0],)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+            wJ.destroy() 
+            V_modMue(modo)
+########################## Función de ingreso de orden interna de lab ###########################################################
+def V_oIntLab():
+    w1.withdraw()
+    #print("Ingresando...")
+    global wK
+    wK=Toplevel()
+    wK.iconphoto(False, photo)
+    wK.geometry("500x650")
+    wK.title("CENADIF - Base de datos")
+
+    LK1 = Label(wK, text = "Ingreso de O/I")
+    LK1.place(x=210, y=25)
+    '''
+    # Fecha de ingreso
+    L42 = Label(w4, text = "Fecha de ingreso: ")
+    L42.place(x=25, y=75)
+    
+
+    global E41
+    E41 = Entry(w4)
+    E41.place(x=125, y=75)
+    E41.insert(0, date.today()) 
+
+    L46 = Label(w4, text = "(Formato: AAAA-MM-DD)")
+    L46.place(x=275, y=75)
+    
+    # Cliente
+
+    L43 = Label(w4, text = "Nombre cliente: ")
+    L43.place(x=25, y=125)
+
+    global E42
+    E42 = Entry(w4,width = 25)
+    E42.place(x=125, y=125)
+
+    
+    # Filiación
+    L44 = Label(w4, text = "Área cliente: ")
+    L44.place(x=25, y=175)
+
+    global E43
+    E43 = Entry(w4,width = 25)
+    E43.place(x=125, y=175)
+    
+    # Correo
+
+    L48 = Label(w4, text = "Correo: ")
+    L48.place(x=25, y=225)
+
+    global E48
+    E48 = Entry(w4, width = 25)
+    E48.place(x=125, y=225)
 
 
+    # Teléfono
+
+    L49 = Label(w4, text = "Teléfono: ")
+    L49.place(x=25, y=275)
+
+    global E49
+    E49 = Entry(w4, width = 25)
+    E49.place(x=125, y=275)
+
+    # Asunto
+
+    L45 = Label(w4, text = "Asunto: ")
+    L45.place(x=25, y=325)
+
+    global E44
+    E44 = Entry(w4, width = 56)
+    E44.place(x=125, y=325)
+
+    # Descripción
+
+    L45 = Label(w4, text = "Descripción: ")
+    L45.place(x=25, y=375)
+
+    global T41
+    T41 = Text(w4, width = 42, height = 8)
+    T41.place(x=125, y=375)
+
+     # Ingresó
+
+    L47 = Label(w4, text = "Ingresó: ")
+    L47.place(x=25, y=530)
+
+    global E45
+    E45 = Entry(w4, width = 25)
+    E45.place(x=125, y=530)
+    E45.insert(0, actualUser)
+    '''
+        # boton Volver
+    BK1=Button(wK,text="Volver", command = lambda: menuFrom(wK))
+    BK1.place(x=125, y=580)
+    '''
+        # boton Ingresar
+    B42=Button(w4,text="Ingresar", command=ingresar_pedido)
+    B42.place(x=400, y=580)
+
+    w4.after(1, lambda: w4.focus_force())
+    '''
+################################################################################################
 
 main() 
