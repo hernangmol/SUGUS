@@ -1226,14 +1226,6 @@ def addUser():
     E65 = Entry(w6)
     E65.place(x=155, y=275)
 
-         # fecha de ingreso
-#    L67 = Label(w6, text = "Fecha ingreso: ")
-#    L67.place(x=25, y=325)
-
-#    global E67
-#    E67 = Entry(w6)
-#    E67.place(x=135, y=325)
-
     # Perfil
     L68 = Label(w6, text = "Perfil: ")
     L68.place(x=25, y=325)
@@ -1556,6 +1548,8 @@ def menuFrom(window):
 ########################################################################################################
 def ingresar_pedido():
     fechaIng = E41.get()
+    if date_check(fechaIng) == False:
+        return
     cliente = E42.get()
     filiacion = E43.get()
     asunto = E44.get()
@@ -1603,6 +1597,8 @@ def B_assign():
     if len(idSol) != 0:
         tipoSal = C70.get()
         fechaSal = E73.get()
+        if date_check(fechaSal) == False:
+            return
         descripcion = T71.get("1.0",'end-1c')
         responsable = C74.get()
 
@@ -1712,12 +1708,31 @@ def B_assign():
                 messagebox.showinfo(message="Pedido asignado al área de Asistencias técnicas.", title="Aviso del sistema")
                 menuFrom(w7)
 
-            elif tipoSal == 'Laboratorio': 
+            elif tipoSal == 'Laboratorio':
+                try:
+                    my_cursor = my_conn.cursor()
+                    statement = "SELECT numero_cdf FROM ordenes WHERE tipo = 'T'"
+                    my_cursor.execute(statement)
+                    num_OT = my_cursor.fetchall()
+                    #print(num_OI)
+                except Exception as e:
+                    print("error 1725", e)
+
+                max = 0
+                for n in num_OT:
+                    if n[0] > max:
+                        max = n[0]
+                if max < 10000:
+                    max = 10000
+                elif max >= 10000:
+                    max += 1
+                else:
+                    pass # To Do manejo de error 
                 # crea entrada tabla ordenes
                 try:    
                     my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO ordenes (ID_solicitud, tipo, numero_cdf)
-                        VALUES('{}', '{}','0')'''.format(idSol, 'T' )
+                        VALUES('{}', '{}','{}')'''.format(idSol, 'T', max )
                     my_cursor.execute(statement)
                     my_conn.commit() 
 
@@ -1772,6 +1787,8 @@ def B_modDoc():
     fuente = C82.get()
     emisor = E87.get()
     fechaRes = E88.get()
+    if date_check(fechaRes) == False:
+        return
     cantDoc = E89.get()
     respo = E8A.get()
     precio = E8D.get()
@@ -2022,59 +2039,6 @@ def B_selProy(modo):
         except Exception as e:
             print("error 890", e)
     else:
-#        numPro = EF1.get()
-#        if len(numPro) != 0 :
-#            if modo == 'proy' or modo == 'proy_c':
-#                area = 'Proyectos'
-#            elif modo == 'des':
-#                area = 'Desarrollos'
-#            elif modo == 'ate':
-#                area = 'Asistencias'
-#            else:
-#                pass # manejo de error de modo
-#            try:
-#                my_cursor = my_conn.cursor()
-#                statement = "SELECT * FROM proyectos WHERE numero_CDF = %s and area = %s"
-#                values = (numPro, area)  # aux[5] es el ID_solicitud
-#                my_cursor.execute(statement, values)
-#                resultado = my_cursor.fetchone()
-
-#                gantt(resultado[0], wF)
-                # Precarga de los entry
-#                EF1.delete(0, END)              # N° Proy
-#                if resultado[7] is not None:
-#                    EF1.insert(0, resultado[7])
-#                CFB.set('')                      # Responsable
-#                if resultado[1] is not None:
-#                    CFB.set(resultado[1])
-#                EF4.delete(0, END)              # nombre de proyecto
-#                if resultado[3] is not None:
-#                    EF4.insert(0, resultado[3]) 
-#                CF9.set('')                       # estado
-#                if resultado[5] is not None:
-#                    CF9.set(resultado[5]) 
-#                CF8.set('')                      # alcance
-#                if resultado[6] is not None: 
-#                    CF8.set(resultado[6])
-#                if modo == 'des':
-#                    CFC.set('')                   # prioridad
-#                    if resultado[9] is not None:
-#                        CFC.set(resultado[9])
-#                    EFD.delete(0, END)              # clasificación
-#                    if resultado[10] is not None:
-#                        EFD.insert(0, resultado[10]) 
-#                    EFE.delete(0, END)              # NUM
-#                    if resultado[11] is not None:
-#                        EFE.insert(0, resultado[11]) 
-#                TF1.delete("1.0","end")         # descripción
-#                if resultado[4] is not None:
-#                    TF1.insert("1.0", resultado[4])
-                # habilitar botón modificar 
-#                if modo != 'proy_c' and modo != 'des_c' and modo != 'ate_c':
-#                    BF2['state'] = NORMAL 
-#            except Exception as e:
-#                print("error 2026", e)
-#        else:     
         if modo == 'proy':
             messagebox.showinfo(message="Seleccione un proyecto.", title="Aviso del sistema")
         if modo == 'des':
@@ -3170,10 +3134,8 @@ def V_estad():
     wC.title("CENADIF Base de datos - Estadísticas del sistema")
     # datos para gráficos #################
         # Gráfico 1 - pedidos
-    #areas = ["Documentación","Proyectos","Desarrollos","Asistencias","Laboratorio"]  # descomentar para agregar Laboratorio
-    #pedidos = [0, 0, 0, 0, 0]                                                        # descomentar para agregar Laboratorio
-    areas = ["Documentación","Proyectos","Desarrollos","Asistencias"]
-    pedidos = [0, 0, 0, 0]
+    areas = ["Documentación","Proyectos","Desarrollos","Asistencias","Laboratorio"]  
+    pedidos = [0, 0, 0, 0, 0]                                                       
     
     refresh_conn(my_conn)
     try:
@@ -3187,14 +3149,19 @@ def V_estad():
             values = (areas[i],) 
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchall()
+            #print(resultado)
             pedidos[i] = resultado[0][0]
-
+        statement = "SELECT COUNT(*) AS count FROM ordenes;"
+        my_cursor.execute(statement,)
+        resultado = my_cursor.fetchall()
+        pedidos[4] = resultado[0][0]
+        #print(pedidos)
     except Exception as e:
-        print("error 3135", e)
-    
+        print("error 3157", e)
+ 
     total = sum(pedidos)
-    # colors = ['violet', 'blue', 'yellowgreen', 'gold', 'red']      # descomentar para agregar Laboratorio
-    colors = ['violet', 'blue', 'yellowgreen', 'gold']
+    colors = ['violet', 'blue', 'yellowgreen', 'gold', 'red'] 
+ 
     # Gráfico 2.1 - Desarrollos
     desarrollos = [0, 0, 0, 0]
     P_estados = ["Abiertos","Finalizados","Cancelados","Pausados"]
@@ -3236,6 +3203,20 @@ def V_estad():
             proyectos[i] = resultado[0][0]
         except Exception as e:
             print("error 3169", e)
+    # Gráfico 2.4
+    laboratorio = [0, 0]
+    L_colors = ['red', 'darkred']
+    lab_tipos = ['T', 'I']
+    for i in range(2):
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT COUNT(*) AS count FROM ordenes where tipo = %s;"
+            values = (lab_tipos[i],) 
+            my_cursor.execute(statement,values)
+            resultado = my_cursor.fetchall()
+            laboratorio[i] = resultado[0][0]
+        except Exception as e:
+            print("error 3169", e)
     # gráficos ###########################
     fig1 = plt.figure() # create a figure object
     fig1.tight_layout(h_pad=3, w_pad=3)
@@ -3252,6 +3233,9 @@ def V_estad():
     ax4 = fig1.add_subplot(235) # add an Axes to the figure
     ax4.pie(proyectos, labels=P_estados, colors=P_colors, autopct='%1.1f%%')
     ax4.set_title('Proyectos')
+    ax5 = fig1.add_subplot(236) # add an Axes to the figure
+    ax5.pie(laboratorio, labels=lab_tipos, colors=L_colors, autopct='%1.1f%%')
+    ax5.set_title('Laboratorio')
 
     chart1 = FigureCanvasTkAgg(fig1,wC)
     chart1.get_tk_widget().pack(fill=BOTH, expand=TRUE)
@@ -3372,7 +3356,7 @@ def V_modLab(tipo):
 
     wH.frame = Frame(wH)
     wH.frame.grid(rowspan=2, column=1, row=1)
-    wH.tabla = ttk.Treeview(wH.frame, height=28)
+    wH.tabla = ttk.Treeview(wH.frame, height=23)
     wH.tabla.grid(column=1, row=1)
 
     ladox = Scrollbar(wH.frame, orient = VERTICAL, command= wH.tabla.yview)
@@ -3405,11 +3389,11 @@ def V_modLab(tipo):
         wH.title("CENADIF - Laboratorio - Ordenes internas")
         wH.tabla['columns'] = ('descripcion', 'solicitante', 'inicio', 'fin', 'informe', 'responsable')
         wH.tabla.column('#0', minwidth=50, width=60, anchor='center')
-        wH.tabla.column('descripcion', minwidth=100, width=450, anchor='center')
+        wH.tabla.column('descripcion', minwidth=100, width=550, anchor='center')
         wH.tabla.column('solicitante', minwidth=80, width=100 , anchor='center')
         wH.tabla.column('inicio', minwidth=100, width=100 , anchor='center')
-        wH.tabla.column('fin', minwidth=100, width=250, anchor='center' )
-        wH.tabla.column('informe', minwidth=100, width=150 , anchor='center')
+        wH.tabla.column('fin', minwidth=100, width=100, anchor='center' )
+        wH.tabla.column('informe', minwidth=100, width=200 , anchor='center')
         wH.tabla.column('responsable', minwidth=100, width=200, anchor='center')   
 
        # Titulo
@@ -3422,10 +3406,15 @@ def V_modLab(tipo):
         wH.tabla.heading('responsable', text='Responsable', anchor ='center')
 
     ## PRIMER PISO ##########################
-    F1 = 650 # altura fila 1
-   
+    F1 = 550 # altura fila 1
+    F2 = 620
     # N° O/T:
-    LH6 = Label(wH, text = "N° O/T:")
+    if tipo =='T':
+        LH6 = Label(wH, text = "N° O/T:")
+    elif tipo =='I':
+        LH6 = Label(wH, text = "N° O/I:")
+    else:
+        pass # To Do: manejo de error de tipo
     LH6.place(x=20, y=F1)
 
     global EH6
@@ -3442,28 +3431,38 @@ def V_modLab(tipo):
 
     # Responsable
     LH3 = Label(wH, text = "Responsable")
-    LH3.place(x=670, y=F1)
+    LH3.place(x=20, y=F2)
 
     list = userList()
     global CH3
     CH3 = ttk.Combobox(wH, state="readonly", width = 17, values = list)
-    CH3.place(x=760, y=F1)
+    CH3.place(x=110, y=F2)
 
 # Fin  
     LH5 = Label(wH, text = "Fin")
-    LH5.place(x=920, y=F1)
+    LH5.place(x=270, y=F2)
 
     global EH5
     EH5 = Entry(wH)
-    EH5.place(x=970, y=F1)
+    EH5.place(x=320, y=F2)
 
 # Informe
     LH4 = Label(wH, text = "Informe")
-    LH4.place(x=1120, y=F1)
+    LH4.place(x=470, y=F2)
 
     global EH4
     EH4 = Entry(wH)
-    EH4.place(x=1170, y=F1)
+    EH4.place(x=520, y=F2)
+
+    ##################################################### 
+    # Descripción (ATE)
+    LH7 = Label(wH, text = "Observaciones: ")
+    LH7.place(x=700, y=F1)
+
+    global TH1
+    TH1 = Text(wH, width = 61, height = 7)
+    TH1.place(x=790, y=F1)
+    
 
     #   BOTONES #####################
     # boton Precarga
@@ -3514,11 +3513,11 @@ def V_modLab(tipo):
             except Exception as e:
                 print("error 3435", e)
     # muestra de los datos
-            wH.tabla.insert('',index = fila[2], iid=None, text = str(fila[2]), values = [fila[5], fila[3], fila[7],fila[6], fila[4], cliente,])
+            wH.tabla.insert('',index = fila[2], iid=None, text = str(fila[2]), values = [fila[4], fila[3], fila[6],fila[5], fila[8], cliente,])
     elif tipo == 'I':    
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM ordenes WHERE tipo = 'I'" # ordenes de trabajo
+            statement = "SELECT * FROM ordenes WHERE tipo = 'I'" # ordenes internas
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
             #print(resultados) 
@@ -3526,7 +3525,7 @@ def V_modLab(tipo):
             print("error 3439)", e)
     # muestra de los datos
         for fila in resultados:
-            wH.tabla.insert('',index = fila[2], iid=None, text = str(fila[2]), values = [fila[5], fila[3], fila[7],fila[6], fila[4]])
+            wH.tabla.insert('',index = fila[0], iid=None, text = str(fila[2]), values = [fila[4], fila[9], fila[10], fila[6], fila[5], fila[3]])    
     else:
         pass # To Do: insertar manejo de error de tipo 
 
@@ -3534,7 +3533,6 @@ def B_selecOrden(modo):
     curItem = wH.tabla.focus()
     numOrd = wH.tabla.item(curItem).get('text')
     if len(numOrd)!=0:
-        #print(numOrd)
         refresh_conn(my_conn)
         try:
             my_cursor = my_conn.cursor()
@@ -3545,23 +3543,25 @@ def B_selecOrden(modo):
             #print(resultado)
         except Exception as e:
             print("error", e)
-            
-        # Precarga de los entry
+            # Precarga de los entry
         EH6.delete(0, END)              # Numero de orden
         if resultado[2] is not None:
             EH6.insert(0, resultado[2])
         EH1.delete(0, END)              # Descripción
-        if resultado[5] is not None:
-            EH1.insert(0, resultado[5])
+        if resultado[4] is not None:
+            EH1.insert(0, resultado[4])
         CH3.set('')                     # Responsable
         if resultado[3] is not None:
             CH3.set( resultado[3])
         EH5.delete(0, END)              # Fecha finalización
-        if resultado[7] is not None:
-            EH5.insert(0, resultado[7])
-        EH4.delete(0, END)              # Informe
         if resultado[6] is not None:
-            EH4.insert(0, resultado[6])
+            EH5.insert(0, resultado[6])
+        EH4.delete(0, END)              # Informe
+        if resultado[5] is not None:
+            EH4.insert(0, resultado[5])
+        TH1.delete("1.0","end")         # Observaciones
+        if resultado[7] is not None:
+            TH1.insert("1.0", resultado[7])
         BH2['state'] = NORMAL           # habilitación del botón Modificar
             #####################################################################     
                      
@@ -3625,6 +3625,17 @@ def B_modOrden(modo):
                 my_cursor = my_conn.cursor()
                 statement = "UPDATE ordenes SET informe = %s WHERE tipo = %s and numero_cdf = %s"
                 val = (infor, modo, numOrd)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error", e)
+        ######### Actualización de observaciones
+        observ = TH1.get("1.0",'end-1c')
+        if len(observ) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE ordenes SET observaciones = %s WHERE tipo =%s and numero_cdf = %s"
+                val = (observ, modo, numOrd)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
             except Exception as e:
@@ -3971,7 +3982,7 @@ def B_modServ(modo): # se puede sacar MODO?????? NOOOO
                 print("error", e)
         ######### Actualización de las horas
         horasServ = EI7.get()
-        if len(finServ) != 0:
+        if len(horasServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
                 statement = "UPDATE servicios SET horas = %s WHERE ID_servicio = %s"
@@ -3993,7 +4004,7 @@ def B_modServ(modo): # se puede sacar MODO?????? NOOOO
                 print("error", e)
         ######### Actualización del tipo
         tipoServ = CI2.get()
-        if len(operServ) != 0:
+        if len(tipoServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
                 statement = "UPDATE servicios SET tipo = %s WHERE ID_servicio = %s"
@@ -4015,7 +4026,7 @@ def B_modServ(modo): # se puede sacar MODO?????? NOOOO
                 print("error", e)
         ######### Actualización del equipamiento
         obsServ = TI1.get("1.0",'end-1c')
-        if len(equipServ) != 0:
+        if len(obsServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
                 statement = "UPDATE servicios SET observaciones = %s WHERE ID_servicio = %s"
@@ -4379,100 +4390,119 @@ def V_oIntLab():
     global wK
     wK=Toplevel()
     wK.iconphoto(False, photo)
-    wK.geometry("500x650")
+    wK.geometry("500x450")
     wK.title("CENADIF - Base de datos")
 
-    LK1 = Label(wK, text = "Ingreso de O/I")
-    LK1.place(x=210, y=25)
-    '''
-    # Fecha de ingreso
-    L42 = Label(w4, text = "Fecha de ingreso: ")
-    L42.place(x=25, y=75)
-    
+    LK1 = Label(wK, text = "Ingreso de O/I - Laboratorio")
+    LK1.place(x=190, y=25)
+   
+    F1 = 80
+    F2 = 200
+    F3 = 280
+    F4 = 380
+    C1 = 20
+    C2 = 100
 
-    global E41
-    E41 = Entry(w4)
-    E41.place(x=125, y=75)
-    E41.insert(0, date.today()) 
+# Observaciones
+    LK2 = Label(wK, text = "Descripción")
+    LK2.place(x=C1, y=F1)
 
-    L46 = Label(w4, text = "(Formato: AAAA-MM-DD)")
-    L46.place(x=275, y=75)
-    
-    # Cliente
+    global TK2
+    TK2 = Text(wK, width = 42, height = 4)
+    TK2.place(x= C2, y=F1)
 
-    L43 = Label(w4, text = "Nombre cliente: ")
-    L43.place(x=25, y=125)
+## SEGUNDO PISO #########################
+    # Responsable
+    LK3 = Label(wK, text = "Solicitante")
+    LK3.place(x=C1, y=F2)
 
-    global E42
-    E42 = Entry(w4,width = 25)
-    E42.place(x=125, y=125)
+    list = userList()
+    global CK3
+    CK3 = ttk.Combobox(wK, state="readonly", width = 17, values = list)
+    CK3.place(x=C2, y=F2)
 
-    
-    # Filiación
-    L44 = Label(w4, text = "Área cliente: ")
-    L44.place(x=25, y=175)
+# inicio
+    LK4 = Label(wK, text = "Fecha")
+    LK4.place(x=C1, y=F3)
 
-    global E43
-    E43 = Entry(w4,width = 25)
-    E43.place(x=125, y=175)
-    
-    # Correo
-
-    L48 = Label(w4, text = "Correo: ")
-    L48.place(x=25, y=225)
-
-    global E48
-    E48 = Entry(w4, width = 25)
-    E48.place(x=125, y=225)
-
-
-    # Teléfono
-
-    L49 = Label(w4, text = "Teléfono: ")
-    L49.place(x=25, y=275)
-
-    global E49
-    E49 = Entry(w4, width = 25)
-    E49.place(x=125, y=275)
-
-    # Asunto
-
-    L45 = Label(w4, text = "Asunto: ")
-    L45.place(x=25, y=325)
-
-    global E44
-    E44 = Entry(w4, width = 56)
-    E44.place(x=125, y=325)
-
-    # Descripción
-
-    L45 = Label(w4, text = "Descripción: ")
-    L45.place(x=25, y=375)
-
-    global T41
-    T41 = Text(w4, width = 42, height = 8)
-    T41.place(x=125, y=375)
-
-     # Ingresó
-
-    L47 = Label(w4, text = "Ingresó: ")
-    L47.place(x=25, y=530)
-
-    global E45
-    E45 = Entry(w4, width = 25)
-    E45.place(x=125, y=530)
-    E45.insert(0, actualUser)
-    '''
-        # boton Volver
+    global EK4
+    EK4 = Entry(wK)
+    EK4.place(x=C2, y=F3)
+# BOTONES #########################################################
+    # boton Volver
     BK1=Button(wK,text="Volver", command = lambda: menuFrom(wK))
-    BK1.place(x=125, y=580)
-    '''
-        # boton Ingresar
-    B42=Button(w4,text="Ingresar", command=ingresar_pedido)
-    B42.place(x=400, y=580)
+    BK1.place(x=125, y=F4)
+    
+     # boton Ingresar
+    BK2=Button(wK,text="Ingresar", command=ingresar_oInt)
+    #BK2=Button(wK,text="Ingresar")
+    BK2.place(x=325, y=F4)
 
-    w4.after(1, lambda: w4.focus_force())
-    '''
-################################################################################################
+    wK.after(1, lambda: wK.focus_force())
+    
+##################################### Chequeo de  formato de fecha ###########################################################
+def date_check(date_req):
+    try:
+        year, month, day = date_req.split('-')
+        year = year # To Do insertar chequeo de formato de año
+        month = month # To Do insertar chequeo de formato de mes
+        day = day # To Do insertar chequeo de formato de día
+        return True
+
+    except:
+        if (messagebox.showinfo(message="Formato de fecha invalido \n Utilizar AAAA-MM-DD (ISO 8601)", title="Aviso del sistema")):
+            return False
+        
+########################### Boton ingresar orden interna ###############################################################         
+def ingresar_oInt():
+    # chequeo de descripción
+    desc = TK2.get("1.0",'end-1c')
+    if len(desc) == 0:
+        if (messagebox.showinfo(message="El campo Descripción no puede quedar vacío.", title="Aviso del sistema")):
+            return
+    # chequeo de solicitante
+    solic = CK3.get()
+    if len(solic) == 0:
+        if (messagebox.showinfo(message="El campo Solicitante no puede quedar vacío.", title="Aviso del sistema")):
+            return
+    # chequeo de fecha
+    fecha = EK4.get()
+    if date_check(fecha) == False:
+        return
+    # update de BDNP
+    refresh_conn(my_conn)
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "SELECT numero_cdf FROM ordenes WHERE tipo = 'I'"
+        #val = ('I')
+        #my_cursor.execute(statement,val)
+        my_cursor.execute(statement)
+        num_OI = my_cursor.fetchall()
+        #print(num_OI)
+    except Exception as e:
+        print("error 4497", e)
+
+    max = 0
+    for n in num_OI:
+        if n[0] > max:
+            max = n[0]
+    if max < 10000:
+        max = 10000
+    elif max >= 10000:
+        max += 1
+    else:
+        pass # To Do manejo de error
+
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "INSERT INTO ordenes (tipo, descripcion, solicitante, fecha_inicio, numero_cdf) VALUES(%s, %s, %s, %s, %s )"
+        val = ('I', desc, solic, fecha, max)
+        my_cursor.execute(statement,val)
+        my_conn.commit()
+    except Exception as e:
+        print("error 4506", e)
+    wK.destroy() 
+    V_modLab('I')
+########################################################################################################################
 
 main() 
