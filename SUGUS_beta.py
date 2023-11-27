@@ -3207,6 +3207,7 @@ def V_estad():
     laboratorio = [0, 0]
     L_colors = ['red', 'darkred']
     lab_tipos = ['T', 'I']
+    lab_labels = ['Ord.Trab', 'Ord.Int']
     for i in range(2):
         try:
             my_cursor = my_conn.cursor()
@@ -3233,9 +3234,10 @@ def V_estad():
     ax4 = fig1.add_subplot(235) # add an Axes to the figure
     ax4.pie(proyectos, labels=P_estados, colors=P_colors, autopct='%1.1f%%')
     ax4.set_title('Proyectos')
-    ax5 = fig1.add_subplot(236) # add an Axes to the figure
-    ax5.pie(laboratorio, labels=lab_tipos, colors=L_colors, autopct='%1.1f%%')
-    ax5.set_title('Laboratorio')
+    if pedidos[4] != 0:
+        ax5 = fig1.add_subplot(236) # add an Axes to the figure
+        ax5.pie(laboratorio, labels=lab_labels, colors=L_colors, autopct='%1.1f%%')
+        ax5.set_title('Laboratorio')
 
     chart1 = FigureCanvasTkAgg(fig1,wC)
     chart1.get_tk_widget().pack(fill=BOTH, expand=TRUE)
