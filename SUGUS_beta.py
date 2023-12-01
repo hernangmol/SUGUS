@@ -3073,11 +3073,11 @@ def verify():
             if int(resultados[1]) & 128:
                 B18['state'] = NORMAL
             if int(resultados[1]) & 256:
-                B19['state'] = NORMAL
+                B19['state'] = NORMAL # Asistencias activas
             if int(resultados[1]) & 1024:
-                B20['state'] = NORMAL
+                B20['state'] = NORMAL # ord. de trabajo de lab
             if int(resultados[1]) & 2048:
-                B21['state'] = NORMAL
+                B21['state'] = NORMAL # ord. internas de lab
             if int(resultados[1]) & 4096:
                 B22['state'] = NORMAL
             if int(resultados[1]) & 4096:
