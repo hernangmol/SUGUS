@@ -40,8 +40,8 @@ def main():
     try:
         my_conn = mysql.connector.connect(host = '192.168.100.105',
                                         port = 3306,
-                                        #database = "BDNP",  # base de produccion
-                                        database = "BDNP_t",  # base de test
+                                        database = "BDNP",  # base de produccion
+                                        #database = "BDNP_t",  # base de test
                                         user = "admin",
                                         password = "cenadif2023")
         #print("conexion OK!")
@@ -892,15 +892,15 @@ def V_modPro(modo):
     wF.iconphoto(False, photo)
     # Titulo de la ventana (dependiente de modo)
     if modo == 'proy':
-        wF.title("CENADIF Base de datos - Proyectos abiertos")
+        wF.title("CENADIF Base de datos - Proyectos en curso")
     if modo == 'proy_c':
         wF.title("CENADIF Base de datos - Proyectos cerrados")    
     if modo == 'des':
-        wF.title("CENADIF Base de datos - Desarrollos abiertos")
+        wF.title("CENADIF Base de datos - Desarrollos en curso")
     if modo == 'des_c':
         wF.title("CENADIF Base de datos - Desarrollos cerrados")
     if modo == 'ate':
-        wF.title("CENADIF Base de datos - Asistencias técnicas abiertas")
+        wF.title("CENADIF Base de datos - Asistencias técnicas en curso")
     if modo == 'ate_c':
         wF.title("CENADIF Base de datos - Asistencias técnicas cerradas")
     # Parte común a todos los modos
@@ -990,7 +990,7 @@ def V_modPro(modo):
     LF5.place(x=50, y=480)
     
     global CF9
-    CF9 = ttk.Combobox(wF, state="readonly", width = 17, values = ['Abierto', 'En pausa', 'Cancelado', 'Finalizado'])
+    CF9 = ttk.Combobox(wF, state="readonly", width = 17, values = ['En curso', 'En pausa', 'Cancelado', 'Finalizado'])
     CF9.place(x=175, y=480)
 
 # Alcance
@@ -1072,7 +1072,7 @@ def V_modPro(modo):
         if actualRol & 16384: # modificación proyectos habilitado?
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'Abierto'" # proyectos activos
+                statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'En curso'" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
                 #print(resultados) 
@@ -1081,7 +1081,7 @@ def V_modPro(modo):
         else:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'Abierto' and responsable = %s" # proyectos del usuario
+                statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'En curso' and responsable = %s" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
@@ -1091,7 +1091,7 @@ def V_modPro(modo):
     if modo == 'proy_c':
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado <> 'Abierto'" # proyectos cerrados
+            statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado <> 'En curso'" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
             #print(resultados) 
@@ -1102,7 +1102,7 @@ def V_modPro(modo):
         if actualRol & 64: # modificación desarrollos habilitado?
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'Abierto'" # proyectos activos
+                statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'En curso'" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
                 #print(resultados) 
@@ -1111,7 +1111,7 @@ def V_modPro(modo):
         else:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'Abierto' and responsable = %s" # proyectos del usuario
+                statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'En curso' and responsable = %s" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
@@ -1121,7 +1121,7 @@ def V_modPro(modo):
     if modo == 'des_c':
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado <> 'Abierto'" # proyectos cerrados
+            statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado <> 'En curso'" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
             #print(resultados) 
@@ -1131,7 +1131,7 @@ def V_modPro(modo):
         if actualRol & 256: # modificación asistencias habilitado?
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'Abierto'" # proyectos activos
+                statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'En curso'" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
                 #print(resultados) 
@@ -1140,7 +1140,7 @@ def V_modPro(modo):
         else:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'Abierto' and responsable = %s" # proyectos del usuario
+                statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'En curso' and responsable = %s" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
@@ -1150,7 +1150,7 @@ def V_modPro(modo):
     if modo == 'ate_c':
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado <> 'Abierto'" # proyectos cerrados
+            statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado <> 'En curso'" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
             #print(resultados) 
@@ -1637,7 +1637,7 @@ def B_assign():
                 # crea entrada tabla proyectos
                 try:    
                     my_cursor = my_conn.cursor()
-                    statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Proyectos', 'Abierto', 0)
+                    statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Proyectos', 'En curso', 0)
                     my_cursor.execute(statement)
                     my_conn.commit() 
 
@@ -1662,7 +1662,7 @@ def B_assign():
                 # crea entrada tabla proyectos
                 try:    
                     my_cursor = my_conn.cursor()
-                    statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Desarrollos', 'Abierto', 0)
+                    statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Desarrollos', 'En curso', 0)
                     my_cursor.execute(statement)
                     my_conn.commit() 
 
@@ -1686,7 +1686,7 @@ def B_assign():
                 # crea entrada tabla asistencias
                 try:    
                     my_cursor = my_conn.cursor()
-                    statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Asistencias', 'Abierto', 0)
+                    statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Asistencias', 'En curso', 0)
                     #statement = '''INSERT INTO asistencias (ID_solicitud) VALUES('{}')'''.format(idSol )
                     my_cursor.execute(statement)
                     my_conn.commit() 
@@ -3164,8 +3164,8 @@ def V_estad():
  
     # Gráfico 2.1 - Desarrollos
     desarrollos = [0, 0, 0, 0]
-    P_estados = ["Abiertos","Finalizados","Cancelados","Pausados"]
-    sql_estados = ['Abierto', 'Finalizado', 'Cancelado', 'En pausa']
+    P_estados = ["En curso","Finalizados","Cancelados","Pausados"]
+    sql_estados = ['En curso', 'Finalizado', 'Cancelado', 'Pausado']
     D_colors = ['limegreen', 'forestgreen', 'palegreen', 'springgreen']
     for i in range(4):
         try:

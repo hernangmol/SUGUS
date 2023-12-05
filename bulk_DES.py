@@ -56,7 +56,7 @@ def DES_charge(des):
     # numero_cdf(D)
     aux=data.iloc[1]
     desarrollo['numero_cdf'] = int(aux[-4:])
-    print('DES: ',desarrollo['numero_cdf']) 
+    print('**************** DES: ',desarrollo['numero_cdf']) 
     # prioridad(D)
     desarrollo['prioridad'] = data.iloc[7]
     # clasificacion(D)
@@ -190,17 +190,26 @@ def DES_charge(des):
 def main():
     global df
     df = pd.read_excel("fuente.xlsx")
-    DES_charge(6)
-    '''
-    DES_charge(7)
-    DES_charge(8)
-    DES_charge(9)
-    DES_charge(10)
-    DES_charge(11)
-    DES_charge(12)
-    DES_charge(13)
-    DES_charge(14)
-    DES_charge(15)
-    '''
+    DES_charge(40)
+    DES_charge(41)
+    DES_charge(42)
+    DES_charge(43)
+    DES_charge(44)
+    DES_charge(45)
+    DES_charge(46)
+    DES_charge(47)
+    DES_charge(48)
+    DES_charge(49)
+    DES_charge(50)
+    DES_charge(51)
+    DES_charge(52)
+    DES_charge(53)
+    DES_charge(54)
+    DES_charge(55)
+    DES_charge(56)
+    DES_charge(57)
+    DES_charge(58)
+    DES_charge(59)
+    
 if __name__ == '__main__':
     main()
