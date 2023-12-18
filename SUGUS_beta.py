@@ -37,16 +37,22 @@ from matplotlib.figure import Figure
 ###########################################################################
 def main():
     global my_conn
-    try:
-        my_conn = mysql.connector.connect(host = '192.168.100.105',
-                                        port = 3306,
-                                        database = "BDNP",  # base de produccion
-                                        #database = "BDNP_t",  # base de test
-                                        user = "admin",
-                                        password = "cenadif2023")
-        #print("conexion OK!")
-    except Exception as e:
-        print("error", e)
+    while True:
+        try:
+            my_conn = mysql.connector.connect(host = '192.168.100.105',
+                                            port = 3306,
+                                            #database = "BDNP",  # base de produccion
+                                            database = "BDNP_t",  # base de test
+                                            user = "admin",
+                                            password = "cenadif2023")
+            break
+            #print("conexion OK!")
+        except Exception as e:
+            if messagebox.askretrycancel(message="Error de conexión con base de datos.", title="SUGUS - Frontend BDNP"):
+                pass
+            else:
+                exit(1)
+            #print("error", e)
 
     refresh_conn(my_conn)
     ######### ventana de MENU PRINCIPAL ###############################################################################
@@ -121,11 +127,11 @@ def main():
     global B16
     B16=Button(w1,text="Ver pedidos", width=12, command = lambda: V_viewPro('des') )
     B16.place(x=210, y=335)
-    B16['state'] = DISABLED
+    #B16['state'] = DISABLED
     global B17
     B17=Button(w1,text="Activos", width=12, command = lambda: V_modPro('des'))
     B17.place(x=320, y=335)
-    B17['state'] = DISABLED
+    #B17['state'] = DISABLED
     global B30
     B30=Button(w1,text="Inactivos", width=12, command = lambda: V_modPro('des_c'))
     B30.place(x=430, y=335)
@@ -135,11 +141,11 @@ def main():
     global B18
     B18=Button(w1,text="Ver pedidos", width=12, command = lambda: V_viewPro('ate'))
     B18.place(x=210, y=385)
-    B18['state'] = DISABLED
+    #B18['state'] = DISABLED
     global B19
     B19=Button(w1,text="Activas", width=12, command = lambda: V_modPro('ate'))
     B19.place(x=320, y=385)
-    B19['state'] = DISABLED
+    #B19['state'] = DISABLED
     global B31
     B31=Button(w1,text="Inactivas", width=12, command = lambda: V_modPro('ate_c'))
     B31.place(x=430, y=385)
@@ -252,7 +258,7 @@ def V_viewRequest():
         print("error", e)
     
     for fila in resultados:
-        if fila[8] is None:
+        if fila[7] is None:
             w3.tabla.insert('',index = 'end', iid=None, text = str(fila[0]), values = [fila[2], fila[1], fila[3], fila[5], fila[4], fila[11], fila[12]],tags='abiertos')
         else:
             w3.tabla.insert('',index = 'end', iid=None, text = str(fila[0]), values = [fila[2], fila[1], fila[3], fila[5], fila[4], fila[11], fila[12]])
@@ -267,28 +273,22 @@ def ingresar():
     w4.iconphoto(False, photo)
     w4.geometry("500x650")
     w4.title("CENADIF - Base de datos")
-
     L41 = Label(w4, text = "Ingreso de pedido")
     L41.place(x=210, y=25)
     
     # Fecha de ingreso
     L42 = Label(w4, text = "Fecha de ingreso: ")
     L42.place(x=25, y=75)
-    
-
     global E41
     E41 = Entry(w4)
     E41.place(x=125, y=75)
     E41.insert(0, date.today()) 
-
     L46 = Label(w4, text = "(Formato: AAAA-MM-DD)")
     L46.place(x=275, y=75)
     
     # Cliente
-
     L43 = Label(w4, text = "Nombre cliente: ")
     L43.place(x=25, y=125)
-
     global E42
     E42 = Entry(w4,width = 25)
     E42.place(x=125, y=125)
@@ -297,63 +297,52 @@ def ingresar():
     # Filiación
     L44 = Label(w4, text = "Área cliente: ")
     L44.place(x=25, y=175)
-
     global E43
     E43 = Entry(w4,width = 25)
     E43.place(x=125, y=175)
     
     # Correo
-
     L48 = Label(w4, text = "Correo: ")
     L48.place(x=25, y=225)
-
     global E48
     E48 = Entry(w4, width = 25)
     E48.place(x=125, y=225)
 
 
     # Teléfono
-
     L49 = Label(w4, text = "Teléfono: ")
     L49.place(x=25, y=275)
-
     global E49
     E49 = Entry(w4, width = 25)
     E49.place(x=125, y=275)
 
     # Asunto
-
     L45 = Label(w4, text = "Asunto: ")
     L45.place(x=25, y=325)
-
     global E44
     E44 = Entry(w4, width = 56)
     E44.place(x=125, y=325)
 
     # Descripción
-
     L45 = Label(w4, text = "Descripción: ")
     L45.place(x=25, y=375)
-
     global T41
     T41 = Text(w4, width = 42, height = 8)
     T41.place(x=125, y=375)
 
      # Ingresó
-
     L47 = Label(w4, text = "Ingresó: ")
     L47.place(x=25, y=530)
-
     global E45
     E45 = Entry(w4, width = 25)
     E45.place(x=125, y=530)
     E45.insert(0, actualUser)
 
-        # boton Volver
+    # boton Volver
     B41=Button(w4,text="Volver", command = lambda: menuFrom(w4))
     B41.place(x=125, y=580)
 
-        # boton Ingresar
+    # boton Ingresar
     B42=Button(w4,text="Ingresar", command=ingresar_pedido)
     B42.place(x=400, y=580)
 
@@ -397,7 +386,6 @@ def assignment_form():
     # registering the observer
     my_var = StringVar()
     my_var.trace('w', lambda *_ , var = my_var : traceCB(*_,var=var))
-
     global C70
     C70 = ttk.Combobox(w7, state="readonly", textvariable = my_var, width = 17, values = ('Documentacion', 'Proyectos', 'Desarrollos', 'Asistencias', 'Laboratorio', 'Cierre'))
     C70.place(x=143, y=380) # menos 8?
@@ -405,12 +393,10 @@ def assignment_form():
 # Fecha de asignación  
     L73 = Label(w7, text = "Fecha de asignación: * ")
     L73.place(x=25, y=430)
-
     global E73
     E73 = Entry(w7)
     E73.place(x=145, y=430)
     E73.insert(0, date.today())
-
     L74 = Label(w7, text = "(Formato: AAAA-MM-DD)")
     L74.place(x=295, y=430)
 
@@ -421,7 +407,6 @@ def assignment_form():
 
     #global E74
     #E74 = Entry(w7)
-
     list = userList()
     global C74
     C74 = ttk.Combobox(w7, state="readonly", width = 17, values = list)
@@ -430,7 +415,6 @@ def assignment_form():
 
     L75 = Label(w7, text = "Descripción: ")
     L75.place(x=25, y=480)
-
     global T71
     T71 = Text(w7, width = 42, height = 8)
     T71.place(x=145, y=480)
@@ -640,11 +624,6 @@ def modDocs():
     L85 = Label(w8, text = "Fuente")
     #L85.place(x=350, y=430)
     L85.place(x=75, y=480)
-
-    #global E86
-    #E86 = Entry(w8)
-    #E86.place(x=195, y=480)
-
     global C82
     C82 = ttk.Combobox(w8, state="write", values = ['IRAM colección', 'AENOR MAS', 'UIC', 'Arch. Gral. Ferrov.', 'Base de datos', 'Internet'])
     C82.place(x=195, y=480)
@@ -653,7 +632,6 @@ def modDocs():
     L87 = Label(w8, text = "Emisor ")
     #L87.place(x=350, y=480)
     L87.place(x=725, y=380)
-
     global E87
     E87 = Entry(w8)
     #E87.place(x=475, y=480)
@@ -662,18 +640,15 @@ def modDocs():
 # Fecha de resolución
     L88 = Label(w8, text = "Fecha de Resolución")
     L88.place(x=1050, y=480)
-
     global E88
     E88 = Entry(w8)
     E88.place(x=1175, y=480)
-
     L84 = Label(w8, text = "(Formato: AAAA-MM-DD)")
     L84.place(x=1165, y=505)
 
 # Cantidad
     L89 = Label(w8, text = "Cantidad")
     L89.place(x=75, y=430)
-
     global E89
     E89 = Entry(w8)
     E89.place(x=195, y=430)
@@ -681,7 +656,6 @@ def modDocs():
 # Respondió  
     L8A = Label(w8, text = "Respondió ")
     L8A.place(x=1050, y=430)
-
     global E8A
     E8A = Entry(w8)
     E8A.place(x=1175, y=430)
@@ -3047,46 +3021,48 @@ def verify():
             my_cursor.execute(statement, (actualUser,))
             resultados = my_cursor.fetchone()
         except Exception as e:
-            print("error", e)
+            print("error 3050", e)
         #aux = tuple([user, password])
         #print(aux)
-        if  password == resultados[0]:
-            actualID = resultados[2]
-            actualRol = resultados[1]
-            #print(actualRol)
-            w2.withdraw()
-            w1.deiconify()
-            if int(resultados[1]) & 1:
-                B11['state'] = NORMAL
-            if int(resultados[1]) & 2:
-                B12['state'] = NORMAL
-            if int(resultados[1]) & 4:
-                B13['state'] = NORMAL
-            if int(resultados[1]) & 8:
-                B14['state'] = NORMAL
-            if int(resultados[1]) & 16:
-                B15['state'] = NORMAL
-            if int(resultados[1]) & 32:
-                B16['state'] = NORMAL
-            if int(resultados[1]) & 64:
-                B17['state'] = NORMAL
-            if int(resultados[1]) & 128:
-                B18['state'] = NORMAL
-            if int(resultados[1]) & 256:
-                B19['state'] = NORMAL # Asistencias activas
-            if int(resultados[1]) & 1024:
-                B20['state'] = NORMAL # ord. de trabajo de lab
-            if int(resultados[1]) & 2048:
-                B21['state'] = NORMAL # ord. internas de lab
-            if int(resultados[1]) & 4096:
-                B22['state'] = NORMAL
-            if int(resultados[1]) & 4096:
-                B23['state'] = NORMAL
-            if int(resultados[1]) & 32768:
-                B1B['state'] = NORMAL
-        else:
-            messagebox.showinfo(message="Nombre de usuario y/o contraseña incorrectos.", title="Aviso del sistema")
-        #print("FIN")        
+        try:
+            if  password == resultados[0]:
+                actualID = resultados[2]
+                actualRol = resultados[1]
+                #print(actualRol)
+                w2.withdraw()
+                w1.deiconify()
+                if int(resultados[1]) & 1:
+                    B11['state'] = NORMAL
+                if int(resultados[1]) & 2:
+                    B12['state'] = NORMAL
+                if int(resultados[1]) & 4:
+                    B13['state'] = NORMAL
+                if int(resultados[1]) & 8:
+                    B14['state'] = NORMAL
+                if int(resultados[1]) & 16:
+                    B15['state'] = NORMAL
+                if int(resultados[1]) & 32:
+                    B16['state'] = NORMAL
+                if int(resultados[1]) & 64:
+                    B17['state'] = NORMAL
+                if int(resultados[1]) & 128:
+                    B18['state'] = NORMAL
+                if int(resultados[1]) & 256:
+                    B19['state'] = NORMAL # Asistencias activas
+                if int(resultados[1]) & 1024:
+                    B20['state'] = NORMAL # ord. de trabajo de lab
+                if int(resultados[1]) & 2048:
+                    B21['state'] = NORMAL # ord. internas de lab
+                if int(resultados[1]) & 4096:
+                    B22['state'] = NORMAL
+                if int(resultados[1]) & 4096:
+                    B23['state'] = NORMAL
+                if int(resultados[1]) & 32768:
+                    B1B['state'] = NORMAL
+            else:
+                messagebox.showinfo(message="Nombre de usuario y/o contraseña incorrectos.", title="Aviso del sistema")
+        except:
+            messagebox.showinfo(message="Nombre de usuario y/o contraseña incorrectos.", title="Aviso del sistema")        
 
 def accessForm():
     global w2
