@@ -13,6 +13,9 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import logging
+from os import remove
+
 ############################################ Ventanas ##########################################
 # w1 - Menú principal
 # w2 - Inicio de sesión
@@ -41,8 +44,8 @@ def main():
         try:
             my_conn = mysql.connector.connect(host = '192.168.100.105',
                                             port = 3306,
-                                            #database = "BDNP",  # base de produccion
-                                            database = "BDNP_t",  # base de test
+                                            database = "BDNP",  # base de produccion
+                                            #database = "BDNP_t",  # base de test
                                             user = "admin",
                                             password = "cenadif2023")
             break
@@ -51,6 +54,7 @@ def main():
             if messagebox.askretrycancel(message="Error de conexión con base de datos.", title="SUGUS - Frontend BDNP"):
                 pass
             else:
+                logging.error(e, exc_info=True)
                 exit(1)
             #print("error", e)
 
@@ -1545,7 +1549,9 @@ def ingresar_pedido():
 
         except Exception as e:
             print("error", e)
+            logging.error(e, exc_info=True)
             messagebox.showinfo(message="pedido NO registrado.", title="Aviso del sistema")
+            
 
     else:
          messagebox.showinfo(message="Campos vacios.", title="Aviso del sistema")
@@ -4127,7 +4133,7 @@ def V_modMue(modo):
         wJ.tabla.heading('cliente', text='Cliente', anchor ='center')
 
         # muestra de los datos
-        wJ.tabla.insert('',index = ordData[2], iid=None, text = str(ordData[2]), values = [ordData[5], ordData[3], ordData[7], ordData[6], ordData[4], cliente,])
+        wJ.tabla.insert('',index = ordData[2], iid=None, text = str(ordData[2]), values = [ordData[4], ordData[3], ordData[6], ordData[5], ordData[8], cliente,])
 
         ### Tabla de muestras ########################################################
         try:
@@ -4316,15 +4322,17 @@ def B_modMue(modo):
         ######### Actualización de fecha de ingreso
         fechaMue = EJ5.get()
         if len(fechaMue) != 0:
-            try:
-                my_cursor = my_conn.cursor()
-                statement = "UPDATE muestras SET ingreso = %s WHERE ID_muestra = %s"
-                val = (fechaMue, numMue[0])
-                my_cursor.execute(statement,val)
-                my_conn.commit()
-            except Exception as e:
-                print("error", e)
-                ############ Refresco de la ventana
+            if date_check(fechaMue) == True:
+            #    return
+                try:
+                    my_cursor = my_conn.cursor()
+                    statement = "UPDATE muestras SET ingreso = %s WHERE ID_muestra = %s"
+                    val = (fechaMue, numMue[0])
+                    my_cursor.execute(statement,val)
+                    my_conn.commit()
+                except Exception as e:
+                    print("error", e)
+                    ############ Refresco de la ventana
         wJ.destroy() 
         V_modMue(modo)
     else:
@@ -4482,5 +4490,11 @@ def ingresar_oInt():
     wK.destroy() 
     V_modLab('I')
 ########################################################################################################################
+LOG_FILENAME = 'SUGUS_log.out'
+logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.ERROR)
 
-main() 
+if __name__ == "__main__":
+    try:
+        main() 
+    except Exception as e:
+        logging.error(e, exc_info=True)
