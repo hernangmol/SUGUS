@@ -1,20 +1,17 @@
-from tkinter import *
+import tkinter as tk
 from tkinter import ttk
-from tkinter.ttk import * ######################
 from tkinter import messagebox
 import mysql.connector
 from datetime import date
-import tkinter as tk
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib
+import logging
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-import logging
-from os import remove
 
 ############################################ Ventanas ##########################################
 # w1 - Menú principal
@@ -28,7 +25,7 @@ from os import remove
 # w9 - Ver asignaciones a documentos y normas
 # WA - Cambio de privilegios
 # wB - Ver asignaciones a Asistencias
-# wC - Modificar Asistencias
+# wC - Ver estadísticas
 # wD - Agenda de tareas
 # wE - Visualización de proyectos
 # wF - Modificación de proyectos
@@ -44,8 +41,8 @@ def main():
         try:
             my_conn = mysql.connector.connect(host = '192.168.100.105',
                                             port = 3306,
-                                            database = "BDNP",  # base de produccion
-                                            #database = "BDNP_t",  # base de test
+                                            #database = "BDNP",  # base de produccion
+                                            database = "BDNP_t",  # base de test
                                             user = "admin",
                                             password = "cenadif2023")
             break
@@ -61,137 +58,137 @@ def main():
     refresh_conn(my_conn)
     ######### ventana de MENU PRINCIPAL ###############################################################################
     global w1
-    w1=Tk()
+    w1=tk.Tk()
     global photo
-    photo = PhotoImage(file = "Recursos/iconoCDF.png")
+    photo = tk.PhotoImage(file = "Recursos/iconoCDF.png")
     w1.withdraw()
     w1.geometry("600x650")
     w1.iconphoto(False, photo)
     w1.title("CENADIF - Base de datos")
 
-    image = PhotoImage(file="Recursos/CENADIF.png")
+    image = tk.PhotoImage(file="Recursos/CENADIF.png")
     image_sub=image.subsample(4)
     # Insertarla en una etiqueta.
-    L10 = Label(w1, image=image_sub)
+    L10 =tk.Label(w1, image=image_sub)
     L10.place(x=8, y=-85)
 
-    L11 = Label(w1, text = "Menú principal")
+    L11 = tk.Label(w1, text = "Menú principal")
     L11.place(x=205, y=105)
     # Primer piso
-    L12 = Label(w1, text = "Solicitudes de trabajo")
+    L12 = tk.Label(w1, text = "Solicitudes de trabajo")
     L12.place(x=75, y=135)
     global B11
-    B11=Button(w1,text="Ver listado", width=12, command=V_viewRequest)
+    B11=tk.Button(w1,text="Ver listado", width=12, command=V_viewRequest)
     B11.place(x=210, y=135)
-    B11['state'] = DISABLED
+    B11['state'] = tk.DISABLED
     global B12
-    B12=Button(w1,text="Ing. pedido", width=12, command = ingresar)
+    B12=tk.Button(w1,text="Ing. pedido", width=12, command = ingresar)
     B12.place(x=320, y=135)
-    B12['state'] = DISABLED
+    B12['state'] = tk.DISABLED
     global B1B
-    B1B=Button(w1,text="Ord.Int.Lab", width=12, command = V_oIntLab)
+    B1B=tk.Button(w1,text="Ord.Int.Lab", width=12, command = V_oIntLab)
     B1B.place(x=430, y=135)
-    B1B['state'] = DISABLED
+    B1B['state'] = tk.DISABLED
     # Segundo piso
-    L13 = Label(w1, text = "Asignación de trabajo")
+    L13 = tk.Label(w1, text = "Asignación de trabajo")
     L13.place(x=75, y=185)
     global B13
-    B13=Button(w1,text="Asignar", width=12, command=assignment_form)
+    B13=tk.Button(w1,text="Asignar", width=12, command=assignment_form)
     B13.place(x=210, y=185)
-    B13['state'] = DISABLED
-    B1A=Button(w1,text="Estadísticas", width=12, command=V_estad)
+    B13['state'] = tk.DISABLED
+    B1A=tk.Button(w1,text="Estadísticas", width=12, command=V_estad)
     B1A.place(x=320, y=185)
-    #B1A['state'] = DISABLED
+    #B1A['state'] = tk.DISABLED
     # Tercer piso ######################
-    L14 = Label(w1, text = "Documentación técnica")
+    L14 = tk.Label(w1, text = "Documentación técnica")
     L14.place(x=75, y=235)
     global B14
-    B14=Button(w1,text="Ver pedidos", width=12, command=viewDocs)
+    B14=tk.Button(w1,text="Ver pedidos", width=12, command=viewDocs)
     B14.place(x=210, y=235)
-    B14['state'] = DISABLED
+    B14['state'] = tk.DISABLED
     global B15
-    B15=Button(w1,text="Activos", width=12 , command=modDocs)
+    B15=tk.Button(w1,text="Activos", width=12 , command=modDocs)
     B15.place(x=320, y=235)
-    B15['state'] = DISABLED
+    B15['state'] = tk.DISABLED
     # Cuarto piso ######################
-    L20 = Label(w1, text = "Proyectos")
+    L20 = tk.Label(w1, text = "Proyectos")
     L20.place(x=75, y=285)
     global B26
-    B26=Button(w1,text="Ver pedidos", width=12, command = lambda: V_viewPro('proy'))
+    B26=tk.Button(w1,text="Ver pedidos", width=12, command = lambda: V_viewPro('proy'))
     B26.place(x=210, y=285)
     global B27
-    B27=Button(w1,text="Activos", width=12, command = lambda: V_modPro('proy'))
+    B27=tk.Button(w1,text="Activos", width=12, command = lambda: V_modPro('proy'))
     B27.place(x=320, y=285)
     global B29
-    B29=Button(w1,text="Inactivos", width=12, command = lambda: V_modPro('proy_c'))
+    B29=tk.Button(w1,text="Inactivos", width=12, command = lambda: V_modPro('proy_c'))
     B29.place(x=430, y=285)
     # Quinto piso ######################
-    L15 = Label(w1, text = "Desarrollos")
+    L15 = tk.Label(w1, text = "Desarrollos")
     L15.place(x=75, y=335)
     global B16
-    B16=Button(w1,text="Ver pedidos", width=12, command = lambda: V_viewPro('des') )
+    B16=tk.Button(w1,text="Ver pedidos", width=12, command = lambda: V_viewPro('des') )
     B16.place(x=210, y=335)
-    #B16['state'] = DISABLED
+    #B16['state'] = tk.DISABLED
     global B17
-    B17=Button(w1,text="Activos", width=12, command = lambda: V_modPro('des'))
+    B17=tk.Button(w1,text="Activos", width=12, command = lambda: V_modPro('des'))
     B17.place(x=320, y=335)
-    #B17['state'] = DISABLED
+    #B17['state'] = tk.DISABLED
     global B30
-    B30=Button(w1,text="Inactivos", width=12, command = lambda: V_modPro('des_c'))
+    B30=tk.Button(w1,text="Inactivos", width=12, command = lambda: V_modPro('des_c'))
     B30.place(x=430, y=335)
     # Sexto piso ######################
-    L16 = Label(w1, text = "Asistencia técnica")
+    L16 = tk.Label(w1, text = "Asistencia técnica")
     L16.place(x=75, y=385)
     global B18
-    B18=Button(w1,text="Ver pedidos", width=12, command = lambda: V_viewPro('ate'))
+    B18=tk.Button(w1,text="Ver pedidos", width=12, command = lambda: V_viewPro('ate'))
     B18.place(x=210, y=385)
-    #B18['state'] = DISABLED
+    #B18['state'] = tk.DISABLED
     global B19
-    B19=Button(w1,text="Activas", width=12, command = lambda: V_modPro('ate'))
+    B19=tk.Button(w1,text="Activas", width=12, command = lambda: V_modPro('ate'))
     B19.place(x=320, y=385)
-    #B19['state'] = DISABLED
+    #B19['state'] = tk.DISABLED
     global B31
-    B31=Button(w1,text="Inactivas", width=12, command = lambda: V_modPro('ate_c'))
+    B31=tk.Button(w1,text="Inactivas", width=12, command = lambda: V_modPro('ate_c'))
     B31.place(x=430, y=385)
     # Septimo piso ######################
-    L17 = Label(w1, text = "Laboratorio")
+    L17 = tk.Label(w1, text = "Laboratorio")
     L17.place(x=75, y=435)
     global B20
-    B20=Button(w1,text="Ord. trabajo", width=12, command = lambda: V_modLab('T'))
+    B20=tk.Button(w1,text="Ord. trabajo", width=12, command = lambda: V_modLab('T'))
     B20.place(x=210, y=435)
-    B20['state'] = DISABLED
+    B20['state'] = tk.DISABLED
     global B21
-    B21=Button(w1,text="Ord. Internas", width=12, command = lambda: V_modLab('I'))
+    B21=tk.Button(w1,text="Ord. Internas", width=12, command = lambda: V_modLab('I'))
     B21.place(x=320, y=435)
-    B21['state'] = DISABLED
+    B21['state'] = tk.DISABLED
     # Octavo piso ######################
-    L18 = Label(w1, text = "Admin. sistema")
+    L18 = tk.Label(w1, text = "Admin. sistema")
     L18.place(x=75, y=485)
     global B22
-    B22=Button(w1,text="Alta usuario", width=12, command = addUser)
+    B22=tk.Button(w1,text="Alta usuario", width=12, command = addUser)
     B22.place(x=210, y=485)
-    B22['state'] = DISABLED
+    B22['state'] = tk.DISABLED
     global B23
-    B23=Button(w1,text="Permisos", width=12, command = privChange)
+    B23=tk.Button(w1,text="Permisos", width=12, command = privChange)
     B23.place(x=320, y=485)
-    B23['state'] = DISABLED
+    B23['state'] = tk.DISABLED
     # Noveno piso ######################
-    L19 = Label(w1, text = "Usuario")
+    L19 = tk.Label(w1, text = "Usuario")
     L19.place(x=75, y=535)
     global B24
-    B24=Button(w1,text="Contraseña", width=12, command=passChange)
+    B24=tk.Button(w1,text="Contraseña", width=12, command=passChange)
     B24.place(x=210, y=535)
     global B25
-    B25=Button(w1,text="Agenda", width=12, command = V_accSchedule)
+    B25=tk.Button(w1,text="Agenda", width=12, command = V_accSchedule)
     B25.place(x=320, y=535)
-    #B25['state'] = DISABLED
+    #B25['state'] = tk.DISABLED
     global B28
-    B28=Button(w1,text="Tareas", width=12, command = lambda: V_modTar('user'))
+    B28=tk.Button(w1,text="Tareas", width=12, command = lambda: V_modTar('user'))
     B28.place(x=430, y=535)
 
     # boton salir
-    #Bsalir=Button(w1,text="Salir", width=12, command = w1.destroy)
-    Bsalir=Button(w1,text="Salir", width=12, command = w1.quit)
+    #Bsalir=tk.Button(w1,text="Salir", width=12, command = w1.destroy)
+    Bsalir=tk.Button(w1,text="Salir", width=12, command = w1.quit)
     Bsalir.place(x=460, y=585)
 
     accessForm() 
@@ -201,19 +198,19 @@ def main():
 def V_viewRequest():
     w1.withdraw()
     global w3
-    w3=Toplevel()
+    w3=tk.Toplevel()
     w3.state("zoomed")
     w3.iconphoto(False, photo)
     w3.title("Pedidos de trabajo")
-    w3.frame3 = Frame(w3)
+    w3.frame3 = tk.Frame(w3)
     w3.frame3.grid(rowspan=2, column=1, row=1)
     w3.tabla = ttk.Treeview(w3.frame3, height=35)
     w3.tabla.tag_configure('abiertos', background="red", foreground="white") #####################>>>>>>>>>>>>>>>>>>>>>>
     w3.tabla.grid(column=1, row=1)
     #w3.tabla.place(x=500, y=500)
-    ladox = Scrollbar(w3.frame3, orient = VERTICAL, command= w3.tabla.yview)
+    ladox = tk.Scrollbar(w3.frame3, orient = tk.VERTICAL, command= w3.tabla.yview)
     ladox.grid(column=0, row = 1, sticky='ew') 
-    ladoy = Scrollbar(w3.frame3, orient =HORIZONTAL, command = w3.tabla.yview)
+    ladoy = tk.Scrollbar(w3.frame3, orient = tk.HORIZONTAL, command = w3.tabla.yview)
     ladoy.grid(column = 1, row = 0, sticky='ns')
 
     w3.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
@@ -239,15 +236,15 @@ def V_viewRequest():
     w3.tabla.heading('telefono', text='Teléfono', anchor ='center')
 
     # boton Salir
-    B31=Button(w3,text="Salir", width=12, command = w1.destroy)
+    B31=tk.Button(w3,text="Salir", width=12, command = w1.destroy)
     B31.place(x=850, y=760)
 
     # boton Actualizar
-    B32=Button(w3,text="Actualizar", width=12, command = actualizar)
+    B32=tk.Button(w3,text="Actualizar", width=12, command = actualizar)
     B32.place(x=735, y=760)
 
     # boton Volver
-    B33=Button(w3,text="Volver", width=12, command = lambda: menuFrom(w3))
+    B33=tk.Button(w3,text="Volver", width=12, command = lambda: menuFrom(w3))
     B33.place(x=620, y=760)
 
     w3.tabla.delete(*w3.tabla.get_children())
@@ -273,81 +270,81 @@ def ingresar():
     w1.withdraw()
     #print("Ingresando...")
     global w4
-    w4=Toplevel()
+    w4=tk.Toplevel()
     w4.iconphoto(False, photo)
     w4.geometry("500x650")
     w4.title("CENADIF - Base de datos")
-    L41 = Label(w4, text = "Ingreso de pedido")
+    L41 = tk.Label(w4, text = "Ingreso de pedido")
     L41.place(x=210, y=25)
     
     # Fecha de ingreso
-    L42 = Label(w4, text = "Fecha de ingreso: ")
+    L42 = tk.Label(w4, text = "Fecha de ingreso: ")
     L42.place(x=25, y=75)
     global E41
-    E41 = Entry(w4)
+    E41 = tk.Entry(w4)
     E41.place(x=125, y=75)
     E41.insert(0, date.today()) 
-    L46 = Label(w4, text = "(Formato: AAAA-MM-DD)")
+    L46 = tk.Label(w4, text = "(Formato: AAAA-MM-DD)")
     L46.place(x=275, y=75)
     
     # Cliente
-    L43 = Label(w4, text = "Nombre cliente: ")
+    L43 = tk.Label(w4, text = "Nombre cliente: ")
     L43.place(x=25, y=125)
     global E42
-    E42 = Entry(w4,width = 25)
+    E42 = tk.Entry(w4,width = 25)
     E42.place(x=125, y=125)
 
     
     # Filiación
-    L44 = Label(w4, text = "Área cliente: ")
+    L44 = tk.Label(w4, text = "Área cliente: ")
     L44.place(x=25, y=175)
     global E43
-    E43 = Entry(w4,width = 25)
+    E43 = tk.Entry(w4,width = 25)
     E43.place(x=125, y=175)
     
     # Correo
-    L48 = Label(w4, text = "Correo: ")
+    L48 = tk.Label(w4, text = "Correo: ")
     L48.place(x=25, y=225)
     global E48
-    E48 = Entry(w4, width = 25)
+    E48 = tk.Entry(w4, width = 25)
     E48.place(x=125, y=225)
 
 
     # Teléfono
-    L49 = Label(w4, text = "Teléfono: ")
+    L49 = tk.Label(w4, text = "Teléfono: ")
     L49.place(x=25, y=275)
     global E49
-    E49 = Entry(w4, width = 25)
+    E49 = tk.Entry(w4, width = 25)
     E49.place(x=125, y=275)
 
     # Asunto
-    L45 = Label(w4, text = "Asunto: ")
+    L45 = tk.Label(w4, text = "Asunto: ")
     L45.place(x=25, y=325)
     global E44
-    E44 = Entry(w4, width = 56)
+    E44 = tk.Entry(w4, width = 56)
     E44.place(x=125, y=325)
 
     # Descripción
-    L45 = Label(w4, text = "Descripción: ")
+    L45 = tk.Label(w4, text = "Descripción: ")
     L45.place(x=25, y=375)
     global T41
-    T41 = Text(w4, width = 42, height = 8)
+    T41 = tk.Text(w4, width = 42, height = 8)
     T41.place(x=125, y=375)
 
      # Ingresó
-    L47 = Label(w4, text = "Ingresó: ")
+    L47 = tk.Label(w4, text = "Ingresó: ")
     L47.place(x=25, y=530)
     global E45
-    E45 = Entry(w4, width = 25)
+    E45 = tk.Entry(w4, width = 25)
     E45.place(x=125, y=530)
     E45.insert(0, actualUser)
 
     # boton Volver
-    B41=Button(w4,text="Volver", command = lambda: menuFrom(w4))
+    B41=tk.Button(w4,text="Volver", command = lambda: menuFrom(w4))
     B41.place(x=125, y=580)
 
     # boton Ingresar
-    B42=Button(w4,text="Ingresar", command=ingresar_pedido)
+    B42=tk.Button(w4,text="Ingresar", command=ingresar_pedido)
     B42.place(x=400, y=580)
 
     w4.after(1, lambda: w4.focus_force())
@@ -355,17 +352,17 @@ def ingresar():
 def assignment_form():
     w1.withdraw()
     global w7
-    w7=Toplevel()
+    w7=tk.Toplevel()
     w7.geometry("1000x700")
     w7.iconphoto(False, photo)
     w7.title("Pedidos de trabajo - Asignación")
-    w7.frame7 = Frame(w7)
+    w7.frame7 = tk.Frame(w7)
     w7.frame7.grid(rowspan=2, column=1, row=1)
     w7.tabla = ttk.Treeview(w7.frame7, height=15)
     w7.tabla.grid(column=1, row=1)
-    ladox = Scrollbar(w7.frame7, orient = VERTICAL, command= w7.tabla.yview)
+    ladox = tk.Scrollbar(w7.frame7, orient = tk.VERTICAL, command= w7.tabla.yview)
     ladox.grid(column=0, row = 1, sticky='ew') 
-    ladoy = Scrollbar(w7.frame7, orient =HORIZONTAL, command = w7.tabla.yview)
+    ladoy = tk.Scrollbar(w7.frame7, orient = tk.HORIZONTAL, command = w7.tabla.yview)
     ladoy.grid(column = 1, row = 0, sticky='ns')
     w7.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
     w7.tabla['columns'] = ('nombre', 'fecha solicitud', 'descripcion', 'solicitante','contacto')
@@ -383,56 +380,56 @@ def assignment_form():
     w7.tabla.heading('contacto', text='Contacto', anchor ='center')
 
 # Tipo de salida
-    L72 = Label(w7, text = "Tipo de salida *")
+    L72 = tk.Label(w7, text = "Tipo de salida *")
     L72.place(x=25, y=380)
 
 # Tipo de salida (combobox)
     # registering the observer
-    my_var = StringVar()
+    my_var = tk.StringVar()
     my_var.trace('w', lambda *_ , var = my_var : traceCB(*_,var=var))
     global C70
     C70 = ttk.Combobox(w7, state="readonly", textvariable = my_var, width = 17, values = ('Documentacion', 'Proyectos', 'Desarrollos', 'Asistencias', 'Laboratorio', 'Cierre'))
     C70.place(x=143, y=380) # menos 8?
     
 # Fecha de asignación  
-    L73 = Label(w7, text = "Fecha de asignación: * ")
+    L73 = tk.Label(w7, text = "Fecha de asignación: * ")
     L73.place(x=25, y=430)
     global E73
-    E73 = Entry(w7)
+    E73 = tk.Entry(w7)
     E73.place(x=145, y=430)
     E73.insert(0, date.today())
-    L74 = Label(w7, text = "(Formato: AAAA-MM-DD)")
+    L74 = tk.Label(w7, text = "(Formato: AAAA-MM-DD)")
     L74.place(x=295, y=430)
 
 # Responsable (solo para Proyectos)
     
     global L76
-    L76 = Label(w7, text = "Responsable: * ")
+    L76 = tk.Label(w7, text = "Responsable: * ")
 
     #global E74
-    #E74 = Entry(w7)
+    #E74 = tk.Entry(w7)
     list = userList()
     global C74
     C74 = ttk.Combobox(w7, state="readonly", width = 17, values = list)
 
 # Descripción
 
-    L75 = Label(w7, text = "Descripción: ")
+    L75 = tk.Label(w7, text = "Descripción: ")
     L75.place(x=25, y=480)
     global T71
-    T71 = Text(w7, width = 42, height = 8)
+    T71 = tk.Text(w7, width = 42, height = 8)
     T71.place(x=145, y=480)
 
 # boton Salir
-    B71=Button(w7,text="Salir", width=12,  command = w1.destroy)
+    B71=tk.Button(w7,text="Salir", width=12,  command = w1.destroy)
     B71.place(x=510, y=530)
 
 # boton Volver
-    B71=Button(w7,text="Volver", width=12,  command = lambda: menuFrom(w7))
+    B71=tk.Button(w7,text="Volver", width=12,  command = lambda: menuFrom(w7))
     B71.place(x=510, y=480)
 
 # boton Asignar
-    B72=Button(w7,text="Asignar", width=12, command=B_assign)
+    B72=tk.Button(w7,text="Asignar", width=12, command=B_assign)
     B72.place(x=510, y=580)
 
     refresh_conn(my_conn)
@@ -464,22 +461,22 @@ def traceCB(*args, var):
 def viewDocs():
     w1.withdraw()
     global w9
-    w9=Toplevel() 
+    w9=tk.Toplevel() 
     #style = ttk.Style(w9)
     #style.theme_use('clam')
     w9.state("zoomed")
     #w9.geometry("1100x650")
     w9.iconphoto(False, photo)
     w9.title("Pedidos de trabajo asignados a DyN")
-    w9.frame = Frame(w9)
+    w9.frame = tk.Frame(w9)
     w9.frame.grid(rowspan=3, column=2, row=1, pady = 2)
     #w9.frame.place(x=20, y=20)
     w9.tabla = ttk.Treeview(w9.frame, height=32)
     w9.tabla.grid(column=2, row=1)
     #w9.tabla.place(x=50, y=50)
-    ladox = Scrollbar(w9.frame, orient = VERTICAL, command= w9.tabla.yview)
+    ladox = tk.Scrollbar(w9.frame, orient = tk.VERTICAL, command= w9.tabla.yview)
     ladox.grid(column=3, row = 1, sticky='ew') 
-    ladoy = Scrollbar(w9.frame, orient =HORIZONTAL, command = w9.tabla.xview)
+    ladoy = tk.Scrollbar(w9.frame, orient =tk.HORIZONTAL, command = w9.tabla.xview)
     ladoy.grid(column = 2, row = 0, sticky='ns')
 
     w9.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
@@ -503,11 +500,11 @@ def viewDocs():
     w9.tabla.heading('contacto', text='Contacto', anchor ='center')
 
     # boton Salir
-    B91=Button(w9,text="Salir", width=12, command = w1.destroy)
+    B91=tk.Button(w9,text="Salir", width=12, command = w1.destroy)
     B91.place(x=850, y=730)
 
     # boton Volver
-    B93=Button(w9,text="Volver", width=12, command = lambda: menuFrom(w9))
+    B93=tk.Button(w9,text="Volver", width=12, command = lambda: menuFrom(w9))
     B93.place(x=620, y=730)
 
     w9.tabla.delete(*w9.tabla.get_children())
@@ -544,19 +541,19 @@ def viewDocs():
 def modDocs():
     w1.withdraw()
     global w8
-    w8=Toplevel()
+    w8=tk.Toplevel()
     w8.state("zoomed")
     #w8.geometry("1400x750")
     w8.iconphoto(False, photo)
     w8.title("CENADIF Base de datos - Documentación y Normas - Trabajos pendientes")
-    w8.frame8 = Frame(w8)
+    w8.frame8 = tk.Frame(w8)
     w8.frame8.grid(rowspan=2, column=1, row=1)
     w8.tabla = ttk.Treeview(w8.frame8, height=15)
     w8.tabla.grid(column=1, row=1)
     #w8.tabla.place(x=500, y=500)
-    ladox = Scrollbar(w8.frame8, orient = VERTICAL, command= w8.tabla.yview)
+    ladox = tk.Scrollbar(w8.frame8, orient = tk.VERTICAL, command= w8.tabla.yview)
     ladox.grid(column=0, row = 1, sticky='ew') 
-    ladoy = Scrollbar(w8.frame8, orient =HORIZONTAL, command = w8.tabla.yview)
+    ladoy = tk.Scrollbar(w8.frame8, orient =tk.HORIZONTAL, command = w8.tabla.yview)
     ladoy.grid(column = 1, row = 0, sticky='ns')
 
     w8.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
@@ -586,20 +583,20 @@ def modDocs():
     w8.tabla.heading('cantidad', text='Cant.', anchor ='center')
 
 # N° DyN
-    L81 = Label(w8, text = "N° DyN")
+    L81 = tk.Label(w8, text = "N° DyN")
     L81.place(x=75, y=380)
 
     global E81
-    E81 = Entry(w8)
+    E81 = tk.Entry(w8)
     E81.place(x=195, y=380)
 
 # Tipo de documento
-    L82 = Label(w8, text = "Tipo de documento")
+    L82 = tk.Label(w8, text = "Tipo de documento")
     # L82.place(x=25, y=430)
     L82.place(x=400, y=380)
 
     #global E82
-    #E82 = Entry(w8)
+    #E82 = tk.Entry(w8)
     #E82.place(x=525, y=380)
 
     global C81
@@ -607,25 +604,25 @@ def modDocs():
     C81.place(x=525, y=380)
 
 # N° de documento  
-    L83 = Label(w8, text = "N° de documento ")
+    L83 = tk.Label(w8, text = "N° de documento ")
     L83.place(x=1050, y=380)
 
     global E83
-    E83 = Entry(w8)
+    E83 = tk.Entry(w8)
     E83.place(x=1175, y=380)
 
 # Título
-    L84 = Label(w8, text = "Título")
+    L84 = tk.Label(w8, text = "Título")
     #L84.place(x=350, y=380)
     L84.place(x=400, y=430)
 
     global E84
-    E84 = Entry(w8)
+    E84 = tk.Entry(w8)
     #E84.place(x=475, y=380, width=450)
     E84.place(x=525, y=430, width=450)
 
 # Fuente
-    L85 = Label(w8, text = "Fuente")
+    L85 = tk.Label(w8, text = "Fuente")
     #L85.place(x=350, y=430)
     L85.place(x=75, y=480)
     global C82
@@ -633,54 +630,54 @@ def modDocs():
     C82.place(x=195, y=480)
 
 # Emisor  
-    L87 = Label(w8, text = "Emisor ")
+    L87 = tk.Label(w8, text = "Emisor ")
     #L87.place(x=350, y=480)
     L87.place(x=725, y=380)
     global E87
-    E87 = Entry(w8)
+    E87 = tk.Entry(w8)
     #E87.place(x=475, y=480)
     E87.place(x=850, y=380)
 
 # Fecha de resolución
-    L88 = Label(w8, text = "Fecha de Resolución")
+    L88 = tk.Label(w8, text = "Fecha de Resolución")
     L88.place(x=1050, y=480)
     global E88
-    E88 = Entry(w8)
+    E88 = tk.Entry(w8)
     E88.place(x=1175, y=480)
-    L84 = Label(w8, text = "(Formato: AAAA-MM-DD)")
+    L84 = tk.Label(w8, text = "(Formato: AAAA-MM-DD)")
     L84.place(x=1165, y=505)
 
 # Cantidad
-    L89 = Label(w8, text = "Cantidad")
+    L89 = tk.Label(w8, text = "Cantidad")
     L89.place(x=75, y=430)
     global E89
-    E89 = Entry(w8)
+    E89 = tk.Entry(w8)
     E89.place(x=195, y=430)
 
 # Respondió  
-    L8A = Label(w8, text = "Respondió ")
+    L8A = tk.Label(w8, text = "Respondió ")
     L8A.place(x=1050, y=430)
     global E8A
-    E8A = Entry(w8)
+    E8A = tk.Entry(w8)
     E8A.place(x=1175, y=430)
     E8A.insert(0, actualUser)
 
 # Precio
-    L8D = Label(w8, text = "Precio")
+    L8D = tk.Label(w8, text = "Precio")
     # L8D.place(x=675, y=430)
     L8D.place(x=400, y=480)
 
     global E8D
-    E8D = Entry(w8)
+    E8D = tk.Entry(w8)
     #E8D.place(x=800, y=430)
     E8D.place(x=525, y=480)
 
 # Unidad monetaria  
-    L8E = Label(w8, text = "Unidad monetaria")
+    L8E = tk.Label(w8, text = "Unidad monetaria")
     L8E.place(x=725, y=480)
 
     #global E8E
-    #E8E = Entry(w8)
+    #E8E = tk.Entry(w8)
     #E8E.place(x=850, y=480)
 
     global C83
@@ -690,27 +687,27 @@ def modDocs():
 
 # Descripción
 
-    L8B = Label(w8, text = "Observaciones: ")
+    L8B = tk.Label(w8, text = "Observaciones: ")
     L8B.place(x=75, y=530)
 
     global T81
-    T81 = Text(w8, width = 81, height = 8)
+    T81 = tk.Text(w8, width = 81, height = 8)
     T81.place(x=195, y=530)
 
     # boton Salir
-    B81=Button(w8,text="Salir", width=12, command = w1.destroy)
+    B81=tk.Button(w8,text="Salir", width=12, command = w1.destroy)
     B81.place(x=1135, y=585)
 
     # boton Modificar
-    B82=Button(w8,text="Modificar", width=12, command = B_modDoc)
+    B82=tk.Button(w8,text="Modificar", width=12, command = B_modDoc)
     B82.place(x=1135, y=635)
 
     # boton Volver
-    B83=Button(w8,text="Volver", width=12, command = lambda: menuFrom(w8))
+    B83=tk.Button(w8,text="Volver", width=12, command = lambda: menuFrom(w8))
     B83.place(x=1000, y=585)
 
     # boton Precarga
-    B84=Button(w8,text="Precarga", width=12, command = precDoc)
+    B84=tk.Button(w8,text="Precarga", width=12, command = precDoc)
     B84.place(x=1000, y=635)
 
     w8.tabla.delete(*w8.tabla.get_children())
@@ -771,7 +768,7 @@ def V_viewPro(modo):
     # Parte común a todos los modos
     w1.withdraw()
     global wE
-    wE=Toplevel()
+    wE=tk.Toplevel()
     wE.geometry("1240x650")
     wE.iconphoto(False, photo)
     # Titulo de la ventana (dependiente de modo)
@@ -782,13 +779,13 @@ def V_viewPro(modo):
     if modo == 'ate':
         wE.title("Pedidos de trabajo asignados a Asistencias técnicas")
     # Parte común a todos los modos
-    wE.frame = Frame(wE)
+    wE.frame = tk.Frame(wE)
     wE.frame.grid(rowspan=2, column=1, row=1)
     wE.tabla = ttk.Treeview(wE.frame, height=25)
     wE.tabla.grid(column=1, row=1)
-    ladox = Scrollbar(wE.frame, orient = VERTICAL, command= wE.tabla.yview)
+    ladox = tk.Scrollbar(wE.frame, orient = tk.VERTICAL, command= wE.tabla.yview)
     ladox.grid(column=0, row = 1, sticky='ew') 
-    ladoy = Scrollbar(wE.frame, orient =HORIZONTAL, command = wE.tabla.yview)
+    ladoy = tk.Scrollbar(wE.frame, orient =tk.HORIZONTAL, command = wE.tabla.yview)
     ladoy.grid(column = 1, row = 0, sticky='ns')
 
     wE.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
@@ -814,11 +811,11 @@ def V_viewPro(modo):
     wE.tabla.heading('responsable', text='Responsable', anchor ='center')
 
     # boton Salir
-    BE1=Button(wE,text="Salir", width=12, command = w1.destroy)
+    BE1=tk.Button(wE,text="Salir", width=12, command = w1.destroy)
     BE1.place(x=850, y=560)
 
     # boton Volver
-    BE3=Button(wE,text="Volver", width=12, command = lambda: menuFrom(wE))
+    BE3=tk.Button(wE,text="Volver", width=12, command = lambda: menuFrom(wE))
     BE3.place(x=620, y=560)
 
     wE.tabla.delete(*wE.tabla.get_children())
@@ -864,7 +861,7 @@ def V_modPro(modo):
     # Parte común a todos los modos
     w1.withdraw()
     global wF
-    wF=Toplevel()
+    wF=tk.Toplevel()
     #wF.geometry("1500x800")
     wF.state("zoomed")
     wF.iconphoto(False, photo)
@@ -882,14 +879,14 @@ def V_modPro(modo):
     if modo == 'ate_c':
         wF.title("CENADIF Base de datos - Asistencias técnicas cerradas")
     # Parte común a todos los modos
-    wF.frame = Frame(wF)
+    wF.frame = tk.Frame(wF)
     wF.frame.grid(rowspan=2, column=1, row=1)
     wF.tabla = ttk.Treeview(wF.frame, height=15)
     wF.tabla.grid(column=1, row=1)
 
-    ladox = Scrollbar(wF.frame, orient = VERTICAL, command= wF.tabla.yview)
+    ladox = tk.Scrollbar(wF.frame, orient = tk.VERTICAL, command= wF.tabla.yview)
     ladox.grid(column=0, row = 1, sticky='ew') 
-    ladoy = Scrollbar(wF.frame, orient =HORIZONTAL, command = wF.tabla.xview)
+    ladoy = tk.Scrollbar(wF.frame, orient =tk.HORIZONTAL, command = wF.tabla.xview)
     ladoy.grid(column = 1, row = 0, sticky='ns')
     wF.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
        
@@ -923,24 +920,24 @@ def V_modPro(modo):
 # N° PROY
     # Titulo del número CENADIF y nombre (dependientes del modo)
     if modo == 'proy' or modo == 'proy_c':
-        LF1 = Label(wF, text = "N° PROY")
+        LF1 = tk.Label(wF, text = "N° PROY")
     if modo == 'des' or modo == 'des_c':
-        LF1 = Label(wF, text = "N° DES")
+        LF1 = tk.Label(wF, text = "N° DES")
     if modo == 'ate' or modo == 'ate_c':
-        LF1 = Label(wF, text = "N° ATE")
+        LF1 = tk.Label(wF, text = "N° ATE")
     # Parte común a todos los modos
     LF1.place(x=50, y=380)
 
     global EF1
-    EF1 = Entry(wF)
+    EF1 = tk.Entry(wF)
     EF1.place(x=175, y=380)
 
 # Responsable
-    LFD = Label(wF, text = "Responsable")
+    LFD = tk.Label(wF, text = "Responsable")
     LFD.place(x=350, y=380)
 
 #    global EFB
-#    EFB = Entry(wF)
+#    EFB = tk.Entry(wF)
 #    EFB.place(x=475, y=380)
 
     list = userList()
@@ -951,20 +948,20 @@ def V_modPro(modo):
 # Nombre del proyecto
     # Nombre del... (dependiente del modo)
     if modo == 'proy' or modo == 'proy_c':
-        LF4 = Label(wF, text = "Nombre del proyecto")
+        LF4 = tk.Label(wF, text = "Nombre del proyecto")
     if modo == 'des' or modo == 'des_c':
-        LF4 = Label(wF, text = "Nombre del desarrollo")
+        LF4 = tk.Label(wF, text = "Nombre del desarrollo")
     if modo == 'ate' or modo == 'ate_c':
-        LF4 = Label(wF, text = "Nombre de asistencia")
+        LF4 = tk.Label(wF, text = "Nombre de asistencia")
     # Parte común a todos los modos
     LF4.place(x=50, y=430)
 
     global EF4
-    EF4 = Entry(wF)
+    EF4 = tk.Entry(wF)
     EF4.place(x=175, y=430, width=425)
 
 # Estado
-    LF5 = Label(wF, text = "Estado")
+    LF5 = tk.Label(wF, text = "Estado")
     LF5.place(x=50, y=480)
     
     global CF9
@@ -972,7 +969,7 @@ def V_modPro(modo):
     CF9.place(x=175, y=480)
 
 # Alcance
-    LF8 = Label(wF, text = "Alcance")
+    LF8 = tk.Label(wF, text = "Alcance")
     LF8.place(x=350, y=480)
 
     global CF8
@@ -981,23 +978,23 @@ def V_modPro(modo):
 
 # Descripción
 
-    LFB = Label(wF, text = "Descripción: ")
+    LFB = tk.Label(wF, text = "Descripción: ")
     LFB.place(x=50, y=530)
 
     global TF1
     if modo == 'des':
-        TF1 = Text(wF, width = 53, height = 3)
+        TF1 = tk.Text(wF, width = 53, height = 3)
     else:
-        TF1 = Text(wF, width = 53, height = 7)
+        TF1 = tk.Text(wF, width = 53, height = 7)
     TF1.place(x=175, y=530)
 
     if modo == 'des':
     # Prioridad
-        LFC = Label(wF, text = "Prioridad")
+        LFC = tk.Label(wF, text = "Prioridad")
         LFC.place(x=50, y=610)
 
         #global EFC
-        #EFC = Entry(wF)
+        #EFC = tk.Entry(wF)
         #EFC.place(x=175, y=610)
 
         global CFC
@@ -1005,41 +1002,41 @@ def V_modPro(modo):
         CFC.place(x=175, y=610)
 
     # Clasificación
-        LFD = Label(wF, text = "Clasificación")
+        LFD = tk.Label(wF, text = "Clasificación")
         LFD.place(x=350, y=610)
 
         global EFD
-        EFD = Entry(wF)
+        EFD = tk.Entry(wF)
         EFD.place(x=475, y=610)
 
     # NUM
-        LFE = Label(wF, text = "NUM:")
+        LFE = tk.Label(wF, text = "NUM:")
         LFE.place(x=50, y=650)
 
         global EFE
-        EFE = Entry(wF)
+        EFE = tk.Entry(wF)
         EFE.place(x=175, y=650)
 
 #   BOTONES #####################
     # boton Precarga
-    BF4=Button(wF, text="Seleccionar", width=12, command = lambda: B_selProy(modo))
+    BF4=tk.Button(wF, text="Seleccionar", width=12, command = lambda: B_selProy(modo))
     BF4.place(x=175, y=680)
 
     # boton Modificar
     global BF2
-    BF2=Button(wF,text="Modificar", width=12, state = DISABLED, command = lambda: B_modProy(modo))
+    BF2=tk.Button(wF,text="Modificar", width=12, state = tk.DISABLED, command = lambda: B_modProy(modo))
     BF2.place(x=340, y=680)
     
     # boton Tareas
-    BF3=Button(wF, text="Tareas", width=12, command = lambda: V_modTar(modo))
+    BF3=tk.Button(wF, text="Tareas", width=12, command = lambda: V_modTar(modo))
     BF3.place(x=510, y=680)
 
     # boton Volver
-    BF3=Button(wF, text="Volver", width=12, command=lambda: menuFrom(wF))
+    BF3=tk.Button(wF, text="Volver", width=12, command=lambda: menuFrom(wF))
     BF3.place(x=340, y=730)
 
     # boton Salir
-    BF1=Button(wF, text="Salir", width=12, command = w1.quit)
+    BF1=tk.Button(wF, text="Salir", width=12, command = w1.quit)
     BF1.place(x=510, y=730)
 
     wF.tabla.delete(*wF.tabla.get_children())
@@ -1156,72 +1153,72 @@ def V_modPro(modo):
 def addUser():
     w1.withdraw()
     global w6
-    w6=Toplevel()
+    w6=tk.Toplevel()
     w6.geometry("320x500")
     w6.iconphoto(False, photo)
     w6.title("CENADIF - Base de datos")
 
-    L61 = Label(w6, text = "Alta de usuario")
+    L61 = tk.Label(w6, text = "Alta de usuario")
     L61.place(x=105, y=25)
     
     # ID_usuario
-    L62 = Label(w6, text = "ID de usuario: ")
+    L62 = tk.Label(w6, text = "ID de usuario: ")
     L62.place(x=25, y=75)
 
     global E61
-    E61 = Entry(w6)
+    E61 = tk.Entry(w6)
     E61.place(x=155, y=75)
     
      # nombre_usuario
-    L63 = Label(w6, text = "Nombre de usuario: ")
+    L63 = tk.Label(w6, text = "Nombre de usuario: ")
     L63.place(x=25, y=125)
 
     global E62
-    E62 = Entry(w6)
+    E62 = tk.Entry(w6)
     E62.place(x=155, y=125)
 
      # Nombres 
-    L64 = Label(w6, text = "Nombres: ")
+    L64 = tk.Label(w6, text = "Nombres: ")
     L64.place(x=25, y=175)
 
     global E63
-    E63 = Entry(w6)
+    E63 = tk.Entry(w6)
     E63.place(x=155, y=175)
 
      # Apellidos 
-    L65 = Label(w6, text = "Apellidos: ")
+    L65 = tk.Label(w6, text = "Apellidos: ")
     L65.place(x=25, y=225)
 
     global E64
-    E64 = Entry(w6)
+    E64 = tk.Entry(w6)
     E64.place(x=155, y=225)
 
      # correo
-    L66 = Label(w6, text = "Correo electrónico: ")
+    L66 = tk.Label(w6, text = "Correo electrónico: ")
     L66.place(x=25, y=275)
 
     global E65
-    E65 = Entry(w6)
+    E65 = tk.Entry(w6)
     E65.place(x=155, y=275)
 
     # Perfil
-    L68 = Label(w6, text = "Perfil: ")
+    L68 = tk.Label(w6, text = "Perfil: ")
     L68.place(x=25, y=325)
 
     global E68
-    E68 = Entry(w6)
+    E68 = tk.Entry(w6)
     E68.place(x=155, y=325)
 
     # Perfil
-    L69 = Label(w6, text = "Se asigna contraseña predeterminada")
+    L69 = tk.Label(w6, text = "Se asigna contraseña predeterminada")
     L69.place(x=25, y=375)
 
     # boton Volver
-    B61=Button(w6,text="Volver", command = lambda: menuFrom(w6))
+    B61=tk.Button(w6,text="Volver", command = lambda: menuFrom(w6))
     B61.place(x=120, y=425)
 
     # boton Ingresar
-    B62=Button(w6,text="Ingresar", command = userConfirm)
+    B62=tk.Button(w6,text="Ingresar", command = userConfirm)
     B62.place(x=230, y=425)
     
     w6.after(1, lambda: w6.focus_force())
@@ -1230,162 +1227,162 @@ def addUser():
 def privChange():
     w1.withdraw()
     global wA
-    wA=Toplevel()
+    wA=tk.Toplevel()
     wA.geometry("500x600")
     wA.iconphoto(False, photo)
     wA.title("CENADIF Base de datos - Gestión de permisos")
-    # Entry Usuario
-    LA1 = Label(wA, text = "Usuario: ")
+    # tk.Entry Usuario
+    LA1 = tk.Label(wA, text = "Usuario: ")
     LA1.place(x=50, y=40)
 
     global EA1
-    EA1 = Entry(wA)
+    EA1 = tk.Entry(wA)
     EA1.place(x=110, y=40)
 
     # Boton precargar
-    BA1=Button(wA,text="Precargar", width=12, command = precUsu)
+    BA1=tk.Button(wA,text="Precargar", width=12, command = precUsu)
     BA1.place(x=280, y=40)
 
-    LA2 = Label(wA, text = "Permisos:")
+    LA2 = tk.Label(wA, text = "Permisos:")
     LA2.place(x=50, y=80)
 
-    # Radiobuttons (1x permiso)
+    # Radiotk.buttons (1x permiso)
     # Ver pedidos
-    LA3 = Label(wA, text = "Ver pedidos")
+    LA3 = tk.Label(wA, text = "Ver pedidos")
     LA3.place(x=50, y=120)
     global verPed
-    verPed = IntVar()
+    verPed = tk.IntVar()
     global CA1
-    CA1=tk.Checkbutton(wA, variable = verPed, onvalue = 1, offvalue = 0)
+    CA1=tk.Checktk.button(wA, variable = verPed, onvalue = 1, offvalue = 0)
     CA1.place(x=190, y=120)
     # Ingresar pedidos
-    LA4 = Label(wA, text = "Ingresar pedidos")
+    LA4 = tk.Label(wA, text = "Ingresar pedidos")
     LA4.place(x=270, y=120)
     global ingPed
-    ingPed = IntVar()
+    ingPed = tk.IntVar()
     global CA2
-    CA2=tk.Checkbutton(wA, variable = ingPed, onvalue = 1, offvalue = 0)
+    CA2=tk.Checktk.button(wA, variable = ingPed, onvalue = 1, offvalue = 0)
     CA2.place(x=410, y=120)
     # Asignar
-    LA5 = Label(wA, text = "Asignar")
+    LA5 = tk.Label(wA, text = "Asignar")
     LA5.place(x=50, y=160)
     global asiPed
-    asiPed = IntVar()
+    asiPed = tk.IntVar()
     global CA3
-    CA3=tk.Checkbutton(wA, variable = asiPed, onvalue = 1, offvalue = 0)
+    CA3=tk.Checktk.button(wA, variable = asiPed, onvalue = 1, offvalue = 0)
     CA3.place(x=190, y=160)
     # Ver documentación 
-    LA6 = Label(wA, text = "Ver documentación")
+    LA6 = tk.Label(wA, text = "Ver documentación")
     LA6.place(x=50, y=200)
     global verDoc
-    verDoc = IntVar()
+    verDoc = tk.IntVar()
     global CA4
-    CA4=tk.Checkbutton(wA, variable = verDoc, onvalue = 1, offvalue = 0)
+    CA4=tk.Checktk.button(wA, variable = verDoc, onvalue = 1, offvalue = 0)
     CA4.place(x=190, y=200)
     # Modificar documentación 
-    LA7 = Label(wA, text = "Modificar documentación")
+    LA7 = tk.Label(wA, text = "Modificar documentación")
     LA7.place(x=270, y=200)
     global modDoc
-    modDoc = IntVar()
+    modDoc = tk.IntVar()
     global CA5
-    CA5=tk.Checkbutton(wA, variable = modDoc, onvalue = 1, offvalue = 0)
+    CA5=tk.Checktk.button(wA, variable = modDoc, onvalue = 1, offvalue = 0)
     CA5.place   (x=410, y=200)
     # Ver desarrollos 
-    LA8 = Label(wA, text = "Ver desarrollos")
+    LA8 = tk.Label(wA, text = "Ver desarrollos")
     LA8.place(x=50, y=240)
     global verDes
-    verDes = IntVar()
+    verDes = tk.IntVar()
     global CA6
-    CA6=tk.Checkbutton(wA, variable = verDes, onvalue = 1, offvalue = 0)
+    CA6=tk.Checktk.button(wA, variable = verDes, onvalue = 1, offvalue = 0)
     CA6.place(x=190, y=240)
     # Modificar desarrollos 
-    LA9 = Label(wA, text = "Modificar desarrollos")
+    LA9 = tk.Label(wA, text = "Modificar desarrollos")
     LA9.place(x=270, y=240)
     global modDes
-    modDes = IntVar()
+    modDes = tk.IntVar()
     global CA7
-    CA7=tk.Checkbutton(wA, variable = modDes, onvalue = 1, offvalue = 0)
+    CA7=tk.Checktk.button(wA, variable = modDes, onvalue = 1, offvalue = 0)
     CA7.place(x=410, y=240)
     # Ver asistencias 
-    LA10 = Label(wA, text = "Ver asistencias")
+    LA10 = tk.Label(wA, text = "Ver asistencias")
     LA10.place(x=50, y=280)
     global verAsi
-    verAsi = IntVar()
+    verAsi = tk.IntVar()
     global CA8
-    CA8=tk.Checkbutton(wA, variable = verAsi, onvalue = 1, offvalue = 0)
+    CA8=tk.Checktk.button(wA, variable = verAsi, onvalue = 1, offvalue = 0)
     CA8.place(x=190, y=280)
     # Modificar asistencias 
-    LA11 = Label(wA, text = "Modificar asistencias")
+    LA11 = tk.Label(wA, text = "Modificar asistencias")
     LA11.place(x=270, y=280)
     global modAsi
-    modAsi = IntVar()
+    modAsi = tk.IntVar()
     global CA9
-    CA9=tk.Checkbutton(wA, variable = modAsi, onvalue = 1, offvalue = 0)
+    CA9=tk.Checktk.button(wA, variable = modAsi, onvalue = 1, offvalue = 0)
     CA9.place(x=410, y=280)
     # Ver laboratorio 
-    LA12 = Label(wA, text = "Ver laboratorio")
+    LA12 = tk.Label(wA, text = "Ver laboratorio")
     LA12.place(x=50, y=320)
     global verLab
-    verLab = IntVar()
+    verLab = tk.IntVar()
     global CA10
-    CA10=tk.Checkbutton(wA, variable = verLab, onvalue = 1, offvalue = 0)
+    CA10=tk.Checktk.button(wA, variable = verLab, onvalue = 1, offvalue = 0)
     CA10.place(x=190, y=320)
     # Modificar laboratorio 
-    LA13 = Label(wA, text = "Modificar laboratorio")
+    LA13 = tk.Label(wA, text = "Modificar laboratorio")
     LA13.place(x=270, y=320)
     global modLab
-    modLab = IntVar()
+    modLab = tk.IntVar()
     global CA11
-    CA11=tk.Checkbutton(wA, variable = modLab, onvalue = 1, offvalue = 0)
+    CA11=tk.Checktk.button(wA, variable = modLab, onvalue = 1, offvalue = 0)
     CA11.place(x=410, y=320)
     # Alta usuario
-    LA14 = Label(wA, text = "Alta de usuario")
+    LA14 = tk.Label(wA, text = "Alta de usuario")
     LA14.place(x=50, y=360)
     global altUsu
-    altUsu = IntVar()
+    altUsu = tk.IntVar()
     global CA12
-    CA12=tk.Checkbutton(wA, variable = altUsu, onvalue = 1, offvalue = 0)
+    CA12=tk.Checktk.button(wA, variable = altUsu, onvalue = 1, offvalue = 0)
     CA12.place(x=190, y=360)
     # Gestionar permisos
-    LA15 = Label(wA, text = "Gestionar permisos")
+    LA15 = tk.Label(wA, text = "Gestionar permisos")
     LA15.place(x=270, y=360)
     global gesPer
-    gesPer = IntVar()
+    gesPer = tk.IntVar()
     global CA13
-    CA13=tk.Checkbutton(wA, variable = gesPer, onvalue = 1, offvalue = 0)
+    CA13=tk.Checktk.button(wA, variable = gesPer, onvalue = 1, offvalue = 0)
     CA13.place(x=410, y=360)
     # Ver Proyectos
-    LA16 = Label(wA, text = "Ver proyectos")
+    LA16 = tk.Label(wA, text = "Ver proyectos")
     LA16.place(x=50, y=400)
     global verPro
-    verPro = IntVar()
+    verPro = tk.IntVar()
     global CA14
-    CA14=tk.Checkbutton(wA, variable = verPro, onvalue = 1, offvalue = 0)
+    CA14=tk.Checktk.button(wA, variable = verPro, onvalue = 1, offvalue = 0)
     CA14.place(x=190, y=400)
     # Modificar Proyectos
-    LA17 = Label(wA, text = "Modificar proyectos")
+    LA17 = tk.Label(wA, text = "Modificar proyectos")
     LA17.place(x=270, y=400)
     global modPro
-    modPro = IntVar()
+    modPro = tk.IntVar()
     global CA15
-    CA15=tk.Checkbutton(wA, variable = modPro, onvalue = 1, offvalue = 0)
+    CA15=tk.Checktk.button(wA, variable = modPro, onvalue = 1, offvalue = 0)
     CA15.place(x=410, y=400)
     # Modificar Proyectos
-    LA18 = Label(wA, text = "Orden int. Laboratorio")
+    LA18 = tk.Label(wA, text = "Orden int. Laboratorio")
     LA18.place(x=50, y=440)
     global OILab
-    OILab = IntVar()
+    OILab = tk.IntVar()
     global CA18
-    CA18=tk.Checkbutton(wA, variable = OILab, onvalue = 1, offvalue = 0)
+    CA18=tk.Checktk.button(wA, variable = OILab, onvalue = 1, offvalue = 0)
     CA18.place(x=190, y=440)
 
     # Boton Volver
-    BA2=Button(wA,text="Volver", width=12, command = lambda: menuFrom(wA))
+    BA2=tk.Button(wA,text="Volver", width=12, command = lambda: menuFrom(wA))
     BA2.place(x=250, y=510)
 
     # Boton 
     global BA3
-    BA3=Button(wA,text="Modificar", width=12, command= modPriv, state = DISABLED)
+    BA3=tk.Button(wA,text="Modificar", width=12, command= modPriv, state = tk.DISABLED)
     BA3.place(x=360, y=510)
 
     wA.focus_force()
@@ -1394,47 +1391,47 @@ def privChange():
 def passChange():
     w1.withdraw()
     global w5
-    w5=Toplevel()
+    w5=tk.Toplevel()
     w5.geometry("330x300")
     w5.iconphoto(False, photo)
     w5.title("CENADIF - Base de datos")
 
-    L51 = Label(w5, text = "Cambio de contraseña")
+    L51 = tk.Label(w5, text = "Cambio de contraseña")
     L51.place(x=105, y=25)
     
     # Contraseña actual
-    L52 = Label(w5, text = "Contraseña actual: ")
+    L52 = tk.Label(w5, text = "Contraseña actual: ")
     L52.place(x=25, y=75)
 
     global E51
-    #E51 = Entry(w5)
-    E51 = Entry(w5, show = "*")
+    #E51 = tk.Entry(w5)
+    E51 = tk.Entry(w5, show = "*")
     E51.place(x=135, y=75)
     
      # Contraseña nueva
-    L53 = Label(w5, text = "Contraseña nueva: ")
+    L53 = tk.Label(w5, text = "Contraseña nueva: ")
     L53.place(x=25, y=125)
 
     global E52
-    #E52 = Entry(w5)
-    E52 = Entry(w5, show = "*")
+    #E52 = tk.Entry(w5)
+    E52 = tk.Entry(w5, show = "*")
     E52.place(x=135, y=125)
 
      # Segunda contraseña nueva 
-    L54 = Label(w5, text = "Contraseña nueva: ")
+    L54 = tk.Label(w5, text = "Contraseña nueva: ")
     L54.place(x=25, y=175)
 
     global E53
-    #E53 = Entry(w5)
-    E53 = Entry(w5, show = "*")
+    #E53 = tk.Entry(w5)
+    E53 = tk.Entry(w5, show = "*")
     E53.place(x=135, y=175)
 
     # boton Volver
-    B51=Button(w5,text="Volver", command = lambda: menuFrom(w5))
+    B51=tk.Button(w5,text="Volver", command = lambda: menuFrom(w5))
     B51.place(x=110, y=225)
 
     # boton Ingresar
-    B52=Button(w5,text="Cambiar", command = changeConfirm)
+    B52=tk.Button(w5,text="Cambiar", command = changeConfirm)
     B52.place(x=220, y=225)
     
     w5.after(1, lambda: w5.focus_force())
@@ -1444,17 +1441,17 @@ def V_accSchedule():
     #print("Agenda")
     w1.withdraw()
     global wD
-    wD=Toplevel()
+    wD=tk.Toplevel()
     wD.geometry("560x610")
     wD.iconphoto(False, photo)
     wD.title("Agenda de tareas")
-    wD.frame = Frame(wD)
+    wD.frame = tk.Frame(wD)
     wD.frame.grid(rowspan=2, column=1, row=1)
     wD.tabla = ttk.Treeview(wD.frame, height=25)
     wD.tabla.grid(column=1, row=1)
-    ladox = Scrollbar(wD.frame, orient = VERTICAL, command= wD.tabla.yview)
+    ladox = tk.Scrollbar(wD.frame, orient = tk.VERTICAL, command= wD.tabla.yview)
     ladox.grid(column=0, row = 1, sticky='ew') 
-    ladoy = Scrollbar(wD.frame, orient =HORIZONTAL, command = wD.tabla.yview)
+    ladoy = tk.Scrollbar(wD.frame, orient =tk.HORIZONTAL, command = wD.tabla.yview)
     ladoy.grid(column = 1, row = 0, sticky='ns')
 
     wD.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
@@ -1474,15 +1471,15 @@ def V_accSchedule():
     wD.tabla.heading('correo', text='Correo aviso', anchor ='center')
 
     # boton Salir
-    BD1=Button(wD,text="Salir", width=12, command = w1.destroy)
+    BD1=tk.Button(wD,text="Salir", width=12, command = w1.destroy)
     BD1.place(x=430, y=560)
 
     # boton Actualizar
-    #BD2=Button(wD,text="Actualizar", width=12)
+    #BD2=tk.Button(wD,text="Actualizar", width=12)
     #BD2.place(x=735, y=560)
 
     # boton Volver
-    BD3=Button(wD,text="Volver", width=12, command = lambda: menuFrom(wD))
+    BD3=tk.Button(wD,text="Volver", width=12, command = lambda: menuFrom(wD))
     BD3.place(x=300, y=560)
 
     wD.tabla.delete(*wD.tabla.get_children())
@@ -1932,29 +1929,29 @@ def precDoc():
     except Exception as e:
         print("error", e)  
 
-    #E82.delete(0, END)              # tipo
+    #E82.delete(0, tk.END)              # tipo
     C81.set('')              # Tipo
     if resultado[2] is not None:
         C81.set(resultado[2])
-    E83.delete(0, END)              # número  
+    E83.delete(0, tk.END)              # número  
     if resultado[3] is not None:
         E83.insert(0, resultado[3]) 
-    E84.delete(0, END)              # título
+    E84.delete(0, tk.END)              # título
     if resultado[4] is not None:
         E84.insert(0, resultado[4])  
     C82.set('')                     # fuente
     if resultado[5] is not None:
         C82.set(resultado[5])
-    E8D.delete(0, END)              # precio
+    E8D.delete(0, tk.END)              # precio
     if resultado[6] is not None:
          E8D.insert(0, resultado[6]) 
     C83.set('')                     # unidad monetaria
     if resultado[7] is not None:
         C83.set(resultado[7])
-    E87.delete(0, END)              # emisor
+    E87.delete(0, tk.END)              # emisor
     if resultado[8] is not None:
          E87.insert(0, resultado[8]) 
-    E88.delete(0, END)              # fecha resolución
+    E88.delete(0, tk.END)              # fecha resolución
     if resultado[9] is not None:
         fecha = resultado[9].strftime('%Y-%m-%d')
         #print(fecha)
@@ -1962,10 +1959,10 @@ def precDoc():
     T81.delete("1.0","end")         # Observaciones
     if resultado[10] is not None:
          T81.insert("1.0", resultado[10]) 
-    E89.delete(0, END)              # cantidad
+    E89.delete(0, tk.END)              # cantidad
     if resultado[11] is not None:
          E89.insert(0, resultado[11])
-    E8A.delete(0, END)              # respondió
+    E8A.delete(0, tk.END)              # respondió
     if resultado[12] is not None:
          E8A.insert(0, resultado[12]) 
 
@@ -1984,14 +1981,14 @@ def B_selProy(modo):
             resultado = my_cursor.fetchone()
 
             gantt(resultado[0], wF)
-            # Precarga de los entry
-            EF1.delete(0, END)              # N° Proy
+            # Precarga de los tk.entry
+            EF1.delete(0, tk.END)              # N° Proy
             if resultado[7] is not None:
                 EF1.insert(0, resultado[7])
             CFB.set('')                      # Responsable
             if resultado[1] is not None:
                 CFB.set(resultado[1])
-            EF4.delete(0, END)              # nombre de proyecto
+            EF4.delete(0, tk.END)              # nombre de proyecto
             if resultado[3] is not None:
                 EF4.insert(0, resultado[3]) 
             CF9.set('')                       # estado
@@ -2004,10 +2001,10 @@ def B_selProy(modo):
                 CFC.set('')                   # prioridad
                 if resultado[9] is not None:
                     CFC.set(resultado[9])
-                EFD.delete(0, END)              # clasificación
+                EFD.delete(0, tk.END)              # clasificación
                 if resultado[10] is not None:
                     EFD.insert(0, resultado[10]) 
-                EFE.delete(0, END)              # NUM
+                EFE.delete(0, tk.END)              # NUM
                 if resultado[11] is not None:
                     EFE.insert(0, resultado[11]) 
             TF1.delete("1.0","end")         # descripción
@@ -2015,7 +2012,7 @@ def B_selProy(modo):
                 TF1.insert("1.0", resultado[4])
             # habilitar botón modificar 
             if modo != 'proy_c' and modo != 'des_c' and modo != 'ate_c':
-                BF2['state'] = NORMAL 
+                BF2['state'] = tk.NORMAL 
         except Exception as e:
             print("error 890", e)
     else:
@@ -2162,7 +2159,7 @@ def V_modTar(modo):
     except:
         pass
     global wG
-    wG=Toplevel()
+    wG=tk.Toplevel()
     #wG.geometry("1500x800")
     wG.state("zoomed")
     wG.iconphoto(False, photo)
@@ -2189,15 +2186,15 @@ def V_modTar(modo):
             except Exception as e:
                 print("error 392", e)
 
-            wG.frame = Frame(wG)
+            wG.frame = tk.Frame(wG)
             wG.frame.grid(rowspan=2, column=1, row=1)
             wG.tabla = ttk.Treeview(wG.frame, height=1)
             wG.tabla.grid(column=1, row=1)
 
-            ladox = Scrollbar(wG.frame, orient = VERTICAL, command= wG.tabla.yview)
+            ladox = tk.Scrollbar(wG.frame, orient = tk.VERTICAL, command= wG.tabla.yview)
             ladox.grid(column=0, row = 2, sticky='ew')
             #ladox.pack(side ='right', fill ='x') 
-            ladoy = Scrollbar(wG.frame, orient =HORIZONTAL, command = wG.tabla.xview)
+            ladoy = tk.Scrollbar(wG.frame, orient =tk.HORIZONTAL, command = wG.tabla.xview)
             ladoy.grid(column = 1, row = 0, sticky='ns')
             wG.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
         
@@ -2231,14 +2228,14 @@ def V_modTar(modo):
 
             # boton Eliminar
             global BG6
-            BG6=Button(wG, text="Eliminar", width=12, state = DISABLED, command = lambda: B_elimTar(modo))
+            BG6=tk.Button(wG, text="Eliminar", width=12, state = tk.DISABLED, command = lambda: B_elimTar(modo))
             BG6.place(x=375, y=705)
 
             # boton Nueva
-            BG3=Button(wG, text="Nueva", width=12, state = DISABLED, command = lambda: B_nuevaTar(proyData[0], modo))
+            BG3=tk.Button(wG, text="Nueva", width=12, state = tk.DISABLED, command = lambda: B_nuevaTar(proyData[0], modo))
             BG3.place(x=505, y=705)
             if modo != 'proy_c' and modo != 'des_c' and modo != 'ate_c':
-                BG3['state'] = NORMAL
+                BG3['state'] = tk.NORMAL
         else:
             wG.withdraw()
             wF.state("zoomed")
@@ -2258,15 +2255,15 @@ def V_modTar(modo):
             print("error 480", e)
 
 #if modo == 'proy' or modo == 'user' or modo == 'des' or modo == 'ate' :
-    wG.frame2 = Frame(wG)
+    wG.frame2 = tk.Frame(wG)
     wG.frame2.grid(rowspan=2, column=1, row=2)
     wG.frame2.place(y=70)
     wG.tabla2 = ttk.Treeview(wG.frame2, height=12)
     wG.tabla2.grid(column=1, row=1)
 
-    ladox2 = Scrollbar(wG.frame2, orient = VERTICAL, command= wG.tabla2.yview)
+    ladox2 = tk.Scrollbar(wG.frame2, orient = tk.VERTICAL, command= wG.tabla2.yview)
     ladox2.grid(column=0, row = 1, sticky='ew') 
-    ladoy2 = Scrollbar(wG.frame2, orient =HORIZONTAL, command = wG.tabla2.xview)
+    ladoy2 = tk.Scrollbar(wG.frame2, orient =tk.HORIZONTAL, command = wG.tabla2.xview)
     ladoy2.grid(column = 1, row = 0, sticky='ns')
     #wG.tabla2.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
 
@@ -2299,15 +2296,15 @@ def V_modTar(modo):
 
 ## PRIMER PISO ##########################
 # Nombre de la tarea
-    LG1 = Label(wG, text = "Nombre Tarea")
+    LG1 = tk.Label(wG, text = "Nombre Tarea")
     LG1.place(x=20, y=380)
 
     global EG1
-    EG1 = Entry(wG)
+    EG1 = tk.Entry(wG)
     EG1.place(x=110, y=380, width=320)
 
 # Estado
-    LG2 = Label(wG, text = "Estado")
+    LG2 = tk.Label(wG, text = "Estado")
     LG2.place(x=430, y=380)
 
     global CG2
@@ -2316,7 +2313,7 @@ def V_modTar(modo):
 
 ## SEGUNDO PISO #########################
     # Responsable
-    LG3 = Label(wG, text = "Responsable")
+    LG3 = tk.Label(wG, text = "Responsable")
     LG3.place(x=20, y=430)
 
     list = userList()
@@ -2325,53 +2322,53 @@ def V_modTar(modo):
     CG3.place(x=110, y=430)
 
 # inicio
-    LG4 = Label(wG, text = "Inicio")
+    LG4 = tk.Label(wG, text = "Inicio")
     LG4.place(x=250, y=430)
 
     global EG4
-    EG4 = Entry(wG)
+    EG4 = tk.Entry(wG)
     EG4.place(x=300, y=430)
 
 # Fin  
-    LG5 = Label(wG, text = "Fin")
+    LG5 = tk.Label(wG, text = "Fin")
     LG5.place(x=430, y=430)
 
     global EG5
-    EG5 = Entry(wG)
+    EG5 = tk.Entry(wG)
     EG5.place(x=480, y=430)
 
 ## TERCER PISO #########################
     # Avance
-    LG6 = Label(wG, text = "Avance")
+    LG6 = tk.Label(wG, text = "Avance")
     LG6.place(x=20, y=480)
 
     global EG6
-    EG6 = Entry(wG)
+    EG6 = tk.Entry(wG)
     EG6.place(x=110, y=480)
 
 # H/H prog
-    LG7 = Label(wG, text = "hs.prog")
+    LG7 = tk.Label(wG, text = "hs.prog")
     LG7.place(x=250, y=480)
 
     global EG7
-    EG7 = Entry(wG)
+    EG7 = tk.Entry(wG)
     EG7.place(x=300, y=480)
 
 # H/H dedicadas  
-    LG8 = Label(wG, text = "hs.dedic")
+    LG8 = tk.Label(wG, text = "hs.dedic")
     LG8.place(x=430, y=480)
 
     global EG8
-    EG8 = Entry(wG)
+    EG8 = tk.Entry(wG)
     EG8.place(x=480, y=480)
 
 ## CUARTO PISO #########################
     # Integrante 1
-    LG9 = Label(wG, text = "Asignados: 1")
+    LG9 = tk.Label(wG, text = "Asignados: 1")
     LG9.place(x=20, y=530)
 
     #global EG9
-    #EG9 = Entry(wG)
+    #EG9 = tk.Entry(wG)
     #EG9.place(x=110, y=530)
 
     global CG9
@@ -2380,7 +2377,7 @@ def V_modTar(modo):
 
     if modo == 'proy' or modo == 'proy_c' or modo == 'ate':
     # Integrante 2
-        LGA = Label(wG, text = "      2")
+        LGA = tk.Label(wG, text = "      2")
         LGA.place(x=250, y=530)
 
         global CGA
@@ -2388,7 +2385,7 @@ def V_modTar(modo):
         CGA.place(x=300, y=530)
 
     # Integrante 3  
-        LGB = Label(wG, text = "      3")
+        LGB = tk.Label(wG, text = "      3")
         LGB.place(x=430, y=530)
 
         global CGB
@@ -2398,7 +2395,7 @@ def V_modTar(modo):
     global TG1
     if modo == 'ate':
         # Integrante 4
-        LGC = Label(wG, text =  "4")
+        LGC = tk.Label(wG, text =  "4")
         LGC.place(x=80, y=580)
 
         global CGC
@@ -2406,7 +2403,7 @@ def V_modTar(modo):
         CGC.place(x=110, y=580)
 
         # Integrante 5
-        LGD = Label(wG, text =  "      5")
+        LGD = tk.Label(wG, text =  "      5")
         LGD.place(x=250, y=580)
 
         global CGD
@@ -2414,7 +2411,7 @@ def V_modTar(modo):
         CGD.place(x=300, y=580)
 
         # Integrante 6
-        LGE = Label(wG, text =  "      6")
+        LGE = tk.Label(wG, text =  "      6")
         LGE.place(x=430, y=580)
 
         global CGE
@@ -2422,36 +2419,36 @@ def V_modTar(modo):
         CGE.place(x=480, y=580)
 
     # Descripción (ATE)
-        LGB = Label(wG, text = "Descripción: ")
+        LGB = tk.Label(wG, text = "Descripción: ")
         LGB.place(x=20, y=630)
 
-        TG1 = Text(wG, width = 61, height = 3)
+        TG1 = tk.Text(wG, width = 61, height = 3)
         TG1.place(x=110, y=630)
     else:
     # Descripción
-        LGB = Label(wG, text = "Descripción: ")
+        LGB = tk.Label(wG, text = "Descripción: ")
         LGB.place(x=20, y=580)
 
-        TG1 = Text(wG, width = 61, height = 6)
+        TG1 = tk.Text(wG, width = 61, height = 6)
         TG1.place(x=110, y=580)
 
 
 #   BOTONES #####################
     # boton Precarga
-    BG4=Button(wG, text="Seleccionar", width=12, command = lambda: B_selTar(modo))
+    BG4=tk.Button(wG, text="Seleccionar", width=12, command = lambda: B_selTar(modo))
     BG4.place(x=115, y=705)
 
     # boton Modificar
     global BG2
-    BG2=Button(wG,text="Modificar", width=12, command = lambda: B_modTar(modo), state = DISABLED)
+    BG2=tk.Button(wG,text="Modificar", width=12, command = lambda: B_modTar(modo), state = tk.DISABLED)
     BG2.place(x=245, y=705)
 
     # boton Volver
-    BG5=Button(wG, text="Volver", width=12, command=lambda: menuFrom(wG))
+    BG5=tk.Button(wG, text="Volver", width=12, command=lambda: menuFrom(wG))
     BG5.place(x=375, y=750)
 
     # boton Salir
-    BG1=Button(wG, text="Salir", width=12, command = w1.quit)
+    BG1=tk.Button(wG, text="Salir", width=12, command = w1.quit)
     BG1.place(x=505, y=750)
 
     #gantt(proyData[0], wG)
@@ -2535,13 +2532,13 @@ def precUsu():
     if resultado[0] & 32768:
        CA18.select()
 
-    BA3['state'] = NORMAL
+    BA3['state'] = tk.NORMAL
 
 ############################### modificar privilegios ##########################################
 def modPriv():
     #print('modificando permisos...')
     editUser = EA1.get()
-    privileges = IntVar()
+    privileges = tk.IntVar()
     privileges = 0
     if verPed.get() == 1:
         privileges |= 1
@@ -2662,11 +2659,11 @@ def gantt(proy, window):
     global fig
     fig, ax = plt.subplots()
 
-    # Set y-axis tick labels
+    # Set y-axis tick tk.labels
     ax.set_yticks(np.arange(len(tasks)))
-    ax.set_yticklabels(tasks)
+    ax.set_yticktk.labels(tasks)
 
-    # Plot each task as a horizontal bar
+    # Plot each task as a tk.horizontal bar
     for i in range(len(tasks)):
         start_date = pd.to_datetime(start_dates[i])
         end_date = start_date + pd.DateOffset(days=lengths[i])
@@ -2682,7 +2679,7 @@ def gantt(proy, window):
     ax.xaxis_date()
     ax.xaxis.set_major_locator(mdates.WeekdayLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
-    ax.set_xlabel('Fecha[mes-día]')
+    ax.set_xtk.label('Fecha[mes-día]')
     # Ajuste dinámico de la cuadrícula
     if((max_date - min_date).days>70):
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=14))
@@ -2690,7 +2687,7 @@ def gantt(proy, window):
         #ax.xaxis.set_major_locator(mdates.DayLocator(interval=28))
         ax.xaxis.set_major_locator(mdates.MonthLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
-        ax.set_xlabel('Fecha[año-mes]')
+        ax.set_xtk.label('Fecha[año-mes]')
     if((max_date - min_date).days>350):
         ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
     if((max_date - min_date).days>700):
@@ -2698,7 +2695,7 @@ def gantt(proy, window):
     if((max_date - min_date).days>1500):
         ax.xaxis.set_major_locator(mdates.MonthLocator(interval=8))
 #    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    ax.set_ylabel('Tareas')
+    ax.set_ytk.label('Tareas')
     ax.set_title('Planificación del proyecto')
     #plt.iconphoto(False, photo)
 
@@ -2762,8 +2759,8 @@ def B_selTar(modo):
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
             #print(resultado)
-            # Precarga de los entry
-            EG1.delete(0, END)              # Nombre de tarea
+            # Precarga de los tk.entry
+            EG1.delete(0, tk.END)              # Nombre de tarea
             if resultado[3] is not None:
                 EG1.insert(0, resultado[3])
             CG2.set('')                     # Estado
@@ -2772,19 +2769,19 @@ def B_selTar(modo):
             CG3.set('')                     # Responsable
             if resultado[2] is not None:
                 CG3.set(resultado[2])
-            EG4.delete(0, END)              # Inicio
+            EG4.delete(0, tk.END)              # Inicio
             if resultado[14] is not None:
                 EG4.insert(0, resultado[14])
-            EG5.delete(0, END)              # Fin
+            EG5.delete(0, tk.END)              # Fin
             if resultado[15] is not None:
                 EG5.insert(0, resultado[15])
-            EG6.delete(0, END)              # Avance
+            EG6.delete(0, tk.END)              # Avance
             if resultado[6] is not None:
                 EG6.insert(0, resultado[6])
-            EG7.delete(0, END)              # hs/H programadas
+            EG7.delete(0, tk.END)              # hs/H programadas
             if resultado[5] is not None:
                 EG7.insert(0, resultado[5])
-            EG8.delete(0, END)              # hs/H dedicadas
+            EG8.delete(0, tk.END)              # hs/H dedicadas
             if resultado[7] is not None:
                 EG8.insert(0, resultado[7])
             CG9.set('')                     # Integrante 1
@@ -2812,8 +2809,8 @@ def B_selTar(modo):
                 TG1.insert("1.0", resultado[4])
             
             if modo != 'proy_c'and modo != 'des_c' and modo != 'ate_c':
-                BG2['state'] = NORMAL # habilitación del botón Modificar
-                BG6['state'] = NORMAL # habilitación del botón Eliminar
+                BG2['state'] = tk.NORMAL # habilitación del botón Modificar
+                BG6['state'] = tk.NORMAL # habilitación del botón Eliminar
             #####################################################################     
             
         except Exception as e:
@@ -3038,33 +3035,33 @@ def verify():
                 w2.withdraw()
                 w1.deiconify()
                 if int(resultados[1]) & 1:
-                    B11['state'] = NORMAL
+                    B11['state'] = tk.NORMAL
                 if int(resultados[1]) & 2:
-                    B12['state'] = NORMAL
+                    B12['state'] = tk.NORMAL
                 if int(resultados[1]) & 4:
-                    B13['state'] = NORMAL
+                    B13['state'] = tk.NORMAL
                 if int(resultados[1]) & 8:
-                    B14['state'] = NORMAL
+                    B14['state'] = tk.NORMAL
                 if int(resultados[1]) & 16:
-                    B15['state'] = NORMAL
+                    B15['state'] = tk.NORMAL
                 if int(resultados[1]) & 32:
-                    B16['state'] = NORMAL
+                    B16['state'] = tk.NORMAL
                 if int(resultados[1]) & 64:
-                    B17['state'] = NORMAL
+                    B17['state'] = tk.NORMAL
                 if int(resultados[1]) & 128:
-                    B18['state'] = NORMAL
+                    B18['state'] = tk.NORMAL
                 if int(resultados[1]) & 256:
-                    B19['state'] = NORMAL # Asistencias activas
+                    B19['state'] = tk.NORMAL # Asistencias activas
                 if int(resultados[1]) & 1024:
-                    B20['state'] = NORMAL # ord. de trabajo de lab
+                    B20['state'] = tk.NORMAL # ord. de trabajo de lab
                 if int(resultados[1]) & 2048:
-                    B21['state'] = NORMAL # ord. internas de lab
+                    B21['state'] = tk.NORMAL # ord. internas de lab
                 if int(resultados[1]) & 4096:
-                    B22['state'] = NORMAL
+                    B22['state'] = tk.NORMAL
                 if int(resultados[1]) & 4096:
-                    B23['state'] = NORMAL
+                    B23['state'] = tk.NORMAL
                 if int(resultados[1]) & 32768:
-                    B1B['state'] = NORMAL
+                    B1B['state'] = tk.NORMAL
             else:
                 messagebox.showinfo(message="Nombre de usuario y/o contraseña incorrectos.", title="Aviso del sistema")
         except:
@@ -3072,34 +3069,34 @@ def verify():
 
 def accessForm():
     global w2
-    w2=Toplevel()
+    w2=tk.Toplevel()
     w2.geometry("350x150")
     w2.iconphoto(False, photo)
     w2.title("CENADIF - Base de datos")    
 
-    L1 = Label(w2, text = "Formulario de acceso")#.pack(pady=10)
+    L1 = tk.Label(w2, text = "Formulario de acceso")#.pack(pady=10)
     L1.grid(row = 0, column = 1, padx = 5, pady= 5)
     
     # Username
 
-    L2 = Label(w2, text = "Usuario: ")
+    L2 = tk.Label(w2, text = "Usuario: ")
     L2.grid(row = 1, column = 0, padx = 5, pady= 5)
 
     global E1
-    E1 = Entry(w2)
+    E1 = tk.Entry(w2)
     E1.grid(row = 1, column = 1, padx = 5, pady= 5)
     #E1.insert(0, "hgomezmolino") ############################### SACAR!!!!!!!!!!!!!!!!!!!!!!!!!
 
     # Password
 
-    L3 = Label(w2, text = "Contraseña: ")
+    L3 = tk.Label(w2, text = "Contraseña: ")
     L3.grid(row = 2, column = 0, padx = 5, pady= 5)
 
     global E2
-    E2 = Entry(w2, show = "*")
+    E2 = tk.Entry(w2, show = "*")
     E2.grid(row = 2, column = 1, padx = 5, pady= 5)
     
-    B1=Button(w2,text="Enviar", command = verify)
+    B1=tk.Button(w2,text="Enviar", command = verify)
     B1.grid(row = 3, column = 2, padx = 5, pady= 5)
 
     w2.focus_force()
@@ -3108,7 +3105,7 @@ def V_estad():
     # Parte común a todos los modos
     #w1.withdraw()
     global wC
-    wC=Toplevel()
+    wC=tk.Toplevel()
     wC.geometry("1500x800")
     wC.state("zoomed")
     wC.iconphoto(False, photo)
@@ -3222,7 +3219,7 @@ def V_estad():
         ax5.set_title('Laboratorio')
 
     chart1 = FigureCanvasTkAgg(fig1,wC)
-    chart1.get_tk_widget().pack(fill=BOTH, expand=TRUE)
+    chart1.get_tk_widget().pack(fill = tk.BOTH, expand = tk.TRUE)
 
 ############################### Función de actualización de agenda #################################################
 
@@ -3334,18 +3331,18 @@ def refresh_conn(conn):
 def V_modLab(tipo):
     w1.withdraw()
     global wH
-    wH=Toplevel()
+    wH=tk.Toplevel()
     wH.state("zoomed")
     wH.iconphoto(False, photo)
 
-    wH.frame = Frame(wH)
+    wH.frame = tk.Frame(wH)
     wH.frame.grid(rowspan=2, column=1, row=1)
     wH.tabla = ttk.Treeview(wH.frame, height=23)
     wH.tabla.grid(column=1, row=1)
 
-    ladox = Scrollbar(wH.frame, orient = VERTICAL, command= wH.tabla.yview)
+    ladox = tk.Scrollbar(wH.frame, orient = tk.VERTICAL, command= wH.tabla.yview)
     ladox.grid(column=0, row = 1, sticky='ew') 
-    ladoy = Scrollbar(wH.frame, orient =HORIZONTAL, command = wH.tabla.xview)
+    ladoy = tk.Scrollbar(wH.frame, orient =tk.HORIZONTAL, command = wH.tabla.xview)
     ladoy.grid(column = 1, row = 0, sticky='ns')
     wH.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
        
@@ -3394,27 +3391,27 @@ def V_modLab(tipo):
     F2 = 620
     # N° O/T:
     if tipo =='T':
-        LH6 = Label(wH, text = "N° O/T:")
+        LH6 = tk.Label(wH, text = "N° O/T:")
     elif tipo =='I':
-        LH6 = Label(wH, text = "N° O/I:")
+        LH6 = tk.Label(wH, text = "N° O/I:")
     else:
         pass # To Do: manejo de error de tipo
     LH6.place(x=20, y=F1)
 
     global EH6
-    EH6 = Entry(wH)
+    EH6 = tk.Entry(wH)
     EH6.place(x=90, y=F1)
 
 # Nombre de la tarea
-    LH1 = Label(wH, text = "Descripción")
+    LH1 = tk.Label(wH, text = "Descripción")
     LH1.place(x=250, y=F1)
 
     global EH1
-    EH1 = Entry(wH)
+    EH1 = tk.Entry(wH)
     EH1.place(x=325, y=F1, width=320)
 
     # Responsable
-    LH3 = Label(wH, text = "Responsable")
+    LH3 = tk.Label(wH, text = "Responsable")
     LH3.place(x=20, y=F2)
 
     list = userList()
@@ -3423,55 +3420,55 @@ def V_modLab(tipo):
     CH3.place(x=110, y=F2)
 
 # Fin  
-    LH5 = Label(wH, text = "Fin")
+    LH5 = tk.Label(wH, text = "Fin")
     LH5.place(x=270, y=F2)
 
     global EH5
-    EH5 = Entry(wH)
+    EH5 = tk.Entry(wH)
     EH5.place(x=320, y=F2)
 
 # Informe
-    LH4 = Label(wH, text = "Informe")
+    LH4 = tk.Label(wH, text = "Informe")
     LH4.place(x=470, y=F2)
 
     global EH4
-    EH4 = Entry(wH)
+    EH4 = tk.Entry(wH)
     EH4.place(x=520, y=F2)
 
     ##################################################### 
     # Descripción (ATE)
-    LH7 = Label(wH, text = "Observaciones: ")
+    LH7 = tk.Label(wH, text = "Observaciones: ")
     LH7.place(x=700, y=F1)
 
     global TH1
-    TH1 = Text(wH, width = 61, height = 7)
+    TH1 = tk.Text(wH, width = 61, height = 7)
     TH1.place(x=790, y=F1)
     
 
     #   BOTONES #####################
     # boton Precarga
-    BH4=Button(wH, text="Seleccionar", width=12, command=lambda:B_selecOrden(tipo))
+    BH4=tk.Button(wH, text="Seleccionar", width=12, command=lambda:B_selecOrden(tipo))
     BH4.place(x=170, y=700)
 
     # boton Modificar
     global BH2
-    BH2=Button(wH,text="Modificar", width=12, state = DISABLED, command=lambda:B_modOrden(tipo))
+    BH2=tk.Button(wH,text="Modificar", width=12, state = tk.DISABLED, command=lambda:B_modOrden(tipo))
     BH2.place(x=340, y=700)
     
     # boton Ordenes de servicio
-    BH3=Button(wH, text="Ord. Servicio", width=12, command=lambda:V_modServ(tipo))
+    BH3=tk.Button(wH, text="Ord. Servicio", width=12, command=lambda:V_modServ(tipo))
     BH3.place(x=510, y=700)
 
     # boton Muestras
-    BH6=Button(wH, text="Muestras", width=12, command=lambda:V_modMue(tipo))
+    BH6=tk.Button(wH, text="Muestras", width=12, command=lambda:V_modMue(tipo))
     BH6.place(x=680, y=700)
 
     # boton Volver
-    BH5=Button(wH, text="Volver", width=12, command=lambda: menuFrom(wH))
+    BH5=tk.Button(wH, text="Volver", width=12, command=lambda: menuFrom(wH))
     BH5.place(x=1020, y=700)
 
     # boton Salir
-    BH1=Button(wH, text="Salir", width=12, command = w1.quit)
+    BH1=tk.Button(wH, text="Salir", width=12, command = w1.quit)
     BH1.place(x=1190, y=700)
 
     wH.tabla.delete(*wH.tabla.get_children())
@@ -3527,26 +3524,26 @@ def B_selecOrden(modo):
             #print(resultado)
         except Exception as e:
             print("error", e)
-            # Precarga de los entry
-        EH6.delete(0, END)              # Numero de orden
+            # Precarga de los tk.entry
+        EH6.delete(0, tk.END)              # Numero de orden
         if resultado[2] is not None:
             EH6.insert(0, resultado[2])
-        EH1.delete(0, END)              # Descripción
+        EH1.delete(0, tk.END)              # Descripción
         if resultado[4] is not None:
             EH1.insert(0, resultado[4])
         CH3.set('')                     # Responsable
         if resultado[3] is not None:
             CH3.set( resultado[3])
-        EH5.delete(0, END)              # Fecha finalización
+        EH5.delete(0, tk.END)              # Fecha finalización
         if resultado[6] is not None:
             EH5.insert(0, resultado[6])
-        EH4.delete(0, END)              # Informe
+        EH4.delete(0, tk.END)              # Informe
         if resultado[5] is not None:
             EH4.insert(0, resultado[5])
         TH1.delete("1.0","end")         # Observaciones
         if resultado[7] is not None:
             TH1.insert("1.0", resultado[7])
-        BH2['state'] = NORMAL           # habilitación del botón Modificar
+        BH2['state'] = tk.NORMAL           # habilitación del botón Modificar
             #####################################################################     
                      
     else:
@@ -3637,7 +3634,7 @@ def V_modServ(modo):
         ### esconde la pantalla de llamado
         wH.withdraw()
         global wI
-        wI=Toplevel()
+        wI=tk.Toplevel()
         #wG.geometry("1500x800")
         wI.state("zoomed")
         wI.iconphoto(False, photo)
@@ -3665,15 +3662,15 @@ def V_modServ(modo):
         except Exception as e:
             print("error 3634", e)
 
-        wI.frame = Frame(wI)
+        wI.frame = tk.Frame(wI)
         wI.frame.grid(rowspan=2, column=1, row=1)
         wI.tabla = ttk.Treeview(wI.frame, height=1)
         wI.tabla.grid(column=1, row=1)
 
-        ladox = Scrollbar(wI.frame, orient = VERTICAL, command= wI.tabla.yview)
+        ladox = tk.Scrollbar(wI.frame, orient = tk.VERTICAL, command= wI.tabla.yview)
         ladox.grid(column=0, row = 2, sticky='ew')
         #ladox.pack(side ='right', fill ='x') 
-        ladoy = Scrollbar(wI.frame, orient =HORIZONTAL, command = wI.tabla.xview)
+        ladoy = tk.Scrollbar(wI.frame, orient =tk.HORIZONTAL, command = wI.tabla.xview)
         ladoy.grid(column = 1, row = 0, sticky='ns')
         wI.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
 
@@ -3714,15 +3711,15 @@ def V_modServ(modo):
         except Exception as e:
             print("error 3683", e)
 
-        wI.frame2 = Frame(wI)
+        wI.frame2 = tk.Frame(wI)
         wI.frame2.grid(rowspan=2, column=1, row=2)
         wI.frame2.place(y=70)
         wI.tabla2 = ttk.Treeview(wI.frame2, height=15)
         wI.tabla2.grid(column=1, row=1)
 
-        ladox2 = Scrollbar(wI.frame2, orient = VERTICAL, command= wI.tabla2.yview)
+        ladox2 = tk.Scrollbar(wI.frame2, orient = tk.VERTICAL, command= wI.tabla2.yview)
         ladox2.grid(column=0, row = 1, sticky='ew') 
-        ladoy2 = Scrollbar(wI.frame2, orient =HORIZONTAL, command = wI.tabla2.xview)
+        ladoy2 = tk.Scrollbar(wI.frame2, orient =tk.HORIZONTAL, command = wI.tabla2.xview)
         ladoy2.grid(column = 1, row = 0, sticky='ns')
         #wG.tabla2.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
 
@@ -3759,16 +3756,16 @@ def V_modServ(modo):
     ## PRIMER PISO ##########################
 
     # Nombre de la tarea
-        LI1 = Label(wI, text = "Tarea")
+        LI1 = tk.Label(wI, text = "Tarea")
         LI1.place(x=20, y=F1)
 
         global EI1
-        EI1 = Entry(wI)
+        EI1 = tk.Entry(wI)
         EI1.place(x=110, y=F1, width=500)
 
     ## SEGUNDO PISO #########################
         # Responsable
-        LI3 = Label(wI, text = "Responsable")
+        LI3 = tk.Label(wI, text = "Responsable")
         LI3.place(x=20, y=F2)
 
         list = userList()
@@ -3777,44 +3774,44 @@ def V_modServ(modo):
         CI3.place(x=110, y=F2)
 
     # inicio
-        LI4 = Label(wI, text = "Inicio")
+        LI4 = tk.Label(wI, text = "Inicio")
         LI4.place(x=250, y=F2)
 
         global EI4
-        EI4 = Entry(wI)
+        EI4 = tk.Entry(wI)
         EI4.place(x=300, y=F2)
 
     # Fin  
-        LI5 = Label(wI, text = "Fin")
+        LI5 = tk.Label(wI, text = "Fin")
         LI5.place(x=430, y=F2)
 
         global EI5
-        EI5 = Entry(wI)
+        EI5 = tk.Entry(wI)
         EI5.place(x=480, y=F2)
 
     ## TERCER PISO #########################
     
     # H/H prog
-        LI7 = Label(wI, text = "horas")
+        LI7 = tk.Label(wI, text = "horas")
         LI7.place(x=250, y=F3)
 
         global EI7
-        EI7 = Entry(wI)
+        EI7 = tk.Entry(wI)
         EI7.place(x=300, y=F3)
 
         # Operador
-        LI9 = Label(wI, text = "Operador")
+        LI9 = tk.Label(wI, text = "Operador")
         LI9.place(x=20, y=F3)
 
         #global EG9
-        #EG9 = Entry(wG)
+        #EG9 = tk.Entry(wG)
         #EG9.place(x=110, y=530)
 
         global CI9
         CI9 = ttk.Combobox(wI, state="readonly", width = 17, values = list)
         CI9.place(x=110, y=F3)
     # Tipo
-        LI2 = Label(wI, text = "Tipo")
+        LI2 = tk.Label(wI, text = "Tipo")
         LI2.place(x=430, y=F3)
 
         global CI2
@@ -3823,47 +3820,47 @@ def V_modServ(modo):
 
     ## CUARTO PISO #########################
     # Equipos
-        LIA = Label(wI, text = "Equipamiento")
+        LIA = tk.Label(wI, text = "Equipamiento")
         LIA.place(x=20, y=F4)
 
         global EIA
-        EIA = Entry(wI)
+        EIA = tk.Entry(wI)
         EIA.place(x=110, y=F4, width=500)
     ##################################################### 
         # Descripción (ATE)
-        LIB = Label(wI, text = "Observaciones: ")
+        LIB = tk.Label(wI, text = "Observaciones: ")
         LIB.place(x=650, y=F2)
 
         global TI1
-        TI1 = Text(wI, width = 61, height = 7)
+        TI1 = tk.Text(wI, width = 61, height = 7)
         TI1.place(x=740, y=F2)
      
     #   BOTONES #####################
         H_bot = 680
         # boton Precarga
-        BI4=Button(wI, text="Seleccionar", width=12, command = lambda: B_selServ(modo))
+        BI4=tk.Button(wI, text="Seleccionar", width=12, command = lambda: B_selServ(modo))
         BI4.place(x=115, y=H_bot)
 
         # boton Modificar
         global BI2
-        BI2=Button(wI,text="Modificar", width=12, command = lambda: B_modServ(modo), state = DISABLED)
+        BI2=tk.Button(wI,text="Modificar", width=12, command = lambda: B_modServ(modo), state = tk.DISABLED)
         BI2.place(x=245, y=H_bot)
 
         # boton Eliminar
         global BI6
-        BI6=Button(wI, text="Eliminar", width=12, command = lambda: B_elimServ(modo))
+        BI6=tk.Button(wI, text="Eliminar", width=12, command = lambda: B_elimServ(modo))
         BI6.place(x=375, y=H_bot)
 
         # boton Nueva
-        BI3=Button(wI, text="Nueva", width=12, command = lambda: B_nuevoServ(ordData[0], modo))
+        BI3=tk.Button(wI, text="Nueva", width=12, command = lambda: B_nuevoServ(ordData[0], modo))
         BI3.place(x=505, y=H_bot)
 
         # boton Volver
-        BI5=Button(wI, text="Volver", width=12, command=lambda: menuFrom(wI))
+        BI5=tk.Button(wI, text="Volver", width=12, command=lambda: menuFrom(wI))
         BI5.place(x=765, y=H_bot)
 
         # boton Salir
-        BI1=Button(wI, text="Salir", width=12, command = w1.quit)
+        BI1=tk.Button(wI, text="Salir", width=12, command = w1.quit)
         BI1.place(x=895, y=H_bot)
 
     else:
@@ -3882,20 +3879,20 @@ def B_selServ(modo):
             resultado = my_cursor.fetchone()
         except Exception as e:
             print("error", e)
-        # Precarga de los entry
-        EI1.delete(0, END)              # Tarea
+        # Precarga de los tk.entry
+        EI1.delete(0, tk.END)              # Tarea
         if resultado[3] is not None:
             EI1.insert(0, resultado[3])
         CI3.set('')                     # Responsable
         if resultado[1] is not None:
             CI3.set( resultado[1])
-        EI4.delete(0, END)              # Inicio
+        EI4.delete(0, tk.END)              # Inicio
         if resultado[6] is not None:
             EI4.insert(0, resultado[6])
-        EI5.delete(0, END)              # Fin
+        EI5.delete(0, tk.END)              # Fin
         if resultado[7] is not None:
             EI5.insert(0, resultado[7])
-        EI7.delete(0, END)              # Horas
+        EI7.delete(0, tk.END)              # Horas
         if resultado[8] is not None:
             EI7.insert(0, resultado[8])
         CI9.set('')                     # Operador
@@ -3904,13 +3901,13 @@ def B_selServ(modo):
         CI2.set('')                     # Tipo
         if resultado[2] is not None:
             CI2.set( resultado[2])
-        EIA.delete(0, END)              # Equipamiento
+        EIA.delete(0, tk.END)              # Equipamiento
         if resultado[4] is not None:
             EIA.insert(0, resultado[4])
         TI1.delete("1.0","end")         # Descripción
         if resultado[9] is not None:
             TI1.insert("1.0", resultado[9])
-        BI2['state'] = NORMAL # habilitación del botón Modificar
+        BI2['state'] = tk.NORMAL # habilitación del botón Modificar
 
     else:
         messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
@@ -4069,7 +4066,7 @@ def V_modMue(modo):
         ### esconde la pantalla de llamado
         wH.withdraw()
         global wJ
-        wJ=Toplevel()
+        wJ=tk.Toplevel()
         #wG.geometry("1500x800")
         wJ.state("zoomed")
         wJ.iconphoto(False, photo)
@@ -4097,15 +4094,15 @@ def V_modMue(modo):
         except Exception as e:
             print("error 3634", e)
 
-        wJ.frame = Frame(wJ)
+        wJ.frame = tk.Frame(wJ)
         wJ.frame.grid(rowspan=2, column=1, row=1)
         wJ.tabla = ttk.Treeview(wJ.frame, height=1)
         wJ.tabla.grid(column=1, row=1)
 
-        ladox = Scrollbar(wJ.frame, orient = VERTICAL, command= wJ.tabla.yview)
+        ladox = tk.Scrollbar(wJ.frame, orient = tk.VERTICAL, command= wJ.tabla.yview)
         ladox.grid(column=0, row = 2, sticky='ew')
         #ladox.pack(side ='right', fill ='x') 
-        ladoy = Scrollbar(wJ.frame, orient =HORIZONTAL, command = wJ.tabla.xview)
+        ladoy = tk.Scrollbar(wJ.frame, orient =tk.HORIZONTAL, command = wJ.tabla.xview)
         ladoy.grid(column = 1, row = 0, sticky='ns')
         wJ.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
 
@@ -4146,15 +4143,15 @@ def V_modMue(modo):
         except Exception as e:
             print("error 3683", e)
 
-        wJ.frame2 = Frame(wJ)
+        wJ.frame2 = tk.Frame(wJ)
         wJ.frame2.grid(rowspan=2, column=1, row=2)
         wJ.frame2.place(y=70)
         wJ.tabla2 = ttk.Treeview(wJ.frame2, height=15)
         wJ.tabla2.grid(column=1, row=1)
 
-        ladox2 = Scrollbar(wJ.frame2, orient = VERTICAL, command= wJ.tabla2.yview)
+        ladox2 = tk.Scrollbar(wJ.frame2, orient = tk.VERTICAL, command= wJ.tabla2.yview)
         ladox2.grid(column=0, row = 1, sticky='ew') 
-        ladoy2 = Scrollbar(wJ.frame2, orient =HORIZONTAL, command = wJ.tabla2.xview)
+        ladoy2 = tk.Scrollbar(wJ.frame2, orient =tk.HORIZONTAL, command = wJ.tabla2.xview)
         ladoy2.grid(column = 1, row = 0, sticky='ns')
 
         wJ.tabla2['columns'] = ('ID', 'corresp', 'observ', 'ingreso')
@@ -4183,16 +4180,16 @@ def V_modMue(modo):
     ## PRIMER PISO ##########################
 
     # Observaciones
-        LJ1 = Label(wJ, text = "Observaciones")
+        LJ1 = tk.Label(wJ, text = "Observaciones")
         LJ1.place(x=560, y=F1)
 
         global EJ1
-        EJ1 = Entry(wJ)
+        EJ1 = tk.Entry(wJ)
         EJ1.place(x=650, y=F1, width=500)
 
     ## SEGUNDO PISO #########################
         # Responsable
-        LJ3 = Label(wJ, text = "Tipo")
+        LJ3 = tk.Label(wJ, text = "Tipo")
         LJ3.place(x=20, y=F1)
 
         list = ['MC', 'MP', 'MR', 'ML', 'MG', 'MM']
@@ -4201,49 +4198,49 @@ def V_modMue(modo):
         CJ3.place(x=80, y=F1)
 
     # inicio
-        LJ4 = Label(wJ, text = "Corresponde a:")
+        LJ4 = tk.Label(wJ, text = "Corresponde a:")
         LJ4.place(x=230, y=F1)
 
         global EJ4
-        EJ4 = Entry(wJ)
+        EJ4 = tk.Entry(wJ)
         EJ4.place(x=320, y=F1, width=230)
 
     # Fecha ingreso 
-        LJ5 = Label(wJ, text = "Ingresó")
+        LJ5 = tk.Label(wJ, text = "Ingresó")
         LJ5.place(x=1150, y=F1)
 
         global EJ5
-        EJ5 = Entry(wJ)
+        EJ5 = tk.Entry(wJ)
         EJ5.place(x=1200, y=F1)
 
     #   BOTONES #####################
         H_bot = 550
         # boton Precarga
-        BJ4=Button(wJ, text="Seleccionar", width=12, command = lambda: B_selMue())
-        #BJ4=Button(wJ, text="Seleccionar", width=12)
+        BJ4=tk.Button(wJ, text="Seleccionar", width=12, command = lambda: B_selMue())
+        #BJ4=tk.Button(wJ, text="Seleccionar", width=12)
         BJ4.place(x=115, y=H_bot)
 
         # boton Modificar
         global BJ2
-        BJ2=Button(wJ,text="Modificar", width=12, command = lambda: B_modMue(modo), state = DISABLED)
-        #BJ2=Button(wJ,text="Modificar", width=12)
+        BJ2=tk.Button(wJ,text="Modificar", width=12, command = lambda: B_modMue(modo), state = tk.DISABLED)
+        #BJ2=tk.Button(wJ,text="Modificar", width=12)
         BJ2.place(x=245, y=H_bot)
 
         # boton Eliminar
         global BJ6
-        BJ6=Button(wJ, text="Eliminar", width=12, command = lambda: B_elimMue(modo))
+        BJ6=tk.Button(wJ, text="Eliminar", width=12, command = lambda: B_elimMue(modo))
         BJ6.place(x=375, y=H_bot)
 
         # boton Nueva
-        BJ3=Button(wJ, text="Nueva", width=12, command = lambda: B_nuevaMue(modo, ordData[0]))
+        BJ3=tk.Button(wJ, text="Nueva", width=12, command = lambda: B_nuevaMue(modo, ordData[0]))
         BJ3.place(x=505, y=H_bot)
 
         # boton Volver
-        BJ5=Button(wJ, text="Volver", width=12, command=lambda: menuFrom(wJ))
+        BJ5=tk.Button(wJ, text="Volver", width=12, command=lambda: menuFrom(wJ))
         BJ5.place(x=765, y=H_bot)
 
         # boton Salir
-        BJ1=Button(wJ, text="Salir", width=12, command = w1.quit)
+        BJ1=tk.Button(wJ, text="Salir", width=12, command = w1.quit)
         BJ1.place(x=895, y=H_bot)
 
     else:
@@ -4263,20 +4260,20 @@ def B_selMue():
             #print(resultado[5])
         except Exception as e:
             print("error", e)
-            # Precarga de los entry
+            # Precarga de los tk.entry
         CJ3.set('')                     # Tipo
         if resultado[5] is not None:
             CJ3.set( resultado[5])
-        EJ1.delete(0, END)              # Observaciones
+        EJ1.delete(0, tk.END)              # Observaciones
         if resultado[4] is not None:
             EJ1.insert(0, resultado[4])
-        EJ4.delete(0, END)              # Correspondencia
+        EJ4.delete(0, tk.END)              # Correspondencia
         if resultado[3] is not None:
             EJ4.insert(0, resultado[3])
-        EJ5.delete(0, END)              # fecha de ingreso
+        EJ5.delete(0, tk.END)              # fecha de ingreso
         if resultado[2] is not None:
             EJ5.insert(0, resultado[2])
-        BJ2['state'] = NORMAL # habilitación del botón Modificar
+        BJ2['state'] = tk.NORMAL # habilitación del botón Modificar
     else:
         messagebox.showinfo(message="Seleccione una muestra.", title="Aviso del sistema")
 
@@ -4374,12 +4371,12 @@ def V_oIntLab():
     w1.withdraw()
     #print("Ingresando...")
     global wK
-    wK=Toplevel()
+    wK=tk.Toplevel()
     wK.iconphoto(False, photo)
     wK.geometry("500x450")
     wK.title("CENADIF - Base de datos")
 
-    LK1 = Label(wK, text = "Ingreso de O/I - Laboratorio")
+    LK1 = tk.Label(wK, text = "Ingreso de O/I - Laboratorio")
     LK1.place(x=190, y=25)
    
     F1 = 80
@@ -4390,16 +4387,16 @@ def V_oIntLab():
     C2 = 100
 
 # Observaciones
-    LK2 = Label(wK, text = "Descripción")
+    LK2 = tk.Label(wK, text = "Descripción")
     LK2.place(x=C1, y=F1)
 
     global TK2
-    TK2 = Text(wK, width = 42, height = 4)
+    TK2 = tk.Text(wK, width = 42, height = 4)
     TK2.place(x= C2, y=F1)
 
 ## SEGUNDO PISO #########################
     # Responsable
-    LK3 = Label(wK, text = "Solicitante")
+    LK3 = tk.Label(wK, text = "Solicitante")
     LK3.place(x=C1, y=F2)
 
     list = userList()
@@ -4408,20 +4405,20 @@ def V_oIntLab():
     CK3.place(x=C2, y=F2)
 
 # inicio
-    LK4 = Label(wK, text = "Fecha")
+    LK4 = tk.Label(wK, text = "Fecha")
     LK4.place(x=C1, y=F3)
 
     global EK4
-    EK4 = Entry(wK)
+    EK4 = tk.Entry(wK)
     EK4.place(x=C2, y=F3)
 # BOTONES #########################################################
     # boton Volver
-    BK1=Button(wK,text="Volver", command = lambda: menuFrom(wK))
+    BK1=tk.Button(wK,text="Volver", command = lambda: menuFrom(wK))
     BK1.place(x=125, y=F4)
     
      # boton Ingresar
-    BK2=Button(wK,text="Ingresar", command=ingresar_oInt)
-    #BK2=Button(wK,text="Ingresar")
+    BK2=tk.Button(wK,text="Ingresar", command=ingresar_oInt)
+    #BK2=tk.Button(wK,text="Ingresar")
     BK2.place(x=325, y=F4)
 
     wK.after(1, lambda: wK.focus_force())

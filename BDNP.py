@@ -22,6 +22,7 @@ class usuario:
         self.rol = rol
 
 def main():
+    # pruebas
     pass
 
 if __name__  == "__main__":
