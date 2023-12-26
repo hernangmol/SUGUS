@@ -12,7 +12,7 @@ import logging
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+import BDNP as bd
 ############################################ Ventanas ##########################################
 # w1 - Menú principal
 # w2 - Inicio de sesión
@@ -1253,7 +1253,7 @@ def privChange():
     global verPed
     verPed = tk.IntVar()
     global CA1
-    CA1=tk.Checktk.button(wA, variable = verPed, onvalue = 1, offvalue = 0)
+    CA1=tk.Checkbutton(wA, variable = verPed, onvalue = 1, offvalue = 0)
     CA1.place(x=190, y=120)
     # Ingresar pedidos
     LA4 = tk.Label(wA, text = "Ingresar pedidos")
@@ -1261,7 +1261,7 @@ def privChange():
     global ingPed
     ingPed = tk.IntVar()
     global CA2
-    CA2=tk.Checktk.button(wA, variable = ingPed, onvalue = 1, offvalue = 0)
+    CA2=tk.Checkbutton(wA, variable = ingPed, onvalue = 1, offvalue = 0)
     CA2.place(x=410, y=120)
     # Asignar
     LA5 = tk.Label(wA, text = "Asignar")
@@ -1269,7 +1269,7 @@ def privChange():
     global asiPed
     asiPed = tk.IntVar()
     global CA3
-    CA3=tk.Checktk.button(wA, variable = asiPed, onvalue = 1, offvalue = 0)
+    CA3=tk.Checkbutton(wA, variable = asiPed, onvalue = 1, offvalue = 0)
     CA3.place(x=190, y=160)
     # Ver documentación 
     LA6 = tk.Label(wA, text = "Ver documentación")
@@ -1277,7 +1277,7 @@ def privChange():
     global verDoc
     verDoc = tk.IntVar()
     global CA4
-    CA4=tk.Checktk.button(wA, variable = verDoc, onvalue = 1, offvalue = 0)
+    CA4=tk.Checkbutton(wA, variable = verDoc, onvalue = 1, offvalue = 0)
     CA4.place(x=190, y=200)
     # Modificar documentación 
     LA7 = tk.Label(wA, text = "Modificar documentación")
@@ -1285,7 +1285,7 @@ def privChange():
     global modDoc
     modDoc = tk.IntVar()
     global CA5
-    CA5=tk.Checktk.button(wA, variable = modDoc, onvalue = 1, offvalue = 0)
+    CA5=tk.Checkbutton(wA, variable = modDoc, onvalue = 1, offvalue = 0)
     CA5.place   (x=410, y=200)
     # Ver desarrollos 
     LA8 = tk.Label(wA, text = "Ver desarrollos")
@@ -1293,7 +1293,7 @@ def privChange():
     global verDes
     verDes = tk.IntVar()
     global CA6
-    CA6=tk.Checktk.button(wA, variable = verDes, onvalue = 1, offvalue = 0)
+    CA6=tk.Checkbutton(wA, variable = verDes, onvalue = 1, offvalue = 0)
     CA6.place(x=190, y=240)
     # Modificar desarrollos 
     LA9 = tk.Label(wA, text = "Modificar desarrollos")
@@ -1301,7 +1301,7 @@ def privChange():
     global modDes
     modDes = tk.IntVar()
     global CA7
-    CA7=tk.Checktk.button(wA, variable = modDes, onvalue = 1, offvalue = 0)
+    CA7=tk.Checkbutton(wA, variable = modDes, onvalue = 1, offvalue = 0)
     CA7.place(x=410, y=240)
     # Ver asistencias 
     LA10 = tk.Label(wA, text = "Ver asistencias")
@@ -1309,7 +1309,7 @@ def privChange():
     global verAsi
     verAsi = tk.IntVar()
     global CA8
-    CA8=tk.Checktk.button(wA, variable = verAsi, onvalue = 1, offvalue = 0)
+    CA8=tk.Checkbutton(wA, variable = verAsi, onvalue = 1, offvalue = 0)
     CA8.place(x=190, y=280)
     # Modificar asistencias 
     LA11 = tk.Label(wA, text = "Modificar asistencias")
@@ -1317,7 +1317,7 @@ def privChange():
     global modAsi
     modAsi = tk.IntVar()
     global CA9
-    CA9=tk.Checktk.button(wA, variable = modAsi, onvalue = 1, offvalue = 0)
+    CA9=tk.Checkbutton(wA, variable = modAsi, onvalue = 1, offvalue = 0)
     CA9.place(x=410, y=280)
     # Ver laboratorio 
     LA12 = tk.Label(wA, text = "Ver laboratorio")
@@ -1325,7 +1325,7 @@ def privChange():
     global verLab
     verLab = tk.IntVar()
     global CA10
-    CA10=tk.Checktk.button(wA, variable = verLab, onvalue = 1, offvalue = 0)
+    CA10=tk.Checkbutton(wA, variable = verLab, onvalue = 1, offvalue = 0)
     CA10.place(x=190, y=320)
     # Modificar laboratorio 
     LA13 = tk.Label(wA, text = "Modificar laboratorio")
@@ -1333,7 +1333,7 @@ def privChange():
     global modLab
     modLab = tk.IntVar()
     global CA11
-    CA11=tk.Checktk.button(wA, variable = modLab, onvalue = 1, offvalue = 0)
+    CA11=tk.Checkbutton(wA, variable = modLab, onvalue = 1, offvalue = 0)
     CA11.place(x=410, y=320)
     # Alta usuario
     LA14 = tk.Label(wA, text = "Alta de usuario")
@@ -1341,7 +1341,7 @@ def privChange():
     global altUsu
     altUsu = tk.IntVar()
     global CA12
-    CA12=tk.Checktk.button(wA, variable = altUsu, onvalue = 1, offvalue = 0)
+    CA12=tk.Checkbutton(wA, variable = altUsu, onvalue = 1, offvalue = 0)
     CA12.place(x=190, y=360)
     # Gestionar permisos
     LA15 = tk.Label(wA, text = "Gestionar permisos")
@@ -1349,7 +1349,7 @@ def privChange():
     global gesPer
     gesPer = tk.IntVar()
     global CA13
-    CA13=tk.Checktk.button(wA, variable = gesPer, onvalue = 1, offvalue = 0)
+    CA13=tk.Checkbutton(wA, variable = gesPer, onvalue = 1, offvalue = 0)
     CA13.place(x=410, y=360)
     # Ver Proyectos
     LA16 = tk.Label(wA, text = "Ver proyectos")
@@ -1357,7 +1357,7 @@ def privChange():
     global verPro
     verPro = tk.IntVar()
     global CA14
-    CA14=tk.Checktk.button(wA, variable = verPro, onvalue = 1, offvalue = 0)
+    CA14=tk.Checkbutton(wA, variable = verPro, onvalue = 1, offvalue = 0)
     CA14.place(x=190, y=400)
     # Modificar Proyectos
     LA17 = tk.Label(wA, text = "Modificar proyectos")
@@ -1365,7 +1365,7 @@ def privChange():
     global modPro
     modPro = tk.IntVar()
     global CA15
-    CA15=tk.Checktk.button(wA, variable = modPro, onvalue = 1, offvalue = 0)
+    CA15=tk.Checkbutton(wA, variable = modPro, onvalue = 1, offvalue = 0)
     CA15.place(x=410, y=400)
     # Modificar Proyectos
     LA18 = tk.Label(wA, text = "Orden int. Laboratorio")
@@ -1373,7 +1373,7 @@ def privChange():
     global OILab
     OILab = tk.IntVar()
     global CA18
-    CA18=tk.Checktk.button(wA, variable = OILab, onvalue = 1, offvalue = 0)
+    CA18=tk.Checkbutton(wA, variable = OILab, onvalue = 1, offvalue = 0)
     CA18.place(x=190, y=440)
 
     # Boton Volver
@@ -1764,8 +1764,9 @@ def B_modDoc():
     fuente = C82.get()
     emisor = E87.get()
     fechaRes = E88.get()
-    if date_check(fechaRes) == False:
-        return
+    if len(fechaRes)!=0: # realiza chequeo solo si se modificó la fecha
+        if date_check(fechaRes) == False:
+            return
     cantDoc = E89.get()
     respo = E8A.get()
     precio = E8D.get()
@@ -2467,10 +2468,11 @@ def userConfirm():
 
     refresh_conn(my_conn)
     if (len(ID_user) != 0 and len(n_user) != 0 and len(name) != 0 and len(surname) != 0 and len(email) != 0 and len(rol) != 0):
+        aux = bd.F_hash('1234')
         try:
             my_cursor = my_conn.cursor()
-            statement = '''INSERT INTO usuarios (ID_usuarios, nombre_usuario, nombres, apellidos, contraseña, correo, rol) 
-            VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}')'''.format(ID_user, n_user, name, surname, '1234',email, rol )
+            statement = '''INSERT INTO usuarios (ID_usuarios, nombre_usuario, nombres, apellidos, hash, correo, rol) 
+            VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}')'''.format(ID_user, n_user, name, surname, aux, email, rol )
             my_cursor.execute(statement)
             my_conn.commit() 
 
@@ -3012,7 +3014,7 @@ def B_modTar(modo):
 #   - Limitar el número de intentos de ingreso a 3 y cerrar app
 # 
 # ######################################################################################################### 
-def verify():
+def verify(event=None):
         global actualUser, actualID, actualRol
         actualUser = (E1.get()) 
         password = (E2.get())
@@ -3020,7 +3022,7 @@ def verify():
         refresh_conn(my_conn)
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT contraseña, rol, ID_usuarios FROM usuarios WHERE nombre_usuario = %s"
+            statement = "SELECT hash, rol, ID_usuarios FROM usuarios WHERE nombre_usuario = %s"
             my_cursor.execute(statement, (actualUser,))
             resultados = my_cursor.fetchone()
         except Exception as e:
@@ -3028,7 +3030,7 @@ def verify():
         #aux = tuple([user, password])
         #print(aux)
         try:
-            if  password == resultados[0]:
+            if  bd.F_hash(password) == resultados[0]:
                 actualID = resultados[2]
                 actualRol = resultados[1]
                 #print(actualRol)
@@ -3095,6 +3097,7 @@ def accessForm():
     global E2
     E2 = tk.Entry(w2, show = "*")
     E2.grid(row = 2, column = 1, padx = 5, pady= 5)
+    E2.bind('<Return>', verify)
     
     B1=tk.Button(w2,text="Enviar", command = verify)
     B1.grid(row = 3, column = 2, padx = 5, pady= 5)
