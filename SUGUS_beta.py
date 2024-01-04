@@ -41,8 +41,8 @@ def main():
         try:
             my_conn = mysql.connector.connect(host = '192.168.100.105',
                                             port = 3306,
-                                            #database = "BDNP",  # base de produccion
-                                            database = "BDNP_t",  # base de test
+                                            database = "BDNP",  # base de produccion
+                                            #database = "BDNP_t",  # base de test
                                             user = "admin",
                                             password = "cenadif2023")
             break
@@ -187,7 +187,6 @@ def main():
     B28.place(x=430, y=535)
 
     # boton salir
-    #Bsalir=tk.Button(w1,text="Salir", width=12, command = w1.destroy)
     Bsalir=tk.Button(w1,text="Salir", width=12, command = w1.quit)
     Bsalir.place(x=460, y=585)
 
@@ -195,17 +194,20 @@ def main():
     w1.mainloop()
 
 #################### Ventana listado de pedidos #########################################################
-def V_viewRequest():
+def V_viewRequest(geom = ''):
     w1.withdraw()
     global w3
     w3=tk.Toplevel()
-    w3.state("zoomed")
+    if len(geom)==0:
+        w3.state('zoomed')
+    else:
+        w3.geometry(geom)
     w3.iconphoto(False, photo)
     w3.title("Pedidos de trabajo")
     w3.frame3 = tk.Frame(w3)
     w3.frame3.grid(rowspan=2, column=1, row=1)
     w3.tabla = ttk.Treeview(w3.frame3, height=35)
-    w3.tabla.tag_configure('abiertos', background="red", foreground="white") #####################>>>>>>>>>>>>>>>>>>>>>>
+    w3.tabla.tag_configure('abiertos', background="red", foreground="white") 
     w3.tabla.grid(column=1, row=1)
     #w3.tabla.place(x=500, y=500)
     ladox = tk.Scrollbar(w3.frame3, orient = tk.VERTICAL, command= w3.tabla.yview)
@@ -538,12 +540,15 @@ def viewDocs():
 ###########################################################################
 
 #################### Modificar Documentación #####################################################
-def modDocs():
+def modDocs(geom = ''):
     w1.withdraw()
     global w8
     w8=tk.Toplevel()
-    w8.state("zoomed")
-    #w8.geometry("1400x750")
+    #w8.state("zoomed")
+    if len(geom)==0:
+        w8.state('zoomed')
+    else:
+        w8.geometry(geom)
     w8.iconphoto(False, photo)
     w8.title("CENADIF Base de datos - Documentación y Normas - Trabajos pendientes")
     w8.frame8 = tk.Frame(w8)
@@ -857,13 +862,15 @@ def V_viewPro(modo):
 
 
 ############# Ventana de modificación de proyectos ##########################################
-def V_modPro(modo):
+def V_modPro(modo, geom =''):
     # Parte común a todos los modos
     w1.withdraw()
     global wF
     wF=tk.Toplevel()
-    #wF.geometry("1500x800")
-    wF.state("zoomed")
+    if len(geom)==0:
+        wF.state('zoomed')
+    else:
+        wF.geometry(geom)
     wF.iconphoto(False, photo)
     # Titulo de la ventana (dependiente de modo)
     if modo == 'proy':
@@ -1385,11 +1392,24 @@ def privChange():
     BA3=tk.Button(wA,text="Modificar", width=12, command= modPriv, state = tk.DISABLED)
     BA3.place(x=360, y=510)
 
+    # Boton 
+    global BA4
+    BA4=tk.Button(wA,text="Reset PW", width=12, command = resetPW, state = tk.DISABLED)
+    BA4.place(x=50, y=510)
+
     wA.focus_force()
 
 #################### Cambio de contraseña #########################################################
 def passChange():
-    w1.withdraw()
+    ### esconde la pantalla de llamado
+    try:
+        w1.withdraw()
+    except:
+        pass
+    try:
+        w2.withdraw()
+    except:
+        pass
     global w5
     w5=tk.Toplevel()
     w5.geometry("330x300")
@@ -1511,9 +1531,10 @@ def V_accSchedule():
 
 ########################################################################################################
 def actualizar():
-     #print("Actualizando")
-     w3.destroy()
-     V_viewRequest()
+    #print("Actualizando")
+    win_geometry = w3.winfo_geometry()
+    w3.destroy()
+    V_viewRequest(win_geometry)
 
 ########################################################################################################
 def menuFrom(window):
@@ -1908,10 +1929,9 @@ def B_modDoc():
         except Exception as e:
             print("error", e) 
     
-    # w8.update()
-    # w8.update_idletasks()
+    win_geometry = w8.winfo_geometry()
     w8.destroy()
-    modDocs()
+    modDocs(win_geometry)
     
 ############################### Precargar documento ############################################
 def precDoc():
@@ -1972,6 +1992,7 @@ def B_selProy(modo):
     curItem = wF.tabla.focus() # diccionario de la fila seleccionada en la tabla
     #print(wF.tabla.item(curItem))
     aux = wF.tabla.item(curItem).get('values')
+    #print(aux)
     refresh_conn(my_conn)
     if len(aux)!=0:
         try:
@@ -2138,8 +2159,9 @@ def B_modProy(modo):
             except Exception as e:
                 print("error", e)
         ############ Refresco de la ventana
+        win_geometry = wF.winfo_geometry()
         wF.destroy() 
-        V_modPro(modo)
+        V_modPro(modo, win_geometry)
     else:
         if modo == 'proy':
             messagebox.showinfo(message="Seleccione un proyecto.", title="Aviso del sistema")
@@ -2149,7 +2171,7 @@ def B_modProy(modo):
             messagebox.showinfo(message="Seleccione una asistencia.", title="Aviso del sistema")
 
 ############# Ventana de modificación de tareas ##########################################
-def V_modTar(modo):
+def V_modTar(modo, geom = ''):
     ### esconde la pantalla de llamado
     try:
         w1.withdraw()
@@ -2161,8 +2183,10 @@ def V_modTar(modo):
         pass
     global wG
     wG=tk.Toplevel()
-    #wG.geometry("1500x800")
-    wG.state("zoomed")
+    if len(geom)==0:
+        wG.state('zoomed')
+    else:
+        wG.geometry(geom)
     wG.iconphoto(False, photo)
     wG.title("CENADIF Base de datos - Tareas del proyecto ")
     refresh_conn(my_conn)
@@ -2535,6 +2559,7 @@ def precUsu():
        CA18.select()
 
     BA3['state'] = tk.NORMAL
+    BA4['state'] = tk.NORMAL
 
 ############################### modificar privilegios ##########################################
 def modPriv():
@@ -2589,6 +2614,21 @@ def modPriv():
     except Exception as e:
         print("error", e)  
 
+############################### resetear contraseña ##########################################
+def resetPW():
+    editUser = EA1.get()
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "UPDATE usuarios SET hash = %s WHERE nombre_usuario = %s"
+        val = (bd.F_hash('1234'), editUser)
+        my_cursor.execute(statement,val)
+        my_conn.commit()
+
+    except Exception as e:
+        print("error", e)
+    messagebox.showinfo(message="Contraseña actualizada (valor por defecto).", title="Aviso del sistema")
+    
+
 #######################################################################################################################
 def changeConfirm():
     #print("Cambio de password")
@@ -2604,20 +2644,20 @@ def changeConfirm():
         refresh_conn(my_conn)
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT nombre_usuario, contraseña FROM usuarios WHERE nombre_usuario = %s"
+            statement = "SELECT nombre_usuario, hash FROM usuarios WHERE nombre_usuario = %s"
             my_cursor.execute(statement, (actualUser,))
             resultados = my_cursor.fetchone()
             #print(resultados) 
         except Exception as e:
             print("error", e)
 
-        aux = tuple([actualUser, password])
+        aux = tuple([actualUser, bd.F_hash(password)])
         #print(aux)
         if  aux == resultados:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE usuarios SET contraseña = %s WHERE nombre_usuario = %s"
-                val = (newPass1, actualUser)
+                statement = "UPDATE usuarios SET hash = %s WHERE nombre_usuario = %s"
+                val = (bd.F_hash(newPass1), actualUser)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
 
@@ -2661,9 +2701,9 @@ def gantt(proy, window):
     global fig
     fig, ax = plt.subplots()
 
-    # Set y-axis tick tk.labels
+    # Set y-axis tick labels
     ax.set_yticks(np.arange(len(tasks)))
-    ax.set_yticktk.labels(tasks)
+    ax.set_yticklabels(tasks)
 
     # Plot each task as a tk.horizontal bar
     for i in range(len(tasks)):
@@ -2681,7 +2721,7 @@ def gantt(proy, window):
     ax.xaxis_date()
     ax.xaxis.set_major_locator(mdates.WeekdayLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
-    ax.set_xtk.label('Fecha[mes-día]')
+    ax.set_xlabel('Fecha[mes-día]')
     # Ajuste dinámico de la cuadrícula
     if((max_date - min_date).days>70):
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=14))
@@ -2689,7 +2729,7 @@ def gantt(proy, window):
         #ax.xaxis.set_major_locator(mdates.DayLocator(interval=28))
         ax.xaxis.set_major_locator(mdates.MonthLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
-        ax.set_xtk.label('Fecha[año-mes]')
+        ax.set_xlabel('Fecha[año-mes]')
     if((max_date - min_date).days>350):
         ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
     if((max_date - min_date).days>700):
@@ -2697,7 +2737,7 @@ def gantt(proy, window):
     if((max_date - min_date).days>1500):
         ax.xaxis.set_major_locator(mdates.MonthLocator(interval=8))
 #    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    ax.set_ytk.label('Tareas')
+    ax.set_ylabel('Tareas')
     ax.set_title('Planificación del proyecto')
     #plt.iconphoto(False, photo)
 
@@ -2726,8 +2766,10 @@ def B_elimTar(modo):
                 my_conn.commit()
             except Exception as e:
                 print("error", e)
-            wG.destroy() 
-            V_modTar(modo)
+            
+            win_geometry = wG.winfo_geometry()
+            wG.destroy()
+            V_modTar(modo, win_geometry)
         ############ Refresco de la ventana
     else:
         messagebox.showinfo(message="Seleccione una tarea.", title="Aviso del sistema")        
@@ -2744,8 +2786,9 @@ def B_nuevaTar(proy, modo):
         my_conn.commit()
     except Exception as e:
         print("error", e)
-    wG.destroy() 
-    V_modTar(modo)
+    win_geometry = wG.winfo_geometry()
+    wG.destroy()
+    V_modTar(modo, win_geometry)
 
 ############# Botón seleccionar tarea #####################################################
 def B_selTar(modo):
@@ -3001,10 +3044,11 @@ def B_modTar(modo):
         ############ Refresco de la ventana
         try:
             if wG.tabla.winfo_exists():
-                wG.destroy() 
-                V_modTar(modo)
+                win_geometry = wG.winfo_geometry()
+                wG.destroy()
+                V_modTar(modo, win_geometry)
         except:         
-            V_modTar('user')
+            V_modTar('user', win_geometry)
     else:
         messagebox.showinfo(message="Seleccione una tarea.", title="Aviso del sistema")
 
@@ -3034,8 +3078,6 @@ def verify(event=None):
                 actualID = resultados[2]
                 actualRol = resultados[1]
                 #print(actualRol)
-                w2.withdraw()
-                w1.deiconify()
                 if int(resultados[1]) & 1:
                     B11['state'] = tk.NORMAL
                 if int(resultados[1]) & 2:
@@ -3064,6 +3106,11 @@ def verify(event=None):
                     B23['state'] = tk.NORMAL
                 if int(resultados[1]) & 32768:
                     B1B['state'] = tk.NORMAL
+                w2.withdraw()
+                if  bd.F_hash('1234') == resultados[0]:
+                    passChange()
+                else:
+                    w1.deiconify()
             else:
                 messagebox.showinfo(message="Nombre de usuario y/o contraseña incorrectos.", title="Aviso del sistema")
         except:
@@ -3331,11 +3378,14 @@ def refresh_conn(conn):
 
             w1.quit    ################## NO FUNCIONA ##################################################
 
-def V_modLab(tipo):
+def V_modLab(tipo, geom = ''):
     w1.withdraw()
     global wH
     wH=tk.Toplevel()
-    wH.state("zoomed")
+    if len(geom)==0:
+        wH.state('zoomed')
+    else:
+        wH.geometry(geom)
     wH.iconphoto(False, photo)
 
     wH.frame = tk.Frame(wH)
@@ -3625,12 +3675,13 @@ def B_modOrden(modo):
             except Exception as e:
                 print("error", e)
         ############ Refresco de la ventana
+        win_geometry = wH.winfo_geometry()
         wH.destroy() 
-        V_modLab(modo)
+        V_modLab(modo, win_geometry)
     else:
         messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
 ############################################# Ventana de modificación de ordenes de servicio #######################################################
-def V_modServ(modo):
+def V_modServ(modo, geom = ''):
     curItem = wH.tabla.focus()
     numOrd = wH.tabla.item(curItem).get('text')
     if len(numOrd)!=0:
@@ -3638,8 +3689,10 @@ def V_modServ(modo):
         wH.withdraw()
         global wI
         wI=tk.Toplevel()
-        #wG.geometry("1500x800")
-        wI.state("zoomed")
+        if len(geom)==0:
+            wI.state('zoomed')
+        else:
+            wI.geometry(geom)
         wI.iconphoto(False, photo)
         wI.title("CENADIF Base de datos - Ordenes de servicio ")
         refresh_conn(my_conn)
@@ -4021,8 +4074,9 @@ def B_modServ(modo): # se puede sacar MODO?????? NOOOO
                 print("error", e)
         
         # TI1 Descripción
+        win_geometry = wI.winfo_geometry()
         wI.destroy() 
-        V_modServ(modo)
+        V_modServ(modo, win_geometry)
 
     else:
         messagebox.showinfo(message="Seleccione una orden de servicio.", title="Aviso del sistema")
@@ -4041,8 +4095,9 @@ def B_elimServ(modo):
                 my_conn.commit()
             except Exception as e:
                 print("error", e)
+            win_geometry = wI.winfo_geometry()
             wI.destroy() 
-            V_modServ(modo)
+            V_modServ(modo, win_geometry)
         ############ Refresco de la ventana
     else:
         messagebox.showinfo(message="Seleccione una tarea.", title="Aviso del sistema")  
@@ -4059,10 +4114,11 @@ def B_nuevoServ(orden, modo):
         my_conn.commit()
     except Exception as e:
         print("error", e)
+    win_geometry = wI.winfo_geometry()
     wI.destroy() 
-    V_modServ(modo)
+    V_modServ(modo, win_geometry)
 ##########################################################################################################################################
-def V_modMue(modo):
+def V_modMue(modo, geom = ''):
     curItem = wH.tabla.focus()
     numOrd = wH.tabla.item(curItem).get('text')
     if len(numOrd)!=0:
@@ -4070,8 +4126,10 @@ def V_modMue(modo):
         wH.withdraw()
         global wJ
         wJ=tk.Toplevel()
-        #wG.geometry("1500x800")
-        wJ.state("zoomed")
+        if len(geom)==0:
+            wJ.state('zoomed')
+        else:
+            wJ.geometry(geom)
         wJ.iconphoto(False, photo)
         wJ.title("CENADIF Base de datos - Muestras ")
         refresh_conn(my_conn)
@@ -4333,8 +4391,9 @@ def B_modMue(modo):
                 except Exception as e:
                     print("error", e)
                     ############ Refresco de la ventana
+        win_geometry = wJ.winfo_geometry()
         wJ.destroy() 
-        V_modMue(modo)
+        V_modMue(modo, win_geometry)
     else:
         messagebox.showinfo(message="Seleccione una muestra.", title="Aviso del sistema")
 
@@ -4350,8 +4409,9 @@ def B_nuevaMue(modo, orden):
         my_conn.commit()
     except Exception as e:
         print("error", e)
+    win_geometry = wJ.winfo_geometry()
     wJ.destroy() 
-    V_modMue(modo)
+    V_modMue(modo, win_geometry)
 ############################### Función del botón Eliminar muestra  #############################################
 def B_elimMue(modo):
     curItem = wJ.tabla2.focus()
@@ -4367,8 +4427,9 @@ def B_elimMue(modo):
                 my_conn.commit()
             except Exception as e:
                 print("error", e)
+            win_geometry = wJ.winfo_geometry()
             wJ.destroy() 
-            V_modMue(modo)
+            V_modMue(modo, win_geometry)
 ########################## Función de ingreso de orden interna de lab ###########################################################
 def V_oIntLab():
     w1.withdraw()
@@ -4487,8 +4548,9 @@ def ingresar_oInt():
         my_conn.commit()
     except Exception as e:
         print("error 4506", e)
+    win_geometry = wK.winfo_geometry()
     wK.destroy() 
-    V_modLab('I')
+    V_modLab('I', win_geometry)
 ########################################################################################################################
 LOG_FILENAME = 'SUGUS_log.out'
 logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.ERROR)

@@ -1,6 +1,15 @@
 import hashlib
+from screeninfo import get_monitors
 
+class display:
+    def __init__(self):
+        m = get_monitors()
+        width = m[0].width
+        height = m[0].height
+        full_geometry = str(width) + 'x' + str(height) + '+0+0'  
+    
 class usuario:
+
     def __init__(self, ID_usuario, nombre_usuario, nombres, apellidos, correo, rol):
         if 10000000 < ID_usuario < 100000000:
             self.ID_usuario = ID_usuario
@@ -38,7 +47,8 @@ def F_hash(password):
     return(hashed.hexdigest())
 def main():
     # pruebas
-    print(hash('Sist707'))
+    #d = display()
+    pass
 
 if __name__  == "__main__":
     main()
