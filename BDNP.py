@@ -4,9 +4,9 @@ from screeninfo import get_monitors
 class display:
     def __init__(self):
         m = get_monitors()
-        width = m[0].width
-        height = m[0].height
-        full_geometry = str(width) + 'x' + str(height) + '+0+0'  
+        self.width = m[0].width
+        self.height = m[0].height
+        self.full_geometry = str(self.width) + 'x' + str(self.height) + '+0+0'  
     
 class usuario:
 
@@ -30,7 +30,7 @@ class usuario:
         self.apellidos = apellidos
         self.correo = correo
         #self.contraseña = '1234'
-        self.hash = hash('1234')
+        self.hash = F_hash('1234')
         self.rol = rol
     
 def F_hash(password):
@@ -46,8 +46,12 @@ def F_hash(password):
     # returning the Hash
     return(hashed.hexdigest())
 def main():
-    # pruebas
-    #d = display()
+    ###### pruebas
+    '''
+    # display
+    d = display()
+    print(d.full_geometry)
+    '''
     pass
 
 if __name__  == "__main__":

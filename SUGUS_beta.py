@@ -41,8 +41,8 @@ def main():
         try:
             my_conn = mysql.connector.connect(host = '192.168.100.105',
                                             port = 3306,
-                                            database = "BDNP",  # base de produccion
-                                            #database = "BDNP_t",  # base de test
+                                            #database = "BDNP",  # base de produccion
+                                            database = "BDNP_t",  # base de test
                                             user = "admin",
                                             password = "cenadif2023")
             break
@@ -311,7 +311,6 @@ def ingresar():
     E48 = tk.Entry(w4, width = 25)
     E48.place(x=125, y=225)
 
-
     # Teléfono
     L49 = tk.Label(w4, text = "Teléfono: ")
     L49.place(x=25, y=275)
@@ -536,8 +535,6 @@ def viewDocs():
         w9.tabla.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [aux[0], fila[2], fila[1], fila[9], fila[5], fila[4]])    
 
     w9.after(1, lambda: w9.focus_force())
-
-###########################################################################
 
 #################### Modificar Documentación #####################################################
 def modDocs(geom = ''):
@@ -3079,37 +3076,38 @@ def verify(event=None):
                 actualRol = resultados[1]
                 #print(actualRol)
                 if int(resultados[1]) & 1:
-                    B11['state'] = tk.NORMAL
+                    B11['state'] = tk.NORMAL # Ver listado de solicitudes
                 if int(resultados[1]) & 2:
-                    B12['state'] = tk.NORMAL
+                    B12['state'] = tk.NORMAL # Ingreso de pedido
                 if int(resultados[1]) & 4:
-                    B13['state'] = tk.NORMAL
+                    B13['state'] = tk.NORMAL # Asignar
                 if int(resultados[1]) & 8:
-                    B14['state'] = tk.NORMAL
+                    B14['state'] = tk.NORMAL # ver pedidos asignados a documentación
                 if int(resultados[1]) & 16:
-                    B15['state'] = tk.NORMAL
+                    B15['state'] = tk.NORMAL # modificar documentación
                 if int(resultados[1]) & 32:
-                    B16['state'] = tk.NORMAL
+                    B16['state'] = tk.NORMAL # ver pedidos asignados a desarrollos
                 if int(resultados[1]) & 64:
-                    B17['state'] = tk.NORMAL
+                    B17['state'] = tk.NORMAL # modificar desarrollos activos
                 if int(resultados[1]) & 128:
-                    B18['state'] = tk.NORMAL
+                    B18['state'] = tk.NORMAL # ver pedidos asignados a asistencias
                 if int(resultados[1]) & 256:
-                    B19['state'] = tk.NORMAL # Asistencias activas
-                if int(resultados[1]) & 1024:
+                    B19['state'] = tk.NORMAL # modificar Asistencias activas
+                if int(resultados[1]) & 512:
                     B20['state'] = tk.NORMAL # ord. de trabajo de lab
+                if int(resultados[1]) & 1024:
+                    B21['state'] = tk.NORMAL # gestión ord. internas de lab
                 if int(resultados[1]) & 2048:
-                    B21['state'] = tk.NORMAL # ord. internas de lab
+                    B22['state'] = tk.NORMAL # Alta de usuario
                 if int(resultados[1]) & 4096:
-                    B22['state'] = tk.NORMAL
-                if int(resultados[1]) & 4096:
-                    B23['state'] = tk.NORMAL
+                    B23['state'] = tk.NORMAL # Permisos
                 if int(resultados[1]) & 32768:
-                    B1B['state'] = tk.NORMAL
-                w2.withdraw()
-                if  bd.F_hash('1234') == resultados[0]:
+                    B1B['state'] = tk.NORMAL # ingreso ord. internas de lab
+                #w1.deiconify()
+                if bd.F_hash('1234') == resultados[0]:
                     passChange()
                 else:
+                    w2.withdraw()
                     w1.deiconify()
             else:
                 messagebox.showinfo(message="Nombre de usuario y/o contraseña incorrectos.", title="Aviso del sistema")
