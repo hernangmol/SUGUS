@@ -13,6 +13,9 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import BDNP as bd
+from datetime import datetime
+import datetime as dt
+import math
 ############################################ Ventanas ##########################################
 # w1 - Menú principal
 # w2 - Inicio de sesión
@@ -24,10 +27,10 @@ import BDNP as bd
 # w8 - Modificación de documentos y normas 
 # w9 - Ver asignaciones a documentos y normas
 # WA - Cambio de privilegios
-# wB - Ver asignaciones a Asistencias
+# wB - 
 # wC - Ver estadísticas
 # wD - Agenda de tareas
-# wE - Visualización de proyectos
+# wE - Visualización de pedidos asignados a proyectos, desarrollos, asistencias
 # wF - Modificación de proyectos
 # wG - Modificación de tareas
 # wH - Modificación de ordenes de laboratorio
@@ -40,9 +43,9 @@ def main():
     while True:
         try:
             my_conn = mysql.connector.connect(host = '192.168.100.105',
-                                            port = 3306,
-                                            #database = "BDNP",  # base de produccion
-                                            database = "BDNP_t",  # base de test
+                                            #port = 3306,
+                                            database = "BDNP",  # base de produccion
+                                            #database = "BDNP_t",  # base de test
                                             user = "admin",
                                             password = "cenadif2023")
             break
@@ -161,6 +164,10 @@ def main():
     B21=tk.Button(w1,text="Ord. Internas", width=12, command = lambda: V_modLab('I'))
     B21.place(x=320, y=435)
     B21['state'] = tk.DISABLED
+    global B34
+    B34=tk.Button(w1,text="Ver muestras", width=12, command = V_viewSamples)
+    B34.place(x=430, y=435)
+    #B34['state'] = tk.DISABLED
     # Octavo piso ######################
     L18 = tk.Label(w1, text = "Admin. sistema")
     L18.place(x=75, y=485)
@@ -335,11 +342,17 @@ def ingresar():
      # Ingresó
     L47 = tk.Label(w4, text = "Ingresó: ")
     L47.place(x=25, y=530)
-    global E45
-    E45 = tk.Entry(w4, width = 25)
-    E45.place(x=125, y=530)
-    E45.insert(0, actualUser)
-
+    
+    list = userList()
+    try:
+        act_user_index = list.index((actualUser,))
+    except:
+        act_user_index = 0
+    print(act_user_index)
+    global C45
+    C45 = ttk.Combobox(w4, state="readonly", width = 17, values = list)
+    C45.place(x=125, y=530)
+    C45.current(act_user_index) # setea por default el usuario actual en el combobox 
     # boton Volver
     B41=tk.Button(w4,text="Volver", command = lambda: menuFrom(w4))
     B41.place(x=125, y=580)
@@ -855,9 +868,6 @@ def V_viewPro(modo):
 
     wE.after(1, lambda: wE.focus_force())
 
-###########################################################################
-
-
 ############# Ventana de modificación de proyectos ##########################################
 def V_modPro(modo, geom =''):
     # Parte común a todos los modos
@@ -977,7 +987,7 @@ def V_modPro(modo, geom =''):
     LF8.place(x=350, y=480)
 
     global CF8
-    CF8 = ttk.Combobox(wF, width = 17, values = ['Ingeniería', 'Planos', 'Prototipo', 'Prototipo homologado', 'Proveedores'])
+    CF8 = ttk.Combobox(wF, width = 17, values = ['Ingeniería', 'Planos', 'Prototipo', 'Prototipo homologado', 'Proveedores', 'Informe', 'Instructivo técnico', 'Especificación técnica', 'Producto homologado', 'Presentación'])
     CF8.place(x=475, y=480)
 
 # Descripción
@@ -1239,9 +1249,15 @@ def privChange():
     LA1 = tk.Label(wA, text = "Usuario: ")
     LA1.place(x=50, y=40)
 
-    global EA1
-    EA1 = tk.Entry(wA)
-    EA1.place(x=110, y=40)
+    #global E1
+    #EA1 = tk.Entry(wA)
+    #EA1.place(x=110, y=40)
+
+    list = userList()
+    #print(list)
+    global CEA1
+    CEA1 = ttk.Combobox(wA, state="readonly", width = 17, values = list)
+    CEA1.place(x=110, y=40)
 
     # Boton precargar
     BA1=tk.Button(wA,text="Precargar", width=12, command = precUsu)
@@ -1424,7 +1440,7 @@ def passChange():
     #E51 = tk.Entry(w5)
     E51 = tk.Entry(w5, show = "*")
     E51.place(x=135, y=75)
-    
+     
      # Contraseña nueva
     L53 = tk.Label(w5, text = "Contraseña nueva: ")
     L53.place(x=25, y=125)
@@ -1539,6 +1555,12 @@ def menuFrom(window):
     w1.deiconify()
 
 ########################################################################################################
+def OrdenesFrom(window, modo):
+    window.destroy()
+    V_modLab(modo)
+    #V_modLab(tipo, geom = ''):
+
+########################################################################################################
 def ingresar_pedido():
     fechaIng = E41.get()
     if date_check(fechaIng) == False:
@@ -1547,7 +1569,7 @@ def ingresar_pedido():
     filiacion = E43.get()
     asunto = E44.get()
     descripcion = T41.get("1.0",'end-1c')
-    operador = E45.get()
+    operador = C45.get()
     correo = E48.get()
     telefono = E49.get()
 
@@ -2506,7 +2528,7 @@ def userConfirm():
 
 ############################### precargar usuario ##############################################
 def precUsu():
-    editUser = EA1.get()
+    editUser = CEA1.get()
 
     # mySQL bajar rol del usuario
     refresh_conn(my_conn)
@@ -2561,7 +2583,7 @@ def precUsu():
 ############################### modificar privilegios ##########################################
 def modPriv():
     #print('modificando permisos...')
-    editUser = EA1.get()
+    editUser = CEA1.get()
     privileges = tk.IntVar()
     privileges = 0
     if verPed.get() == 1:
@@ -2613,7 +2635,7 @@ def modPriv():
 
 ############################### resetear contraseña ##########################################
 def resetPW():
-    editUser = EA1.get()
+    editUser = CEA1.get()
     try:
         my_cursor = my_conn.cursor()
         statement = "UPDATE usuarios SET hash = %s WHERE nombre_usuario = %s"
@@ -2667,83 +2689,103 @@ def changeConfirm():
 ############# Función Gantt ################################################################
 def gantt(proy, window):
     # Create the data for the Gantt chart
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
     try:
         my_cursor = my_conn.cursor()
-        statement = "SELECT nombre_tarea, fecha_inicio, fecha_fin FROM tareas WHERE ID_proyecto = %s"
+        statement = "SELECT nombre_proy FROM proyectos WHERE ID_proyecto = %s"
+        values = (proy,) 
+        my_cursor.execute(statement, values)
+        titulo = my_cursor.fetchone()
+        #print(resultados) 
+    except Exception as e:
+        print("error", e)
+    
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "SELECT nombre_tarea, fecha_inicio, fecha_fin, avance FROM tareas WHERE ID_proyecto = %s"
         values = (proy,) 
         my_cursor.execute(statement, values)
         resultados = my_cursor.fetchall()
         #print(resultados) 
     except Exception as e:
         print("error", e)
-    
-    tasks=[]
-    start_dates=[]
-    lengths =[]
-    end_dates =[]
+    tsk = []
+    str = []
+    end = []
+    adv = []
     flag_data = 0
     for fila in resultados:
         if fila[1] != None and fila[2] != None:
-            tasks.append(fila[0][:7]+".") # primeros 7 caracteres del nombre de tareas    
-            start_dates.append(fila[1])
-            lengths.append((fila[2]-fila[1]).days)
-            #lengths.append(5)
-            end_dates.append(fila[2])
+            tsk.append(fila[0][:7])
+            str.append(fila[1])
+            end.append(fila[2])
+            try:
+                adv.append(fila[3]/100)
+            except:
+                adv.append(0)
             flag_data = 1 
+    global fig
     if flag_data == 0:
+        canvas = FigureCanvasTkAgg(master=window)  
+        canvas.draw()
+        canvas.get_tk_widget().place(x=650, y=380, width=825, height=390)
         return 0
 
-    # Initialize the figure and axis
-    global fig
+    df = pd.DataFrame({'task': tsk, 'start': pd.to_datetime(str), 'end': pd.to_datetime(end), 'completion_frac': adv})
+    #def gantt(proy, window):
+    df['days_to_start'] = (df['start'] - df['start'].min()).dt.days
+    df['days_to_end'] = (df['end'] - df['start'].min()).dt.days
+    df['task_duration'] = df['days_to_end'] - df['days_to_start'] + 1  # to include also the end date
+    df['completion_days'] = df['completion_frac'] * df['task_duration']
+    #print(df)
+
+    span = df['days_to_end'].max()
+    if span < 10:
+        cell = 1
+    elif span < 50:
+        cell = 7
+    else:
+        #cell = int(round(span/8,0))
+        cell = int(math.trunc(span/8))
+    #print(span)
+    #print(cell)
+    xticks = np.arange(5, df['days_to_end'].max() + 2, cell)
+    if cell < 30:
+        xticklabels = pd.date_range(start=df['start'].min() + dt.timedelta(days=4), end=df['end'].max()).strftime("%d/%m")
+    else:
+        xticklabels = pd.date_range(start=df['start'].min() + dt.timedelta(days=4), end=df['end'].max()).strftime("%m/%y")
+
+    ##########################################################################################################
+    
+    #global fig
     fig, ax = plt.subplots()
+    ### ESTE BLOQUE SIRVE PARA FIGURA SEPARADA##########
+    #fig, ax = plt.subplots(num = 'CENADIF - Diagrama Gannt de proyecto')
+    #thismanager = plt.get_current_fig_manager()
+    #img = tk.PhotoImage(file= "Recursos/iconoCDF.png")
+    #thismanager.window.tk.call('wm', 'iconphoto', thismanager.window._w, img)
+    ####################################################
 
-    # Set y-axis tick labels
-    ax.set_yticks(np.arange(len(tasks)))
-    ax.set_yticklabels(tasks)
+    for index, row in df.iterrows():
+        plt.barh(y=row['task'], width=row['task_duration'], left=row['days_to_start'] + 1, color= 'c', alpha=0.4)
+        plt.barh(y=row['task'], width=row['completion_days'], left=row['days_to_start'] + 1, color= 'c')
 
-    # Plot each task as a tk.horizontal bar
-    for i in range(len(tasks)):
-        start_date = pd.to_datetime(start_dates[i])
-        end_date = start_date + pd.DateOffset(days=lengths[i])
-        ax.barh(i, end_date - start_date, left=start_date, height=0.5, align='center')
+    plt.title(titulo[0], fontsize=15)
+    plt.gca().invert_yaxis()
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticklabels[::cell])
+    ax.xaxis.grid(True, alpha=0.5)
+    #ax.legend(handles=patches, labels=team_colors.keys(), fontsize=11)
 
-    # Set x-axis limits
-    min_date = pd.to_datetime(min(start_dates)) - pd.DateOffset(1)
-    #max_date = pd.to_datetime(max(start_dates)) + pd.DateOffset(days=max(durations))
-    max_date = pd.to_datetime(max(end_dates)) + pd.DateOffset(1)
-    ax.set_xlim(min_date, max_date)
+    # Marking the current date on the chart
+    today = datetime.now()
+    x_today = (today.date() - df['start'].min().date()).days
+    if x_today <= span:
+        ax.axvline(x=x_today, color='r', linestyle='dashed')
+        ax.text(x=x_today+1, y=0, s=today.date(), color='r')
 
-    # Customize the chart
-    ax.xaxis_date()
-    ax.xaxis.set_major_locator(mdates.WeekdayLocator())
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
-    ax.set_xlabel('Fecha[mes-día]')
-    # Ajuste dinámico de la cuadrícula
-    if((max_date - min_date).days>70):
-        ax.xaxis.set_major_locator(mdates.DayLocator(interval=14))
-    if((max_date - min_date).days>140):
-        #ax.xaxis.set_major_locator(mdates.DayLocator(interval=28))
-        ax.xaxis.set_major_locator(mdates.MonthLocator())
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
-        ax.set_xlabel('Fecha[año-mes]')
-    if((max_date - min_date).days>350):
-        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
-    if((max_date - min_date).days>700):
-        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=4))
-    if((max_date - min_date).days>1500):
-        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=8))
-#    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    ax.set_ylabel('Tareas')
-    ax.set_title('Planificación del proyecto')
-    #plt.iconphoto(False, photo)
-
-    # Display the chart
-    plt.grid(True)
     #plt.show()
-
     canvas = FigureCanvasTkAgg(fig, master=window)  
-
     canvas.draw()
     canvas.get_tk_widget().place(x=650, y=380, width=825, height=390)
     return(1)
@@ -3399,14 +3441,15 @@ def V_modLab(tipo, geom = ''):
        
     if tipo == 'T':
         wH.title("CENADIF - Laboratorio - Ordenes de trabajo")
-        wH.tabla['columns'] = ('descripcion', 'responsable', 'fin', 'informe', 'pedido','cliente')
+        wH.tabla['columns'] = ('descripcion', 'responsable', 'fin', 'informe', 'pedido','cliente', 'ing_pedido')
         wH.tabla.column('#0', minwidth=50, width=60, anchor='center')
         wH.tabla.column('descripcion', minwidth=100, width=450, anchor='center')
         wH.tabla.column('responsable', minwidth=80, width=100 , anchor='center')
         wH.tabla.column('fin', minwidth=100, width=100 , anchor='center')
         wH.tabla.column('informe', minwidth=100, width=250, anchor='center' )
-        wH.tabla.column('pedido', minwidth=100, width=150 , anchor='center')
-        wH.tabla.column('cliente', minwidth=100, width=200, anchor='center')   
+        wH.tabla.column('pedido', minwidth=50, width=50 , anchor='center')
+        wH.tabla.column('cliente', minwidth=100, width=200, anchor='center')
+        wH.tabla.column('ing_pedido', minwidth=150, width=250, anchor='center')   
 
        # Titulos 
         wH.tabla.heading('#0', text='N° O/T', anchor ='e')
@@ -3416,6 +3459,7 @@ def V_modLab(tipo, geom = ''):
         wH.tabla.heading('informe', text='Informe', anchor ='center')
         wH.tabla.heading('pedido', text='Pedido', anchor ='center')
         wH.tabla.heading('cliente', text='Cliente', anchor ='center')
+        wH.tabla.heading('ing_pedido', text='Ing. pedido', anchor ='center')
  
     if tipo == 'I':
         wH.title("CENADIF - Laboratorio - Ordenes internas")
@@ -3426,8 +3470,8 @@ def V_modLab(tipo, geom = ''):
         wH.tabla.column('inicio', minwidth=100, width=100 , anchor='center')
         wH.tabla.column('fin', minwidth=100, width=100, anchor='center' )
         wH.tabla.column('informe', minwidth=100, width=200 , anchor='center')
-        wH.tabla.column('responsable', minwidth=100, width=200, anchor='center')   
-
+        wH.tabla.column('responsable', minwidth=100, width=200, anchor='center')
+        
        # Titulo
         wH.tabla.heading('#0', text='N° O/I', anchor ='e')
         wH.tabla.heading('descripcion', text='Descripción', anchor ='center')
@@ -3436,6 +3480,7 @@ def V_modLab(tipo, geom = ''):
         wH.tabla.heading('fin', text='Fecha fin ', anchor ='center')
         wH.tabla.heading('informe', text='Informe', anchor ='center')
         wH.tabla.heading('responsable', text='Responsable', anchor ='center')
+       
 
     ## PRIMER PISO ##########################
     F1 = 550 # altura fila 1
@@ -3528,38 +3573,46 @@ def V_modLab(tipo, geom = ''):
     if tipo == 'T':    
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM ordenes WHERE tipo = 'T'" # ordenes de trabajo
+            statement = "SELECT * FROM ordenes WHERE tipo = 'T' ORDER BY numero_cdf DESC LIMIT 50" # ordenes de trabajo
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
-            #print(resultados) 
+            print(resultados) 
         except Exception as e:
             print("error 3430", e)
         for fila in resultados:
             try:
                 my_cursor = my_conn.cursor(buffered=True)
-                statement = "SELECT filiacion_cliente FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
-                values = (fila[4],)
+                statement = "SELECT filiacion_cliente, asunto FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
+                values = (fila[8],)
                 my_cursor.execute(statement, values)
-                cliente = my_cursor.fetchone()
-                #print(cliente)
+                solic = my_cursor.fetchone()
+                print(fila[8])
+                print(solic)
+                #cliente = solic[0]
+                #desc_solic = solic[1]
+                
             except Exception as e:
                 print("error 3435", e)
     # muestra de los datos
-            wH.tabla.insert('',index = fila[2], iid=None, text = str(fila[2]), values = [fila[4], fila[3], fila[6],fila[5], fila[8], cliente,])
+            wH.tabla.insert('', index = fila[2], iid=None, text = str(fila[2]), values = [fila[4], fila[3], fila[6],fila[5], fila[8], solic[0], solic[1]])
     elif tipo == 'I':    
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM ordenes WHERE tipo = 'I'" # ordenes internas
+            statement = "SELECT * FROM ordenes WHERE tipo = 'I' ORDER BY numero_cdf DESC LIMIT 50 " # ordenes internas
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
             #print(resultados) 
         except Exception as e:
-            print("error 3439)", e)
+            print("error 3574)", e)
     # muestra de los datos
         for fila in resultados:
-            wH.tabla.insert('',index = fila[0], iid=None, text = str(fila[2]), values = [fila[4], fila[9], fila[10], fila[6], fila[5], fila[3]])    
+            wH.tabla.insert('',index = fila[2], iid=None, text = str(fila[2]), values = [fila[4], fila[9], fila[10], fila[6], fila[5], fila[3], 'HHHHHHH'])    
     else:
         pass # To Do: insertar manejo de error de tipo 
+    wH.tabla.bind("<Double-1>", lambda evt, x = tipo: B_selecOrden(x)) # habilita doble click para seleccionar
+
+#def aux_call(tipo):
+#    B_selecOrden(tipo)
 
 def B_selecOrden(modo):
     curItem = wH.tabla.focus()
@@ -3910,12 +3963,14 @@ def V_modServ(modo, geom = ''):
         BI3.place(x=505, y=H_bot)
 
         # boton Volver
-        BI5=tk.Button(wI, text="Volver", width=12, command=lambda: menuFrom(wI))
+        BI5=tk.Button(wI, text="Volver", width=12, command=lambda: OrdenesFrom(wI, modo))
         BI5.place(x=765, y=H_bot)
 
         # boton Salir
         BI1=tk.Button(wI, text="Salir", width=12, command = w1.quit)
         BI1.place(x=895, y=H_bot)
+
+        wI.tabla2.bind("<Double-1>", lambda evt, x = modo: B_selServ(x)) # habilita doble click para seleccionar
 
     else:
         messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
@@ -3966,7 +4021,7 @@ def B_selServ(modo):
     else:
         messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
 
-def B_modServ(modo): # se puede sacar MODO?????? NOOOO
+def B_modServ(modo): 
     curItem = wI.tabla2.focus()
     numServ = wI.tabla2.item(curItem).get('text')
     refresh_conn(my_conn)
@@ -4295,7 +4350,7 @@ def V_modMue(modo, geom = ''):
         BJ3.place(x=505, y=H_bot)
 
         # boton Volver
-        BJ5=tk.Button(wJ, text="Volver", width=12, command=lambda: menuFrom(wJ))
+        BJ5=tk.Button(wJ, text="Volver", width=12, command=lambda: OrdenesFrom(wJ, modo))
         BJ5.place(x=765, y=H_bot)
 
         # boton Salir
@@ -4484,6 +4539,70 @@ def V_oIntLab():
     BK2.place(x=325, y=F4)
 
     wK.after(1, lambda: wK.focus_force())
+
+############# ventana de visualización de muestras ##########################################
+def V_viewSamples():
+    # Parte común a todos los modos
+    w1.withdraw()
+    global wB
+    wB=tk.Toplevel()
+    #wB.geometry("1240x650")
+    wB.state("zoomed")
+    wB.iconphoto(False, photo)
+    wB.title("Laboratorio - Listado de muestras")
+    wB.frame = tk.Frame(wB)
+    wB.frame.grid(rowspan=2, column=1, row=1)
+    wB.tabla = ttk.Treeview(wB.frame, height=33)
+    wB.tabla.grid(column=1, row=1)
+    ladox = tk.Scrollbar(wB.frame, orient = tk.VERTICAL, command= wB.tabla.yview)
+    ladox.grid(column=0, row = 1, sticky='ew') 
+    ladoy = tk.Scrollbar(wB.frame, orient =tk.HORIZONTAL, command = wB.tabla.yview)
+    ladoy.grid(column = 1, row = 0, sticky='ns')
+
+    wB.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+    wB.tabla['columns'] = ('ID', 'tipo_ord', 'num_cdf', 'corresp', 'observ', 'ingreso')
+    wB.tabla.column('#0', minwidth=50, width=50, anchor='w')
+    wB.tabla.column('ID', minwidth=50, width=70, anchor='center')
+    wB.tabla.column('tipo_ord', minwidth=50, width=70, anchor='center')
+    wB.tabla.column('num_cdf', minwidth=50, width=70, anchor='center')
+    wB.tabla.column('corresp', minwidth=150, width=350 , anchor='center')
+    wB.tabla.column('observ', minwidth=100, width=650 , anchor='center')
+    wB.tabla.column('ingreso', minwidth=100, width=150, anchor='center' )
+
+    wB.tabla.heading('#0', text='Tipo', anchor ='center')
+    wB.tabla.heading('ID', text='ID muestra', anchor ='center')
+    wB.tabla.heading('tipo_ord', text='Tipo_orden', anchor ='center')
+    wB.tabla.heading('num_cdf', text='Num_orden', anchor ='center')
+    wB.tabla.heading('corresp', text='Corresponde a', anchor ='center')
+    wB.tabla.heading('observ', text='Observaciones', anchor ='center')
+    wB.tabla.heading('ingreso', text='Ingresó', anchor ='center')
+
+    # boton Salir
+    BB1=tk.Button(wB,text="Salir", width=12, command = w1.destroy)
+    BB1.place(x=850, y=740)
+
+    # boton Volver
+    BB3=tk.Button(wB,text="Volver", width=12, command = lambda: menuFrom(wB))
+    BB3.place(x=620, y=740)
+
+    wB.tabla.delete(*wB.tabla.get_children())
+
+    refresh_conn(my_conn)
+    
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "SELECT ordenes.ID_orden, ordenes.tipo, ordenes.numero_cdf, muestras.ID_muestra, muestras.ingreso, muestras.correspondencia, muestras.observaciones, muestras.tipo FROM ordenes INNER JOIN muestras ON ordenes.ID_orden = muestras.ID_orden ORDER BY muestras.ID_muestra DESC"        
+        my_cursor.execute(statement)
+        resultados = my_cursor.fetchall()
+        #print(resultados) 
+    except Exception as e:
+        print("error", e)
+    
+    # Parte común a todos los modos
+    for fila in resultados:
+        wB.tabla.insert('',index = 'end', iid=None, text = str(fila[7]), values = [fila[3], fila[1], fila[2], fila[5], fila[6], fila[4]])
+
+    wB.after(1, lambda: wB.focus_force())
     
 ##################################### Chequeo de  formato de fecha ###########################################################
 def date_check(date_req):
