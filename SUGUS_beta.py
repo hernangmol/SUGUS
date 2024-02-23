@@ -27,7 +27,7 @@ import math
 # w8 - Modificación de documentos y normas 
 # w9 - Ver asignaciones a documentos y normas
 # WA - Cambio de privilegios
-# wB - 
+# wB - Ventana de visualización de muestras
 # wC - Ver estadísticas
 # wD - Agenda de tareas
 # wE - Visualización de pedidos asignados a proyectos, desarrollos, asistencias
@@ -36,7 +36,8 @@ import math
 # wH - Modificación de ordenes de laboratorio
 # wI - Modificación de ordenes de servicio
 # wJ - Modificación de muestras
-# wK - Ventana de ingreso se ordenes internos
+# wK - Ventana de ingreso de ordenes internos
+# wL - Ventana de gestión de recursos
 ###########################################################################
 def main():
     global my_conn
@@ -44,8 +45,8 @@ def main():
         try:
             my_conn = mysql.connector.connect(host = '192.168.100.105',
                                             #port = 3306,
-                                            database = "BDNP",  # base de produccion
-                                            #database = "BDNP_t",  # base de test
+                                            #database = "BDNP",  # base de produccion
+                                            database = "BDNP_t",  # base de test
                                             user = "admin",
                                             password = "cenadif2023")
             break
@@ -194,7 +195,7 @@ def main():
     B28.place(x=430, y=535)
 
     # boton salir
-    Bsalir=tk.Button(w1,text="Salir", width=12, command = w1.quit)
+    Bsalir=tk.Button(w1,text="Salir", width=12, command = lambda: salirConAviso())
     Bsalir.place(x=460, y=585)
 
     accessForm() 
@@ -245,7 +246,7 @@ def V_viewRequest(geom = ''):
     w3.tabla.heading('telefono', text='Teléfono', anchor ='center')
 
     # boton Salir
-    B31=tk.Button(w3,text="Salir", width=12, command = w1.destroy)
+    B31=tk.Button(w3,text="Salir", width=12, command = lambda: salirConAviso())
     B31.place(x=850, y=760)
 
     # boton Actualizar
@@ -348,7 +349,7 @@ def ingresar():
         act_user_index = list.index((actualUser,))
     except:
         act_user_index = 0
-    print(act_user_index)
+    #print(act_user_index)
     global C45
     C45 = ttk.Combobox(w4, state="readonly", width = 17, values = list)
     C45.place(x=125, y=530)
@@ -435,7 +436,7 @@ def assignment_form():
     T71.place(x=145, y=480)
 
 # boton Salir
-    B71=tk.Button(w7,text="Salir", width=12,  command = w1.destroy)
+    B71=tk.Button(w7,text="Salir", width=12,  command = lambda: salirConAviso())
     B71.place(x=510, y=530)
 
 # boton Volver
@@ -514,7 +515,7 @@ def viewDocs():
     w9.tabla.heading('contacto', text='Contacto', anchor ='center')
 
     # boton Salir
-    B91=tk.Button(w9,text="Salir", width=12, command = w1.destroy)
+    B91=tk.Button(w9,text="Salir", width=12, command = lambda: salirConAviso())
     B91.place(x=850, y=730)
 
     # boton Volver
@@ -709,21 +710,26 @@ def modDocs(geom = ''):
     T81 = tk.Text(w8, width = 81, height = 8)
     T81.place(x=195, y=530)
 
-    # boton Salir
-    B81=tk.Button(w8,text="Salir", width=12, command = w1.destroy)
-    B81.place(x=1135, y=585)
+# Botones
+    # boton Precarga
+    B84=tk.Button(w8,text="Precarga", width=12, command = precDoc)
+    B84.place(x=865, y=585)
+
+    # boton Recursos
+    B85=tk.Button(w8, text="Recursos", width=12, command = lambda: V_recursos('doc'))
+    B85.place(x=1000, y=585)
 
     # boton Modificar
     B82=tk.Button(w8,text="Modificar", width=12, command = B_modDoc)
-    B82.place(x=1135, y=635)
+    B82.place(x=1135, y=585)
 
-    # boton Volver
+    # boton Volver####
     B83=tk.Button(w8,text="Volver", width=12, command = lambda: menuFrom(w8))
-    B83.place(x=1000, y=585)
+    B83.place(x=1000, y=635)
 
-    # boton Precarga
-    B84=tk.Button(w8,text="Precarga", width=12, command = precDoc)
-    B84.place(x=1000, y=635)
+    # boton Salir###
+    B81=tk.Button(w8,text="Salir", width=12, command = lambda: salirConAviso())
+    B81.place(x=1135, y=635)
 
     w8.tabla.delete(*w8.tabla.get_children())
 
@@ -826,7 +832,7 @@ def V_viewPro(modo):
     wE.tabla.heading('responsable', text='Responsable', anchor ='center')
 
     # boton Salir
-    BE1=tk.Button(wE,text="Salir", width=12, command = w1.destroy)
+    BE1=tk.Button(wE,text="Salir", width=12, command = lambda: salirConAviso())
     BE1.place(x=850, y=560)
 
     # boton Volver
@@ -1050,7 +1056,7 @@ def V_modPro(modo, geom =''):
     BF3.place(x=340, y=730)
 
     # boton Salir
-    BF1=tk.Button(wF, text="Salir", width=12, command = w1.quit)
+    BF1=tk.Button(wF, text="Salir", width=12, command = lambda: salirConAviso())
     BF1.place(x=510, y=730)
 
     wF.tabla.delete(*wF.tabla.get_children())
@@ -1061,7 +1067,7 @@ def V_modPro(modo, geom =''):
         if actualRol & 16384: # modificación proyectos habilitado?
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'En curso'" # proyectos activos
+                statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'En curso' ORDER BY numero_cdf DESC" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
                 #print(resultados) 
@@ -1070,7 +1076,7 @@ def V_modPro(modo, geom =''):
         else:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'En curso' and responsable = %s" # proyectos del usuario
+                statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'En curso' and responsable = %s ORDER BY numero_cdf DESC" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
@@ -1080,7 +1086,7 @@ def V_modPro(modo, geom =''):
     if modo == 'proy_c':
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado <> 'En curso'" # proyectos cerrados
+            statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado <> 'En curso'ORDER BY numero_cdf DESC" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
             #print(resultados) 
@@ -1091,7 +1097,7 @@ def V_modPro(modo, geom =''):
         if actualRol & 64: # modificación desarrollos habilitado?
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'En curso'" # proyectos activos
+                statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'En curso' ORDER BY numero_cdf DESC" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
                 #print(resultados) 
@@ -1100,7 +1106,7 @@ def V_modPro(modo, geom =''):
         else:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'En curso' and responsable = %s" # proyectos del usuario
+                statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'En curso' and responsable = %s ORDER BY numero_cdf DESC" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
@@ -1110,7 +1116,7 @@ def V_modPro(modo, geom =''):
     if modo == 'des_c':
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado <> 'En curso'" # proyectos cerrados
+            statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado <> 'En curso' ORDER BY numero_cdf DESC" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
             #print(resultados) 
@@ -1120,7 +1126,7 @@ def V_modPro(modo, geom =''):
         if actualRol & 256: # modificación asistencias habilitado?
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'En curso'" # proyectos activos
+                statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'En curso' ORDER BY numero_cdf DESC" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
                 #print(resultados) 
@@ -1129,7 +1135,7 @@ def V_modPro(modo, geom =''):
         else:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'En curso' and responsable = %s" # proyectos del usuario
+                statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'En curso' and responsable = %s ORDER BY numero_cdf DESC" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
@@ -1139,7 +1145,7 @@ def V_modPro(modo, geom =''):
     if modo == 'ate_c':
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado <> 'En curso'" # proyectos cerrados
+            statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado <> 'En curso' ORDER BY numero_cdf DESC" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
             #print(resultados) 
@@ -1159,8 +1165,7 @@ def V_modPro(modo, geom =''):
         except Exception as e:
             print("error", e)
 
-        wF.tabla.insert('',index = fila[7], iid=None, text = str(fila[7]), values = [fila[3], fila[5], fila[1], fila[4], fila[6],fila[8], pedido[0]])
-        #wF.tabla.insert('', index = fila[8], iid=None, text = str(fila[7]), values = [fila[3], fila[5], fila[1], fila[4], fila[6],fila[8], pedido[0]])
+        wF.tabla.insert('',index = 'end', iid=None, text = str(fila[7]), values = [fila[3], fila[5], fila[1], fila[4], fila[6],fila[8], pedido[0]])
     wF.after(1, lambda: wF.focus_force())
 
 #################### Alta de usuario #########################################################
@@ -1504,7 +1509,7 @@ def V_accSchedule():
     wD.tabla.heading('correo', text='Correo aviso', anchor ='center')
 
     # boton Salir
-    BD1=tk.Button(wD,text="Salir", width=12, command = w1.destroy)
+    BD1=tk.Button(wD,text="Salir", width=12, command = lambda: salirConAviso())
     BD1.place(x=430, y=560)
 
     # boton Actualizar
@@ -1704,7 +1709,6 @@ def B_assign():
                 try:    
                     my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Asistencias', 'En curso', 0)
-                    #statement = '''INSERT INTO asistencias (ID_solicitud) VALUES('{}')'''.format(idSol )
                     my_cursor.execute(statement)
                     my_conn.commit() 
 
@@ -2078,16 +2082,30 @@ def B_modProy(modo):
     if len(numCDF)!=0:
         ######### Actualización del numero de proyecto
         NnumCDF = EF1.get()
-        if len(NnumCDF) != 0:
+        if numCDF != NnumCDF:
+            # chequea que no exista NnumCDF
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE proyectos SET numero_cdf = %s WHERE area = %s and numero_cdf = %s"
-                val = (NnumCDF, area, numCDF)
+                statement = "SELECT COUNT(numero_cdf) FROM proyectos WHERE area = %s and numero_cdf = %s "
+                val = (area, NnumCDF)
                 my_cursor.execute(statement,val)
-                my_conn.commit()
-                numCDF = NnumCDF       
+                flg_exists = my_cursor.fetchall()
+                #print (results)
             except Exception as e:
-                print("error", e)
+                print("error 2093", e)
+            if flg_exists[0][0]:
+                messagebox.showinfo(message="El ID escogido ya existe .", title="Aviso del sistema")
+                return(1)
+            else:                
+                try:
+                    my_cursor = my_conn.cursor()
+                    statement = "UPDATE proyectos SET numero_cdf = %s WHERE area = %s and numero_cdf = %s"
+                    val = (NnumCDF, area, numCDF)
+                    my_cursor.execute(statement,val)
+                    my_conn.commit()
+                    numCDF = NnumCDF       
+                except Exception as e:
+                    print("error 2101", e)
         ######### Actualización del responsable
         respo = CFB.get()
         if len(respo) != 0:
@@ -2482,6 +2500,10 @@ def V_modTar(modo, geom = ''):
     BG4=tk.Button(wG, text="Seleccionar", width=12, command = lambda: B_selTar(modo))
     BG4.place(x=115, y=705)
 
+    # boton Recursos
+    BG7=tk.Button(wG, text="Recursos", width=12, command = lambda: V_recursos('tar'))
+    BG7.place(x=115, y=750)
+
     # boton Modificar
     global BG2
     BG2=tk.Button(wG,text="Modificar", width=12, command = lambda: B_modTar(modo), state = tk.DISABLED)
@@ -2492,10 +2514,8 @@ def V_modTar(modo, geom = ''):
     BG5.place(x=375, y=750)
 
     # boton Salir
-    BG1=tk.Button(wG, text="Salir", width=12, command = w1.quit)
+    BG1=tk.Button(wG, text="Salir", width=12, command = lambda: salirConAviso())
     BG1.place(x=505, y=750)
-
-    #gantt(proyData[0], wG)
 
     #else:
     #    print('error de modo ')
@@ -2709,16 +2729,17 @@ def gantt(proy, window):
         #print(resultados) 
     except Exception as e:
         print("error", e)
-    tsk = []
-    str = []
-    end = []
-    adv = []
+    tsk = [] # lista de tareas
+    str = [] # lista de comienzos
+    end = [] # lista de finales
+    adv = [] # lista de avances
     flag_data = 0
-    for fila in resultados:
+
+    for fila, index in zip(resultados, range(0, len(resultados))):
         if fila[1] != None and fila[2] != None:
-            tsk.append(fila[0][:7])
+            tsk.append(repr(index+1) + '.' + fila[0][:7])
             str.append(fila[1])
-            end.append(fila[2])
+            end.append(fila[2]) 
             try:
                 adv.append(fila[3]/100)
             except:
@@ -3564,7 +3585,7 @@ def V_modLab(tipo, geom = ''):
     BH5.place(x=1020, y=700)
 
     # boton Salir
-    BH1=tk.Button(wH, text="Salir", width=12, command = w1.quit)
+    BH1=tk.Button(wH, text="Salir", width=12, command = lambda: salirConAviso())
     BH1.place(x=1190, y=700)
 
     wH.tabla.delete(*wH.tabla.get_children())
@@ -3576,7 +3597,7 @@ def V_modLab(tipo, geom = ''):
             statement = "SELECT * FROM ordenes WHERE tipo = 'T' ORDER BY numero_cdf DESC LIMIT 50" # ordenes de trabajo
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
-            print(resultados) 
+            #print(resultados) 
         except Exception as e:
             print("error 3430", e)
         for fila in resultados:
@@ -3586,15 +3607,15 @@ def V_modLab(tipo, geom = ''):
                 values = (fila[8],)
                 my_cursor.execute(statement, values)
                 solic = my_cursor.fetchone()
-                print(fila[8])
-                print(solic)
+                #print(fila[8])
+                #print(solic)
                 #cliente = solic[0]
                 #desc_solic = solic[1]
                 
             except Exception as e:
                 print("error 3435", e)
     # muestra de los datos
-            wH.tabla.insert('', index = fila[2], iid=None, text = str(fila[2]), values = [fila[4], fila[3], fila[6],fila[5], fila[8], solic[0], solic[1]])
+            wH.tabla.insert('', index = 'end', iid=None, text = str(fila[2]), values = [fila[4], fila[3], fila[6],fila[5], fila[8], solic[0], solic[1]])
     elif tipo == 'I':    
         try:
             my_cursor = my_conn.cursor()
@@ -3606,13 +3627,10 @@ def V_modLab(tipo, geom = ''):
             print("error 3574)", e)
     # muestra de los datos
         for fila in resultados:
-            wH.tabla.insert('',index = fila[2], iid=None, text = str(fila[2]), values = [fila[4], fila[9], fila[10], fila[6], fila[5], fila[3], 'HHHHHHH'])    
+            wH.tabla.insert('',index = 'end', iid=None, text = str(fila[2]), values = [fila[4], fila[9], fila[10], fila[6], fila[5], fila[3]])
     else:
         pass # To Do: insertar manejo de error de tipo 
     wH.tabla.bind("<Double-1>", lambda evt, x = tipo: B_selecOrden(x)) # habilita doble click para seleccionar
-
-#def aux_call(tipo):
-#    B_selecOrden(tipo)
 
 def B_selecOrden(modo):
     curItem = wH.tabla.focus()
@@ -3660,16 +3678,30 @@ def B_modOrden(modo):
     if len(numOrd)!=0:
         ######### Actualización del numero de proyecto
         NnumOrd = EH6.get()
-        if len(NnumOrd) != 0:
+        if NnumOrd != numOrd:
+            # chequea si el ID elegido existe
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE ordenes SET numero_cdf = %s WHERE tipo = %s and numero_cdf = %s"
-                val = (NnumOrd, modo, numOrd)
+                statement = "SELECT COUNT(numero_cdf) FROM ordenes WHERE tipo = %s and numero_cdf = %s "
+                val = (modo, NnumOrd)
                 my_cursor.execute(statement,val)
-                my_conn.commit()
-                numOrd = NnumOrd       
+                flg_exists = my_cursor.fetchall()
+                #print (results)
             except Exception as e:
-                print("error", e)
+                print("error 3687", e)
+            if flg_exists[0][0]:
+                messagebox.showinfo(message="El ID escogido ya existe .", title="Aviso del sistema")
+                return(1)
+            else:
+                try:
+                    my_cursor = my_conn.cursor()
+                    statement = "UPDATE ordenes SET numero_cdf = %s WHERE tipo = %s and numero_cdf = %s"
+                    val = (NnumOrd, modo, numOrd)
+                    my_cursor.execute(statement,val)
+                    my_conn.commit()
+                    numOrd = NnumOrd       
+                except Exception as e:
+                    print("error", e)
         ######### Actualización de la descripción de la orden
         descOrd = EH1.get()
         if len(descOrd) != 0:
@@ -3762,7 +3794,7 @@ def V_modServ(modo, geom = ''):
         try:
             my_cursor = my_conn.cursor(buffered=True)
             statement = "SELECT filiacion_cliente FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
-            values = (ordData[4],)
+            values = (ordData[8],)
             my_cursor.execute(statement, values)
             cliente = my_cursor.fetchone()
             #print(cliente)
@@ -3805,12 +3837,12 @@ def V_modServ(modo, geom = ''):
         wI.tabla.heading('cliente', text='Cliente', anchor ='center')
 
         # muestra de los datos
-        wI.tabla.insert('',index = ordData[2], iid=None, text = str(ordData[2]), values = [ordData[5], ordData[3], ordData[7], ordData[6], ordData[4], cliente,])
+        wI.tabla.insert('',index = 'end', iid=None, text = str(ordData[2]), values = [ordData[4], ordData[3], ordData[6], ordData[5], ordData[8], cliente,])
         
-        ### Tabla de servicios ########################################################
+        ### Tabla de ordenes de servicio ########################################################
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM servicios WHERE ID_orden = %s" 
+            statement = "SELECT * FROM ord_serv WHERE ID_orden = %s" 
             values = (ordData[0],)
             my_cursor.execute(statement, values)
             resultados = my_cursor.fetchall()
@@ -3962,13 +3994,17 @@ def V_modServ(modo, geom = ''):
         BI3=tk.Button(wI, text="Nueva", width=12, command = lambda: B_nuevoServ(ordData[0], modo))
         BI3.place(x=505, y=H_bot)
 
+        # boton Recursos
+        BI7=tk.Button(wI, text="Recursos", width=12, command = lambda: V_recursos('o_serv'))
+        BI7.place(x=635, y=H_bot)
+
         # boton Volver
         BI5=tk.Button(wI, text="Volver", width=12, command=lambda: OrdenesFrom(wI, modo))
-        BI5.place(x=765, y=H_bot)
+        BI5.place(x=895, y=H_bot)
 
         # boton Salir
-        BI1=tk.Button(wI, text="Salir", width=12, command = w1.quit)
-        BI1.place(x=895, y=H_bot)
+        BI1=tk.Button(wI, text="Salir", width=12, command = lambda: salirConAviso())
+        BI1.place(x=1025, y=H_bot)
 
         wI.tabla2.bind("<Double-1>", lambda evt, x = modo: B_selServ(x)) # habilita doble click para seleccionar
 
@@ -3982,7 +4018,7 @@ def B_selServ(modo):
         refresh_conn(my_conn)
         try:
             my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM servicios WHERE ID_servicio = %s"
+            statement = "SELECT * FROM ord_serv WHERE ID_servicio = %s"
             values = (numServ,) 
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
@@ -4031,7 +4067,7 @@ def B_modServ(modo):
         if len(tareaServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET tarea = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET tarea = %s WHERE ID_servicio = %s"
                 val = (tareaServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4042,7 +4078,7 @@ def B_modServ(modo):
         if len(respoServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET responsable = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET responsable = %s WHERE ID_servicio = %s"
                 val = (respoServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4053,7 +4089,7 @@ def B_modServ(modo):
         if len(iniServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET fecha_inicio = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET fecha_inicio = %s WHERE ID_servicio = %s"
                 val = (iniServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4064,7 +4100,7 @@ def B_modServ(modo):
         if len(finServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET fecha_fin = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET fecha_fin = %s WHERE ID_servicio = %s"
                 val = (finServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4075,7 +4111,7 @@ def B_modServ(modo):
         if len(horasServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET horas = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET horas = %s WHERE ID_servicio = %s"
                 val = (horasServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4086,7 +4122,7 @@ def B_modServ(modo):
         if len(operServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET operador = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET operador = %s WHERE ID_servicio = %s"
                 val = (operServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4097,7 +4133,7 @@ def B_modServ(modo):
         if len(tipoServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET tipo = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET tipo = %s WHERE ID_servicio = %s"
                 val = (tipoServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4108,7 +4144,7 @@ def B_modServ(modo):
         if len(equipServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET equipos = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET equipos = %s WHERE ID_servicio = %s"
                 val = (equipServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4119,7 +4155,7 @@ def B_modServ(modo):
         if len(obsServ) != 0:
             try:
                 my_cursor = my_conn.cursor()
-                statement = "UPDATE servicios SET observaciones = %s WHERE ID_servicio = %s"
+                statement = "UPDATE ord_serv SET observaciones = %s WHERE ID_servicio = %s"
                 val = (obsServ, numServ)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4142,7 +4178,7 @@ def B_elimServ(modo):
             refresh_conn(my_conn)
             try:
                 my_cursor = my_conn.cursor()
-                statement = "DELETE FROM servicios WHERE ID_servicio = %s"
+                statement = "DELETE FROM ord_serv WHERE ID_servicio = %s"
                 val = (numServ,)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
@@ -4161,7 +4197,7 @@ def B_nuevoServ(orden, modo):
     refresh_conn(my_conn)
     try:
         my_cursor = my_conn.cursor()
-        statement = "INSERT INTO servicios SET tarea = %s, ID_orden = %s"
+        statement = "INSERT INTO ord_serv SET tarea = %s, ID_orden = %s"
         val = ('Nueva orden de servicio', orden)
         my_cursor.execute(statement,val)
         my_conn.commit()
@@ -4354,7 +4390,7 @@ def V_modMue(modo, geom = ''):
         BJ5.place(x=765, y=H_bot)
 
         # boton Salir
-        BJ1=tk.Button(wJ, text="Salir", width=12, command = w1.quit)
+        BJ1=tk.Button(wJ, text="Salir", width=12, command = lambda: salirConAviso())
         BJ1.place(x=895, y=H_bot)
 
     else:
@@ -4578,7 +4614,7 @@ def V_viewSamples():
     wB.tabla.heading('ingreso', text='Ingresó', anchor ='center')
 
     # boton Salir
-    BB1=tk.Button(wB,text="Salir", width=12, command = w1.destroy)
+    BB1=tk.Button(wB,text="Salir", width=12, command = lambda: salirConAviso())
     BB1.place(x=850, y=740)
 
     # boton Volver
@@ -4668,6 +4704,426 @@ def ingresar_oInt():
     win_geometry = wK.winfo_geometry()
     wK.destroy() 
     V_modLab('I', win_geometry)
+
+def salirConAviso():
+    if (messagebox.askokcancel(message="Desea cerrar el programa?", title="Confirmación de acción")):  
+        w1.quit()
+    else:
+        return
+
+############# Ventana de gestión de recursos ##########################################
+def V_recursos(modo, geom = ''):
+    if modo == 'tar':
+        tabla = wG.tabla2
+    elif modo == 'doc':
+        tabla = w8.tabla
+    elif modo == 'o_serv':
+        tabla = wI.tabla2
+    else:
+        print('error de modo')
+        return
+    curItem = tabla.focus()
+    numTar = tabla.item(curItem).get('text')
+    #print(numTar)
+    ### Cierre  de la ventana llamante
+    if len(numTar)!=0:
+        try:
+            wG.withdraw()
+        except:
+            pass
+        try:
+            w8.withdraw()
+        except:
+            pass
+        try:
+            wI.withdraw()
+        except:
+            pass
+        ### Preparación de datos para tabla 1
+        refresh_conn(my_conn)
+        global wL
+        if modo == 'tar':
+            try:
+                my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT proyectos.area, proyectos.numero_cdf, tareas.nombre_tarea FROM proyectos INNER JOIN tareas ON proyectos.ID_proyecto = tareas.ID_proyecto WHERE ID_tarea = %s" 
+                values = (numTar,)
+                my_cursor.execute(statement, values)
+                tarData = my_cursor.fetchone()
+                #print(tarData) 
+            except Exception as e:
+                print("error 4755", e)
+            try:
+                my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT * FROM empleos WHERE tipo_contexto = %s and ID_contexto = %s" 
+                values = (modo, numTar,)
+                my_cursor.execute(statement, values)
+                resultados = my_cursor.fetchall()
+                #print(proyData[0]) 
+            except Exception as e:
+                print("error 4761", e)
+            ### Generación de la ventana 
+            wL=tk.Toplevel()
+            if len(geom)==0:
+                wL.state('zoomed')
+            else:
+                wL.geometry(geom)
+            wL.iconphoto(False, photo)
+            wL.title("CENADIF Base de datos - Recursos ")
+            ### Tabla 1 (modo doc)
+            wL.frame = tk.Frame(wL)
+            wL.frame.grid(rowspan=2, column=1, row=1)
+            wL.tabla = ttk.Treeview(wL.frame, height=1)
+            wL.tabla.grid(column=1, row=1)
+
+            ladox = tk.Scrollbar(wL.frame, orient = tk.VERTICAL, command= wL.tabla.yview)
+            ladox.grid(column=0, row = 2, sticky='ew')
+            ladoy = tk.Scrollbar(wL.frame, orient =tk.HORIZONTAL, command = wL.tabla.xview)
+            ladoy.grid(column = 1, row = 0, sticky='ns')
+            wL.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+
+            wL.tabla['columns'] = ('tipo', 'ID', 'tarea')
+            wL.tabla.column('#0', minwidth=10, width=10, anchor='center')
+            wL.tabla.column('tipo', minwidth=100, width=100 , anchor='center')
+            wL.tabla.column('ID', minwidth=100, width=100 , anchor='center')
+            wL.tabla.column('tarea', minwidth=200, width=240, anchor='center' )
+            
+            #wL.tabla.heading('#0', text='N° DyN', anchor ='e')
+            wL.tabla.heading('tipo', text='Tipo', anchor ='center')
+            wL.tabla.heading('ID', text='ID', anchor ='center')
+            wL.tabla.heading('tarea', text='Tarea', anchor ='center')
+             
+            wL.tabla.insert('',index = 'end', iid=None, values = [tarData[0], tarData[1], tarData[2]])
+
+        elif modo == 'doc':
+            try:
+                my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT * FROM documentacion WHERE ID_trabajo = %s" 
+                values = (numTar,)
+                my_cursor.execute(statement, values)
+                docData = my_cursor.fetchone()
+                #print(docData) 
+            except Exception as e:
+                print("error 4755", e)
+            try:
+                my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT * FROM empleos WHERE tipo_contexto = %s and ID_contexto = %s" 
+                values = (modo, numTar,)
+                my_cursor.execute(statement, values)
+                resultados = my_cursor.fetchall()
+                #print(proyData[0]) 
+            except Exception as e:
+                print("error 4761", e)
+            ### Generación de la ventana 
+            wL=tk.Toplevel()
+            if len(geom)==0:
+                wL.state('zoomed')
+            else:
+                wL.geometry(geom)
+            wL.iconphoto(False, photo)
+            wL.title("CENADIF Base de datos - Recursos ")
+            ### Tabla 1 (modo doc)
+            wL.frame = tk.Frame(wL)
+            wL.frame.grid(rowspan=2, column=1, row=1)
+            wL.tabla = ttk.Treeview(wL.frame, height=1)
+            wL.tabla.grid(column=1, row=1)
+
+            ladox = tk.Scrollbar(wL.frame, orient = tk.VERTICAL, command= wL.tabla.yview)
+            ladox.grid(column=0, row = 2, sticky='ew')
+            ladoy = tk.Scrollbar(wL.frame, orient =tk.HORIZONTAL, command = wL.tabla.xview)
+            ladoy.grid(column = 1, row = 0, sticky='ns')
+            wL.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+
+            wL.tabla['columns'] = ('tipo_doc', 'emisor', 'nro_doc', 'titulo', 'fuente','precio', 'u_monet','cantidad')
+            wL.tabla.column('#0', minwidth=50, width=50, anchor='center')
+            wL.tabla.column('tipo_doc', minwidth=100, width=100 , anchor='center')
+            wL.tabla.column('emisor', minwidth=100, width=100 , anchor='center')
+            wL.tabla.column('nro_doc', minwidth=100, width=120, anchor='center' )
+            wL.tabla.column('titulo', minwidth=100, width=350 , anchor='w')
+            wL.tabla.column('fuente', minwidth=100, width=100, anchor='center')
+            wL.tabla.column('precio', minwidth=100, width=100, anchor='center')
+            wL.tabla.column('u_monet', minwidth=100, width=100, anchor='center')
+            wL.tabla.column('cantidad', minwidth=100, width=100, anchor='center')
+
+            wL.tabla.heading('#0', text='N° DyN', anchor ='e')
+            wL.tabla.heading('tipo_doc', text='Tipo', anchor ='center')
+            wL.tabla.heading('emisor', text='Emisor', anchor ='center')
+            wL.tabla.heading('nro_doc', text='Número', anchor ='center')
+            wL.tabla.heading('titulo', text='Título', anchor ='center')
+            wL.tabla.heading('fuente', text='Fuente', anchor ='center')
+            wL.tabla.heading('precio', text='Precio', anchor ='center')
+            wL.tabla.heading('u_monet', text='Un. Mon.', anchor ='center')
+            wL.tabla.heading('cantidad', text='Cant.', anchor ='center') 
+            wL.tabla.insert('',index = 'end', iid=None, text = str(docData[0]), values = [docData[2], docData[8], docData[3], docData[4], docData[5], docData[6], docData[7], docData[11]])
+        elif modo == 'o_serv':
+            pass
+        else:
+            print('error de modo')
+            return           
+
+        ### Tabla 2
+        wL.frame2 = tk.Frame(wL)
+        wL.frame2.grid(rowspan=2, column=1, row=2)
+        wL.frame2.place(y=70)
+        wL.tabla2 = ttk.Treeview(wL.frame2, height=12)
+        wL.tabla2.grid(column=1, row=1)
+
+        ladox2 = tk.Scrollbar(wL.frame2, orient = tk.VERTICAL, command= wL.tabla2.yview)
+        ladox2.grid(column=0, row = 1, sticky='ew') 
+        ladoy2 = tk.Scrollbar(wL.frame2, orient =tk.HORIZONTAL, command = wL.tabla2.xview)
+        ladoy2.grid(column = 1, row = 0, sticky='ns')
+        #wG.tabla2.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+
+        wL.tabla2['columns'] = ('tipo', 'categoria', 'cantidad', 'unidad', 'detalle', 'fecha', 'responsable')
+        wL.tabla2.column('#0', minwidth=70, width=70, anchor='center')
+        wL.tabla2.column('tipo', minwidth=100, width=150, anchor='center')
+        wL.tabla2.column('categoria', minwidth=80, width=200 , anchor='center')
+        wL.tabla2.column('cantidad', minwidth=100, width=100 , anchor='center')
+        wL.tabla2.column('unidad', minwidth=100, width=100, anchor='center' )
+        wL.tabla2.column('detalle', minwidth=100, width=550 , anchor='center')
+        wL.tabla2.column('fecha', minwidth=100, width=150 , anchor='center')
+        wL.tabla2.column('responsable', minwidth=100, width=150 , anchor='center')
+
+        wL.tabla2.heading('#0', text='ID_empleo', anchor ='e')
+        wL.tabla2.heading('tipo', text='Tipo recurso', anchor ='center')
+        wL.tabla2.heading('categoria', text='Categoria', anchor ='center')
+        wL.tabla2.heading('cantidad', text='Cantidad', anchor ='center')
+        wL.tabla2.heading('unidad', text='Unidad med.', anchor ='center')
+        wL.tabla2.heading('detalle', text='Detalle', anchor ='center')
+        wL.tabla2.heading('fecha', text='Fecha', anchor ='center')
+        wL.tabla2.heading('responsable', text='Responsable', anchor ='center')
+        for fila in resultados:
+            wL.tabla2.insert('',index = 'end', iid=None, text = str(fila[0]), values = [fila[3], fila[4], fila[5], fila[6], fila[7], fila[8], fila[9]])
+       
+        # boton Volver
+        BL2=tk.Button(wL, text="Volver", width=12, command=lambda: menuFrom(wL))
+        BL2.place(x=375, y=750)
+        # boton Salir
+        BL1=tk.Button(wL, text="Salir", width=12, command = lambda: salirConAviso())
+        BL1.place(x=505, y=750)
+    else:
+        if modo == 'tar':
+            messagebox.showinfo(message="Seleccione una tarea.", title="Aviso del sistema")
+        elif modo == 'doc':
+            messagebox.showinfo(message="Seleccione un documento.", title="Aviso del sistema")
+        elif modo == 'o_serv':
+            messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+        else:
+            print('error de modo')
+            return
+        #wL.withdraw()
+        #wG.state("zoomed")
+        #wG.deiconify()
+
+
+    '''
+
+            try:
+                my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT * FROM tareas WHERE ID_proyecto = %s" 
+                values = (proyData[0],)
+                my_cursor.execute(statement, values)
+                resultados = my_cursor.fetchall()
+                    #print(resultados) 
+            except Exception as e:
+                print("error 2159", e)
+
+            # boton Eliminar
+            global BG6
+            BG6=tk.Button(wG, text="Eliminar", width=12, state = tk.DISABLED, command = lambda: B_elimTar(modo))
+            BG6.place(x=375, y=705)
+
+            # boton Nueva
+            BG3=tk.Button(wG, text="Nueva", width=12, state = tk.DISABLED, command = lambda: B_nuevaTar(proyData[0], modo))
+            BG3.place(x=505, y=705)
+            if modo != 'proy_c' and modo != 'des_c' and modo != 'ate_c':
+                BG3['state'] = tk.NORMAL
+        else:
+            wG.withdraw()
+            wF.state("zoomed")
+            wF.deiconify()
+            messagebox.showinfo(message="Seleccione un proyecto.", title="Aviso del sistema")
+### Tabla de tareas ########################################################
+    if modo == 'user' :
+        #print('algo')
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM tareas WHERE responsable = %s" 
+            values = (actualUser,)
+            my_cursor.execute(statement, values)
+            resultados = my_cursor.fetchall()
+            #print(resultados) 
+        except Exception as e:
+            print("error 480", e)
+
+#if modo == 'proy' or modo == 'user' or modo == 'des' or modo == 'ate' :
+
+    
+    try:
+        for fila in resultados:
+            wG.tabla2.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [fila[3], fila[16], fila[2], fila[4], fila[14], fila[15], fila[6]])
+    except:
+        pass
+    #wF.after(1, lambda: wF.focus_force())
+
+## PRIMER PISO ##########################
+# Nombre de la tarea
+    LG1 = tk.Label(wG, text = "Nombre Tarea")
+    LG1.place(x=20, y=380)
+
+    global EG1
+    EG1 = tk.Entry(wG)
+    EG1.place(x=110, y=380, width=320)
+
+# Estado
+    LG2 = tk.Label(wG, text = "Estado")
+    LG2.place(x=430, y=380)
+
+    global CG2
+    CG2 = ttk.Combobox(wG, state="readonly", width = 17, values = ('Planificada','En curso', 'Cerrada', 'Pausada', 'Finalizada'))
+    CG2.place(x=480, y=380)
+
+## SEGUNDO PISO #########################
+    # Responsable
+    LG3 = tk.Label(wG, text = "Responsable")
+    LG3.place(x=20, y=430)
+
+    list = userList()
+    global CG3
+    CG3 = ttk.Combobox(wG, state="readonly", width = 17, values = list)
+    CG3.place(x=110, y=430)
+
+# inicio
+    LG4 = tk.Label(wG, text = "Inicio")
+    LG4.place(x=250, y=430)
+
+    global EG4
+    EG4 = tk.Entry(wG)
+    EG4.place(x=300, y=430)
+
+# Fin  
+    LG5 = tk.Label(wG, text = "Fin")
+    LG5.place(x=430, y=430)
+
+    global EG5
+    EG5 = tk.Entry(wG)
+    EG5.place(x=480, y=430)
+
+## TERCER PISO #########################
+    # Avance
+    LG6 = tk.Label(wG, text = "Avance")
+    LG6.place(x=20, y=480)
+
+    global EG6
+    EG6 = tk.Entry(wG)
+    EG6.place(x=110, y=480)
+
+# H/H prog
+    LG7 = tk.Label(wG, text = "hs.prog")
+    LG7.place(x=250, y=480)
+
+    global EG7
+    EG7 = tk.Entry(wG)
+    EG7.place(x=300, y=480)
+
+# H/H dedicadas  
+    LG8 = tk.Label(wG, text = "hs.dedic")
+    LG8.place(x=430, y=480)
+
+    global EG8
+    EG8 = tk.Entry(wG)
+    EG8.place(x=480, y=480)
+
+## CUARTO PISO #########################
+    # Integrante 1
+    LG9 = tk.Label(wG, text = "Asignados: 1")
+    LG9.place(x=20, y=530)
+
+    #global EG9
+    #EG9 = tk.Entry(wG)
+    #EG9.place(x=110, y=530)
+
+    global CG9
+    CG9 = ttk.Combobox(wG, state="readonly", width = 17, values = list)
+    CG9.place(x=110, y=530)
+
+    if modo == 'proy' or modo == 'proy_c' or modo == 'ate':
+    # Integrante 2
+        LGA = tk.Label(wG, text = "      2")
+        LGA.place(x=250, y=530)
+
+        global CGA
+        CGA = ttk.Combobox(wG, state="readonly", width = 17, values = list)
+        CGA.place(x=300, y=530)
+
+    # Integrante 3  
+        LGB = tk.Label(wG, text = "      3")
+        LGB.place(x=430, y=530)
+
+        global CGB
+        CGB = ttk.Combobox(wG, state="readonly", width = 17, values = list)
+        CGB.place(x=480, y=530)
+
+    global TG1
+    if modo == 'ate':
+        # Integrante 4
+        LGC = tk.Label(wG, text =  "4")
+        LGC.place(x=80, y=580)
+
+        global CGC
+        CGC = ttk.Combobox(wG, state="readonly", width = 17, values = list)
+        CGC.place(x=110, y=580)
+
+        # Integrante 5
+        LGD = tk.Label(wG, text =  "      5")
+        LGD.place(x=250, y=580)
+
+        global CGD
+        CGD = ttk.Combobox(wG, state="readonly", width = 17, values = list)
+        CGD.place(x=300, y=580)
+
+        # Integrante 6
+        LGE = tk.Label(wG, text =  "      6")
+        LGE.place(x=430, y=580)
+
+        global CGE
+        CGE = ttk.Combobox(wG, state="readonly", width = 17, values = list)
+        CGE.place(x=480, y=580)
+
+    # Descripción (ATE)
+        LGB = tk.Label(wG, text = "Descripción: ")
+        LGB.place(x=20, y=630)
+
+        TG1 = tk.Text(wG, width = 61, height = 3)
+        TG1.place(x=110, y=630)
+    else:
+    # Descripción
+        LGB = tk.Label(wG, text = "Descripción: ")
+        LGB.place(x=20, y=580)
+
+        TG1 = tk.Text(wG, width = 61, height = 6)
+        TG1.place(x=110, y=580)
+
+
+#   BOTONES #####################
+    # boton Precarga
+    BG4=tk.Button(wG, text="Seleccionar", width=12, command = lambda: B_selTar(modo))
+    BG4.place(x=115, y=705)
+
+    # boton Recursos
+    BG7=tk.Button(wG, text="Recursos", width=12, command = lambda: V_recursos())
+    BG7.place(x=115, y=750)
+
+    # boton Modificar
+    global BG2
+    BG2=tk.Button(wG,text="Modificar", width=12, command = lambda: B_modTar(modo), state = tk.DISABLED)
+    BG2.place(x=245, y=705)
+
+    '''
+
+    #else:
+    #    print('error de modo ')
+
+
 ########################################################################################################################
 LOG_FILENAME = 'SUGUS_log.out'
 logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.ERROR)
