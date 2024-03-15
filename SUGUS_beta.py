@@ -36,7 +36,7 @@ import math
 # wH - Modificación de ordenes de laboratorio
 # wI - Modificación de ordenes de servicio
 # wJ - Modificación de muestras
-# wK - Ventana de ingreso de ordenes internos
+# wK - Ventana de ingreso de ordenes internas
 # wL - Ventana de gestión de recursos
 ###########################################################################
 def main():
@@ -44,7 +44,7 @@ def main():
     while True:
         try:
             my_conn = mysql.connector.connect(host = '192.168.100.105',
-                                            #port = 3306,
+                                            port = 3306,
                                             #database = "BDNP",  # base de produccion
                                             database = "BDNP_t",  # base de test
                                             user = "admin",
@@ -54,9 +54,8 @@ def main():
         except Exception as e:
             if messagebox.askretrycancel(message="Error de conexión con base de datos.", title="SUGUS - Frontend BDNP"):
                 pass
-            else:
-                logging.error(e, exc_info=True)
-                exit(1)
+            logging.error(e, exc_info=True)
+            exit(1)
             #print("error", e)
 
     refresh_conn(my_conn)
@@ -75,9 +74,12 @@ def main():
     # Insertarla en una etiqueta.
     L10 =tk.Label(w1, image=image_sub)
     L10.place(x=8, y=-85)
+    ### Botón de estadísticas ###############################
+    B1A=tk.Button(w1,text="Estadísticas", width=12, command=V_estad)
+    B1A.place(x=450, y=45)
 
     L11 = tk.Label(w1, text = "Menú principal")
-    L11.place(x=205, y=105)
+    L11.place(x=265, y=105)
     # Primer piso
     L12 = tk.Label(w1, text = "Solicitudes de trabajo")
     L12.place(x=75, y=135)
@@ -94,15 +96,17 @@ def main():
     B1B.place(x=430, y=135)
     B1B['state'] = tk.DISABLED
     # Segundo piso
-    L13 = tk.Label(w1, text = "Asignación de trabajo")
+    L13 = tk.Label(w1, text = "Gestión de trabajos")
     L13.place(x=75, y=185)
     global B13
     B13=tk.Button(w1,text="Asignar", width=12, command=assignment_form)
     B13.place(x=210, y=185)
     B13['state'] = tk.DISABLED
-    B1A=tk.Button(w1,text="Estadísticas", width=12, command=V_estad)
-    B1A.place(x=320, y=185)
-    #B1A['state'] = tk.DISABLED
+    ### Botón de gestión de recursos ###############################
+    global B1C
+    B1C=tk.Button(w1,text="Recursos", width=12, command=V_recursos)
+    B1C.place(x=320, y=185)
+    B1C['state'] = tk.DISABLED
     # Tercer piso ######################
     L14 = tk.Label(w1, text = "Documentación técnica")
     L14.place(x=75, y=235)
@@ -716,7 +720,7 @@ def modDocs(geom = ''):
     B84.place(x=865, y=585)
 
     # boton Recursos
-    B85=tk.Button(w8, text="Recursos", width=12, command = lambda: V_recursos('doc'))
+    B85=tk.Button(w8, text="Recursos", width=12, command = lambda: V_empleos('doc'))
     B85.place(x=1000, y=585)
 
     # boton Modificar
@@ -1254,10 +1258,6 @@ def privChange():
     LA1 = tk.Label(wA, text = "Usuario: ")
     LA1.place(x=50, y=40)
 
-    #global E1
-    #EA1 = tk.Entry(wA)
-    #EA1.place(x=110, y=40)
-
     list = userList()
     #print(list)
     global CEA1
@@ -1400,6 +1400,14 @@ def privChange():
     global CA18
     CA18=tk.Checkbutton(wA, variable = OILab, onvalue = 1, offvalue = 0)
     CA18.place(x=190, y=440)
+    # Modificar Recursos
+    LA19 = tk.Label(wA, text = "Modificar recursos")
+    LA19.place(x=270, y=440)
+    global modRec
+    modRec = tk.IntVar()
+    global CA19
+    CA19=tk.Checkbutton(wA, variable = modRec, onvalue = 1, offvalue = 0)
+    CA19.place(x=410, y=440)
 
     # Boton Volver
     BA2=tk.Button(wA,text="Volver", width=12, command = lambda: menuFrom(wA))
@@ -1593,7 +1601,8 @@ def ingresar_pedido():
             print("error", e)
             logging.error(e, exc_info=True)
             messagebox.showinfo(message="pedido NO registrado.", title="Aviso del sistema")
-            
+        else:
+            menuFrom(w4)    
 
     else:
          messagebox.showinfo(message="Campos vacios.", title="Aviso del sistema")
@@ -1603,7 +1612,7 @@ def userList():
     refresh_conn(my_conn)
     try:
         my_cursor = my_conn.cursor()
-        statement = "SELECT nombre_usuario FROM usuarios WHERE nombre_usuario <> 'admin' "
+        statement = "SELECT nombre_usuario FROM usuarios WHERE nombre_usuario <> 'admin' ORDER BY nombre_usuario ASC"
         my_cursor.execute(statement)
         list = my_cursor.fetchall()
         return list
@@ -2501,7 +2510,7 @@ def V_modTar(modo, geom = ''):
     BG4.place(x=115, y=705)
 
     # boton Recursos
-    BG7=tk.Button(wG, text="Recursos", width=12, command = lambda: V_recursos('tar'))
+    BG7=tk.Button(wG, text="Recursos", width=12, command = lambda: V_empleos('tar'))
     BG7.place(x=115, y=750)
 
     # boton Modificar
@@ -2596,6 +2605,8 @@ def precUsu():
        CA15.select()
     if resultado[0] & 32768:
        CA18.select()
+    if resultado[0] & 65536:
+       CA19.select()
 
     BA3['state'] = tk.NORMAL
     BA4['state'] = tk.NORMAL
@@ -2616,7 +2627,7 @@ def modPriv():
         privileges |= 8
     if modDoc.get() == 1:
         privileges |= 16
-    if verDes.get() == 1:
+    if verDes.get() == 1: 
         privileges |= 32
     if modDes.get() == 1:
         privileges |= 64
@@ -2638,6 +2649,9 @@ def modPriv():
         privileges |= 16384
     if OILab.get() ==1:
         privileges |= 32768
+    if modRec.get() ==1:
+        privileges |= 65536
+    
 
     refresh_conn(my_conn)
     try:
@@ -3166,6 +3180,8 @@ def verify(event=None):
                     B23['state'] = tk.NORMAL # Permisos
                 if int(resultados[1]) & 32768:
                     B1B['state'] = tk.NORMAL # ingreso ord. internas de lab
+                if int(resultados[1]) & 65536:
+                    B1C['state'] = tk.NORMAL # gestión de reccursos
                 #w1.deiconify()
                 if bd.F_hash('1234') == resultados[0]:
                     passChange()
@@ -3995,7 +4011,7 @@ def V_modServ(modo, geom = ''):
         BI3.place(x=505, y=H_bot)
 
         # boton Recursos
-        BI7=tk.Button(wI, text="Recursos", width=12, command = lambda: V_recursos('o_serv'))
+        BI7=tk.Button(wI, text="Recursos", width=12, command = lambda: V_empleos('o_serv'))
         BI7.place(x=635, y=H_bot)
 
         # boton Volver
@@ -4711,8 +4727,8 @@ def salirConAviso():
     else:
         return
 
-############# Ventana de gestión de recursos ##########################################
-def V_recursos(modo, geom = ''):
+############# Ventana de gestión de empleos ##########################################
+def V_empleos(modo, geom = ''):
     if modo == 'tar':
         tabla = wG.tabla2
     elif modo == 'doc':
@@ -4724,7 +4740,6 @@ def V_recursos(modo, geom = ''):
         return
     curItem = tabla.focus()
     numTar = tabla.item(curItem).get('text')
-    #print(numTar)
     ### Cierre  de la ventana llamante
     if len(numTar)!=0:
         try:
@@ -4855,7 +4870,63 @@ def V_recursos(modo, geom = ''):
             wL.tabla.heading('cantidad', text='Cant.', anchor ='center') 
             wL.tabla.insert('',index = 'end', iid=None, text = str(docData[0]), values = [docData[2], docData[8], docData[3], docData[4], docData[5], docData[6], docData[7], docData[11]])
         elif modo == 'o_serv':
-            pass
+            try:
+                my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT * FROM ord_serv WHERE ID_servicio = %s" 
+                values = (numTar,)
+                my_cursor.execute(statement, values)
+                servData = my_cursor.fetchone()
+                #print(servData) 
+            except Exception as e:
+                print("error 4755", e)
+            try:
+                my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT * FROM empleos WHERE tipo_contexto = %s and ID_contexto = %s" 
+                values = (modo, numTar,)
+                my_cursor.execute(statement, values)
+                resultados = my_cursor.fetchall()
+                #print(proyData[0]) 
+            except Exception as e:
+                print("error 4761", e)
+            ### Generación de la ventana 
+            wL=tk.Toplevel()
+            if len(geom)==0:
+                wL.state('zoomed')
+            else:
+                wL.geometry(geom)
+            wL.iconphoto(False, photo)
+            wL.title("CENADIF Base de datos - Recursos ")
+            ### Tabla 1 (modo doc)
+            wL.frame = tk.Frame(wL)
+            wL.frame.grid(rowspan=2, column=1, row=1)
+            wL.tabla = ttk.Treeview(wL.frame, height=1)
+            wL.tabla.grid(column=1, row=1)
+
+            ladox = tk.Scrollbar(wL.frame, orient = tk.VERTICAL, command= wL.tabla.yview)
+            ladox.grid(column=0, row = 2, sticky='ew')
+            ladoy = tk.Scrollbar(wL.frame, orient =tk.HORIZONTAL, command = wL.tabla.xview)
+            ladoy.grid(column = 1, row = 0, sticky='ns')
+            wL.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+ 
+            wL.tabla['columns'] = ('tarea', 'tipo', 'responsable', 'operador', 'fecha_inicio', 'fecha_fin')
+            wL.tabla.column('#0', minwidth=50, width=60, anchor='w')
+            wL.tabla.column('tarea', minwidth=200, width=650, anchor='center')
+            wL.tabla.column('tipo', minwidth=80, width=100 , anchor='center')
+            wL.tabla.column('responsable', minwidth=100, width=150 , anchor='center')
+            wL.tabla.column('operador', minwidth=100, width=150, anchor='center' )
+            wL.tabla.column('fecha_inicio', minwidth=100, width=100 , anchor='center')
+            wL.tabla.column('fecha_fin', minwidth=100, width=100 , anchor='center')
+
+            wL.tabla.heading('#0', text='OS', anchor ='center')
+            wL.tabla.heading('tarea', text='Tarea', anchor ='center')
+            wL.tabla.heading('tipo', text='Tipo', anchor ='center')
+            wL.tabla.heading('responsable', text='Responsable', anchor ='center')
+            wL.tabla.heading('operador', text='Operador', anchor ='center')
+            wL.tabla.heading('fecha_inicio', text='Inicio', anchor ='center')
+            wL.tabla.heading('fecha_fin', text='Finaliz.', anchor ='center')
+
+            wL.tabla.insert('',index = 'end', iid=None, text = str(servData[0]), values = [servData[3], servData[2], servData[1], servData[5], servData[6], servData[7]])        
+           
         else:
             print('error de modo')
             return           
@@ -4900,6 +4971,101 @@ def V_recursos(modo, geom = ''):
         # boton Salir
         BL1=tk.Button(wL, text="Salir", width=12, command = lambda: salirConAviso())
         BL1.place(x=505, y=750)
+        # boton Eliminar
+        global BL3
+        BL3=tk.Button(wL, text="Eliminar", width=12, command = lambda: B_elimEmpleo(modo))
+        BL3.place(x=375, y=705)
+        # boton Nueva
+        BL4=tk.Button(wL, text="Nuevo", width=12, command = lambda: B_nuevoEmpleo(modo, numTar))
+        BL4.place(x=505, y=705)
+        
+    #   BOTONES #####################
+        # boton Precarga
+        global BL5
+        BL5=tk.Button(wL, text="Seleccionar", width=12, command = lambda: B_selEmpleo(modo))
+        BL5.place(x=115, y=705)
+
+        # boton Modificar
+        global BL6
+        BL6=tk.Button(wL,text="Modificar", width=12, command = lambda: B_modEmpleo(modo, numTar), state = tk.DISABLED)
+        BL6.place(x=245, y=705)
+    ## PRIMER PISO ##########################
+    # Tipo de recurso
+        LL1 = tk.Label(wL, text = "Tipo")
+        LL1.place(x=20, y=380)
+
+        refresh_conn(my_conn)
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT DISTINCT tipo FROM recursos "
+            my_cursor.execute(statement)
+            list = my_cursor.fetchall()
+            #print(list) 
+        except Exception as e:
+            print("error 4994", e)
+        # registro del observador
+        rec_tipo = tk.StringVar()
+        rec_tipo.trace('w', lambda *_ , var = rec_tipo : traceCB1(*_,var=var))
+        global CL1
+        CL1 = ttk.Combobox(wL, state="readonly", textvariable = rec_tipo, width = 17, values = list)
+        CL1.place(x=110, y=380)
+
+    # Categoría
+        LL2 = tk.Label(wL, text = "Categoría")
+        LL2.place(x=390, y=380)
+
+        rec_cat = tk.StringVar()
+        rec_cat.trace('w', lambda *_ , var = rec_cat : traceCB2(*_,var=var))
+
+        global CL2
+        CL2 = ttk.Combobox(wL, state="readonly", textvariable = rec_cat, width = 17)
+        CL2.place(x=480, y=380)
+
+        ## SEGUNDO PISO #########################
+        # Cantidad
+        LL3 = tk.Label(wL, text = "Cantidad")
+        LL3.place(x=20, y=430)
+
+        global EL3
+        EL3 = tk.Entry(wL)
+        EL3.place(x=110, y=430)
+
+    # Unidad de medida 
+        LL5 = tk.Label(wL, text = "Un. Medida")
+        LL5.place(x=390, y=430)
+
+        global EL5
+        EL5 = tk.Entry(wL)
+        EL5.place(x=480, y=430)
+        
+        ## TERCER PISO #########################
+        
+    # Detalle
+        LL6 = tk.Label(wL, text = "Detalle: ")
+        LL6.place(x=20, y=480)
+        global TL6
+        TL6 = tk.Text(wL, width = 61, height = 3)
+        TL6.place(x=110, y=480)
+        
+        
+    ## TERCER PISO #########################
+        # Fecha
+        LL7 = tk.Label(wL, text = "Fecha")
+        LL7.place(x=20, y=560)
+
+        global EL7
+        EL7 = tk.Entry(wL)
+        EL7.place(x=110, y=560)
+
+    # Responsable
+        LL8 = tk.Label(wL, text = "Responsable")
+        LL8.place(x=390, y=560)
+
+        list = userList()
+        global CL8
+        CL8 = ttk.Combobox(wL, state="readonly", width = 17, values = list)
+        CL8.place(x=480, y=560)
+
     else:
         if modo == 'tar':
             messagebox.showinfo(message="Seleccione una tarea.", title="Aviso del sistema")
@@ -4910,219 +5076,539 @@ def V_recursos(modo, geom = ''):
         else:
             print('error de modo')
             return
-        #wL.withdraw()
-        #wG.state("zoomed")
-        #wG.deiconify()
-
-
-    '''
-
-            try:
-                my_cursor = my_conn.cursor(buffered=True)
-                statement = "SELECT * FROM tareas WHERE ID_proyecto = %s" 
-                values = (proyData[0],)
-                my_cursor.execute(statement, values)
-                resultados = my_cursor.fetchall()
-                    #print(resultados) 
-            except Exception as e:
-                print("error 2159", e)
-
-            # boton Eliminar
-            global BG6
-            BG6=tk.Button(wG, text="Eliminar", width=12, state = tk.DISABLED, command = lambda: B_elimTar(modo))
-            BG6.place(x=375, y=705)
-
-            # boton Nueva
-            BG3=tk.Button(wG, text="Nueva", width=12, state = tk.DISABLED, command = lambda: B_nuevaTar(proyData[0], modo))
-            BG3.place(x=505, y=705)
-            if modo != 'proy_c' and modo != 'des_c' and modo != 'ate_c':
-                BG3['state'] = tk.NORMAL
-        else:
-            wG.withdraw()
-            wF.state("zoomed")
-            wF.deiconify()
-            messagebox.showinfo(message="Seleccione un proyecto.", title="Aviso del sistema")
-### Tabla de tareas ########################################################
-    if modo == 'user' :
-        #print('algo')
-        try:
-            my_cursor = my_conn.cursor()
-            statement = "SELECT * FROM tareas WHERE responsable = %s" 
-            values = (actualUser,)
-            my_cursor.execute(statement, values)
-            resultados = my_cursor.fetchall()
-            #print(resultados) 
-        except Exception as e:
-            print("error 480", e)
-
-#if modo == 'proy' or modo == 'user' or modo == 'des' or modo == 'ate' :
-
-    
-    try:
-        for fila in resultados:
-            wG.tabla2.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [fila[3], fila[16], fila[2], fila[4], fila[14], fila[15], fila[6]])
-    except:
-        pass
-    #wF.after(1, lambda: wF.focus_force())
-
-## PRIMER PISO ##########################
-# Nombre de la tarea
-    LG1 = tk.Label(wG, text = "Nombre Tarea")
-    LG1.place(x=20, y=380)
-
-    global EG1
-    EG1 = tk.Entry(wG)
-    EG1.place(x=110, y=380, width=320)
-
-# Estado
-    LG2 = tk.Label(wG, text = "Estado")
-    LG2.place(x=430, y=380)
-
-    global CG2
-    CG2 = ttk.Combobox(wG, state="readonly", width = 17, values = ('Planificada','En curso', 'Cerrada', 'Pausada', 'Finalizada'))
-    CG2.place(x=480, y=380)
-
-## SEGUNDO PISO #########################
-    # Responsable
-    LG3 = tk.Label(wG, text = "Responsable")
-    LG3.place(x=20, y=430)
-
-    list = userList()
-    global CG3
-    CG3 = ttk.Combobox(wG, state="readonly", width = 17, values = list)
-    CG3.place(x=110, y=430)
-
-# inicio
-    LG4 = tk.Label(wG, text = "Inicio")
-    LG4.place(x=250, y=430)
-
-    global EG4
-    EG4 = tk.Entry(wG)
-    EG4.place(x=300, y=430)
-
-# Fin  
-    LG5 = tk.Label(wG, text = "Fin")
-    LG5.place(x=430, y=430)
-
-    global EG5
-    EG5 = tk.Entry(wG)
-    EG5.place(x=480, y=430)
-
-## TERCER PISO #########################
-    # Avance
-    LG6 = tk.Label(wG, text = "Avance")
-    LG6.place(x=20, y=480)
-
-    global EG6
-    EG6 = tk.Entry(wG)
-    EG6.place(x=110, y=480)
-
-# H/H prog
-    LG7 = tk.Label(wG, text = "hs.prog")
-    LG7.place(x=250, y=480)
-
-    global EG7
-    EG7 = tk.Entry(wG)
-    EG7.place(x=300, y=480)
-
-# H/H dedicadas  
-    LG8 = tk.Label(wG, text = "hs.dedic")
-    LG8.place(x=430, y=480)
-
-    global EG8
-    EG8 = tk.Entry(wG)
-    EG8.place(x=480, y=480)
-
-## CUARTO PISO #########################
-    # Integrante 1
-    LG9 = tk.Label(wG, text = "Asignados: 1")
-    LG9.place(x=20, y=530)
-
-    #global EG9
-    #EG9 = tk.Entry(wG)
-    #EG9.place(x=110, y=530)
-
-    global CG9
-    CG9 = ttk.Combobox(wG, state="readonly", width = 17, values = list)
-    CG9.place(x=110, y=530)
-
-    if modo == 'proy' or modo == 'proy_c' or modo == 'ate':
-    # Integrante 2
-        LGA = tk.Label(wG, text = "      2")
-        LGA.place(x=250, y=530)
-
-        global CGA
-        CGA = ttk.Combobox(wG, state="readonly", width = 17, values = list)
-        CGA.place(x=300, y=530)
-
-    # Integrante 3  
-        LGB = tk.Label(wG, text = "      3")
-        LGB.place(x=430, y=530)
-
-        global CGB
-        CGB = ttk.Combobox(wG, state="readonly", width = 17, values = list)
-        CGB.place(x=480, y=530)
-
-    global TG1
-    if modo == 'ate':
-        # Integrante 4
-        LGC = tk.Label(wG, text =  "4")
-        LGC.place(x=80, y=580)
-
-        global CGC
-        CGC = ttk.Combobox(wG, state="readonly", width = 17, values = list)
-        CGC.place(x=110, y=580)
-
-        # Integrante 5
-        LGD = tk.Label(wG, text =  "      5")
-        LGD.place(x=250, y=580)
-
-        global CGD
-        CGD = ttk.Combobox(wG, state="readonly", width = 17, values = list)
-        CGD.place(x=300, y=580)
-
-        # Integrante 6
-        LGE = tk.Label(wG, text =  "      6")
-        LGE.place(x=430, y=580)
-
-        global CGE
-        CGE = ttk.Combobox(wG, state="readonly", width = 17, values = list)
-        CGE.place(x=480, y=580)
-
-    # Descripción (ATE)
-        LGB = tk.Label(wG, text = "Descripción: ")
-        LGB.place(x=20, y=630)
-
-        TG1 = tk.Text(wG, width = 61, height = 3)
-        TG1.place(x=110, y=630)
-    else:
-    # Descripción
-        LGB = tk.Label(wG, text = "Descripción: ")
-        LGB.place(x=20, y=580)
-
-        TG1 = tk.Text(wG, width = 61, height = 6)
-        TG1.place(x=110, y=580)
-
-
-#   BOTONES #####################
-    # boton Precarga
-    BG4=tk.Button(wG, text="Seleccionar", width=12, command = lambda: B_selTar(modo))
-    BG4.place(x=115, y=705)
-
-    # boton Recursos
-    BG7=tk.Button(wG, text="Recursos", width=12, command = lambda: V_recursos())
-    BG7.place(x=115, y=750)
-
-    # boton Modificar
-    global BG2
-    BG2=tk.Button(wG,text="Modificar", width=12, command = lambda: B_modTar(modo), state = tk.DISABLED)
-    BG2.place(x=245, y=705)
-
-    '''
 
     #else:
     #    print('error de modo ')
+########## Trace de tipo ##################################################################
+def traceCB1(*args, var):
+    # busca la lista de tipos de recurso
+    tipoRec = var.get()
+    refresh_conn(my_conn)
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "SELECT DISTINCT categoria FROM recursos WHERE tipo = %s"
+        values = (tipoRec,)
+        my_cursor.execute(statement, values)
+        list = my_cursor.fetchall()
+        #print(list) 
+    except Exception as e:
+        print("error 5094", e)
+    # pone la lista en el combobox si existe
+    try:    
+        CL2['values'] = list
+    except:
+        pass
+    try:
+        CM2['values'] = list
+    except:
+        pass
+    
+########### Trace de categoria ###########################################################
+def traceCB2(*args, var):
+    catRec = var.get()
+    #print(catRec)
+    refresh_conn(my_conn)
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "SELECT unidad_medida FROM recursos WHERE categoria = %s"
+        values = (catRec,)
+        my_cursor.execute(statement, values)
+        uniMed = my_cursor.fetchone()
+        #print(uniMed)
+        ### Solo busca por categoria, si existiesen dos tipos de recursos con una categoria que se llame igual generaría conflicto #### To Do 
+    except Exception as e:
+        print("error 5119", e)
+    
+    try:
+        EL5.delete(0, 'end')
+        if uniMed is not None:
+            EL5.insert(0, uniMed[0])
+    except:
+        pass
 
+############# Botón nuevo empleo #########################################################
+def B_nuevoEmpleo(tipo, ID):
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "INSERT INTO empleos (tipo_contexto, ID_contexto, fecha) VALUES(%s, %s, %s )"
+        val = (tipo, ID, date.today())
+        my_cursor.execute(statement,val)
+        my_conn.commit()
+    except Exception as e:
+        print("error 5109", e)
+    win_geometry = wL.winfo_geometry()
+    wL.destroy() 
+    V_empleos(tipo, win_geometry)   
+
+############# Botón eliminar empleo #####################################################
+def B_elimEmpleo(tipo):
+    curItem = wL.tabla2.focus()
+    numEmp = wL.tabla2.item(curItem).get('text')
+    #print(numEmp)
+    if len(numEmp)!=0:
+        if (messagebox.askokcancel(message="Eliminar recurso?", title="Confirmación de acción")):
+            refresh_conn(my_conn)
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "DELETE FROM empleos WHERE ID_empleo = %s"
+                val = (numEmp,)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5127", e)
+            win_geometry = wL.winfo_geometry()
+            wL.destroy() 
+            V_empleos(tipo, win_geometry)
+    else:
+        messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema")   
+
+############# Botón seleccionar empleo #####################################################
+def B_selEmpleo(modo):
+    curItem = wL.tabla2.focus()
+    numEmp = wL.tabla2.item(curItem).get('text')
+    if len(numEmp)!=0:
+        #gantt(numpro, wF)
+        refresh_conn(my_conn)
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM empleos WHERE ID_empleo = %s"
+            values = (numEmp,) 
+            my_cursor.execute(statement, values)
+            resultado = my_cursor.fetchone()
+            # Precarga de los tk.entry
+            CL1.set('')                     # Tipo de recurso
+            if resultado[3] is not None:
+                CL1.set( resultado[3])
+            CL2.set('')                     # Categoría
+            if resultado[4] is not None:
+                CL2.set( resultado[4])
+            EL3.delete(0, tk.END)           # Cantidad
+            if resultado[5] is not None:
+                EL3.insert(0, resultado[5])
+            EL5.delete(0, tk.END)              # Unidad de medida
+            if resultado[6] is not None:
+                EL5.insert(0, resultado[6])
+            TL6.delete("1.0","end")             # Descripción
+            if resultado[7] is not None:
+                TL6.insert("1.0", resultado[7])
+            EL7.delete(0, tk.END)              # Fecha
+            if resultado[8] is not None:
+                EL7.insert(0, resultado[8])
+            CL8.set('')                     # Responsable
+            if resultado[9] is not None:
+                CL8.set(resultado[9])
+            BL6['state'] = tk.NORMAL # habilitación del botón Eliminar
+        except Exception as e:
+            print("error 5173", e)
+    else:
+        messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema") 
+
+############################### Función del botón Modificar empleo ############################################
+def B_modEmpleo(modo, ID):
+    curItem = wL.tabla2.focus()
+    numEmp = wL.tabla2.item(curItem).get('text')
+    if len(numEmp)!=0:
+        refresh_conn(my_conn)
+        #print(modo)
+        #print(ID)
+        #print(numEmp)
+        ######### Actualización del tipo de recurso
+        tipo = CL1.get()
+        if len(tipo) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE empleos SET tipo = %s WHERE ID_empleo = %s"
+                val = (tipo, numEmp)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5199", e)
+        ######### Actualización de la categoria del recurso
+        categoria = CL2.get()
+        if len(categoria) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE empleos SET categoria = %s WHERE ID_empleo = %s"
+                val = (categoria, numEmp)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5210", e)
+        ######### Actualización de la cantidad
+        cantidad = EL3.get()
+        if len(cantidad) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE empleos SET cantidad = %s WHERE ID_empleo = %s"
+                val = (cantidad, numEmp)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5221", e)
+        ######### Actualización de la unidad de medida
+        uniMedida = EL5.get()
+        if len(uniMedida) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE empleos SET unidad_medida = %s WHERE ID_empleo = %s"
+                val = (uniMedida, numEmp)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5232", e)
+        ######### Actualización de detalle
+        detalle = TL6.get("1.0",'end-1c')
+        if len(detalle) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE empleos SET detalle = %s WHERE ID_empleo = %s"
+                val = (detalle, numEmp)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5243", e)
+        ######### Actualización de la fecha
+        fecha = EL7.get()
+        if len(fecha) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE empleos SET fecha = %s WHERE ID_empleo = %s"
+                val = (fecha, numEmp)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5254", e)
+        ######### Actualización del responsable
+        responsable = CL8.get()
+        if len(responsable) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE empleos SET responsable = %s WHERE ID_empleo = %s"
+                val = (responsable, numEmp)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5265", e)
+        ############ Refresco de la ventana
+        win_geometry = wL.winfo_geometry()
+        wL.destroy()
+        V_empleos(modo, win_geometry)
+    else:
+        messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema")
+### Ventana de gestión de recursos #####################################################################################
+def V_recursos( geom = ''):
+#    curItem = wH.tabla.focus()
+#    numOrd = wH.tabla.item(curItem).get('text')
+#    if len(numOrd)!=0:
+    ### esconde la pantalla de llamado
+    w1.withdraw()
+    global wM
+    wM=tk.Toplevel()
+    if len(geom)==0:
+        wM.state('zoomed')
+    else:
+        wM.geometry(geom)
+    wM.iconphoto(False, photo)
+    wM.title("CENADIF Base de datos - Gestión de recursos ")
+    refresh_conn(my_conn)
+    try:
+        my_cursor = my_conn.cursor(buffered=True)            
+        statement = "SELECT * FROM recursos" 
+        my_cursor.execute(statement)
+        resultados = my_cursor.fetchall()
+        #print(resultados) 
+    except Exception as e:
+        print("error 5312", e)
+
+    wM.frame = tk.Frame(wM)
+    wM.frame.grid(rowspan=2, column=1, row=1)
+    wM.tabla = ttk.Treeview(wM.frame, height=21)
+    wM.tabla.grid(column=1, row=1)
+
+    ladox = tk.Scrollbar(wM.frame, orient = tk.VERTICAL, command= wM.tabla.yview)
+    ladox.grid(column=0, row = 2, sticky='ew')
+    #ladox.pack(side ='right', fill ='x') 
+    ladoy = tk.Scrollbar(wM.frame, orient =tk.HORIZONTAL, command = wM.tabla.xview)
+    ladoy.grid(column = 1, row = 0, sticky='ns')
+    wM.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+
+    wM.tabla['columns'] = ('tipo', 'categoria', 'precio_unitario', 'unidad_monetaria', 'validez','unidad_medida')
+    wM.tabla.column('#0', minwidth=50, width=60, anchor='center')
+    wM.tabla.column('tipo', minwidth=100, width=225, anchor='center')
+    wM.tabla.column('categoria', minwidth=80, width=225 , anchor='center')
+    wM.tabla.column('precio_unitario', minwidth=100, width=175 , anchor='center')
+    wM.tabla.column('unidad_monetaria', minwidth=100, width=175, anchor='center' )
+    wM.tabla.column('validez', minwidth=100, width=175 , anchor='center')
+    wM.tabla.column('unidad_medida', minwidth=100, width=175, anchor='center') 
+     
+    wM.tabla.heading('#0', text='ID', anchor ='e')
+    # Parte común a todos los modos
+    wM.tabla.heading('tipo', text='Tipo', anchor ='center')
+    wM.tabla.heading('categoria', text='Categoria', anchor ='center')
+    wM.tabla.heading('precio_unitario', text='Precio unitario', anchor ='center')
+    wM.tabla.heading('unidad_monetaria', text='Unidad monetaria', anchor ='center')
+    wM.tabla.heading('validez', text='Validez', anchor ='center')
+    wM.tabla.heading('unidad_medida', text='U. medida', anchor ='center')
+    # muestra de los datos
+    for rec in resultados:
+        #print(rec)
+        wM.tabla.insert('',index = 'end', iid=None, text = rec[0], values = [rec[1], rec[2], rec[3], rec[4], rec[5], rec[6]])
+    
+
+## ALTURAS
+    F3 = 540
+    F4 = 610
+    F5 = 680
+    
+## PRIMER PISO ##########################
+# Tipo de recurso
+    LM1 = tk.Label(wM, text = "Tipo")
+    LM1.place(x=20, y=F3)
+    
+    refresh_conn(my_conn)
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "SELECT DISTINCT tipo FROM recursos "
+        my_cursor.execute(statement)
+        list = my_cursor.fetchall()
+        #print(list) 
+    except Exception as e:
+        print("error 5366", e)
+
+    # registro del observador
+    rec_tipo = tk.StringVar()
+    rec_tipo.trace('w', lambda *_ , var = rec_tipo : traceCB1(*_,var=var))
+    global CM1
+    CM1 = ttk.Combobox(wM, textvariable = rec_tipo, width = 17, values = list)
+    CM1.place(x=110, y=F3)
+
+    # Categoría
+    LM2 = tk.Label(wM, text = "Categoría")
+    LM2.place(x=390, y=F3)
+
+    rec_cat = tk.StringVar()
+    rec_cat.trace('w', lambda *_ , var = rec_cat : traceCB2(*_,var=var))
+
+    global CM2
+    CM2 = ttk.Combobox(wM, textvariable = rec_cat, width = 17)
+    CM2.place(x=480, y=F3)
+
+    ## SEGUNDO PISO #########################
+    # Precio unitar
+
+    LM3 = tk.Label(wM, text = "Precio unitario")
+    LM3.place(x=20, y=F4)
+
+    global EM3
+    EM3 = tk.Entry(wM)
+    EM3.place(x=110, y=F4)
+
+    # Unidad de medida 
+    LM5 = tk.Label(wM, text = "Un. Monetaria")
+    LM5.place(x=390, y=F4)
+
+    global EM5
+    EM5 = tk.Entry(wM)
+    EM5.place(x=480, y=F4)
+        
+    ## TERCER PISO #########################
+        
+    # Validez
+    LM6 = tk.Label(wM, text = "Validez: ")
+    LM6.place(x=20, y=F5)
+    global EM6
+    EM6 = tk.Entry(wM)
+    EM6.place(x=110, y=F5)
+    
+    
+    # Unidad de medida
+    LM7 = tk.Label(wM, text = "U. medida")
+    LM7.place(x=390, y=F5)
+
+    global EM7
+    EM7 = tk.Entry(wM)
+    EM7.place(x=480, y=F5)
+    
+#   BOTONES #####################
+    # boton Precarga
+    BM4=tk.Button(wM, text="Seleccionar", width=12, command = lambda: B_selRec())
+    BM4.place(x=700, y=F4)
+
+    # boton Modificar
+    global BM2
+    BM2=tk.Button(wM,text="Modificar", width=12, command = lambda: B_modRecurso(), state = tk.DISABLED)
+    BM2.place(x=830, y=F4)
+
+    # boton Eliminar
+    global BM6
+    BM6=tk.Button(wM, text="Eliminar", width=12, command = lambda: B_elimRecurso())
+    BM6.place(x=960, y=F4)
+
+    # boton Nueva
+    BM3=tk.Button(wM, text="Nuevo", width=12, command = lambda: B_nuevoRecurso())
+    BM3.place(x=1090, y=F4)
+
+    # boton Volver
+    BM5=tk.Button(wM, text="Volver", width=12, command=lambda: menuFrom(wM))
+    BM5.place(x=960, y=F5)
+
+    # boton Salir
+    BM1=tk.Button(wM, text="Salir", width=12, command = lambda: salirConAviso())
+    BM1.place(x=1090, y=F5)
+
+    #wI.tabla2.bind("<Double-1>", lambda evt, x = modo: B_selServ(x)) # habilita doble click para seleccionar
+#    else:
+#        messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+
+############# Botón seleccionar recurso ##############################################################################
+def B_selRec():
+    curItem = wM.tabla.focus()
+    numRec = wM.tabla.item(curItem).get('text')
+    if len(str(numRec)) != 0:
+        refresh_conn(my_conn)
+        try:
+            my_cursor = my_conn.cursor()
+            statement = "SELECT * FROM recursos WHERE ID_recurso = %s"
+            values = (numRec,) 
+            my_cursor.execute(statement, values)
+            resultado = my_cursor.fetchone()
+            #print(resultado)
+            ### Precarga de los tk.entry
+            CM1.set('')                     # Tipo de recurso
+            if resultado[1] is not None:
+                CM1.set( resultado[1])
+            CM2.set('')                     # Categoría
+            if resultado[2] is not None:
+                CM2.set( resultado[2])
+            EM3.delete(0, tk.END)           # Precio unitario
+            if resultado[3] is not None:
+                EM3.insert(0, resultado[3])
+            EM5.delete(0, tk.END)              # Unidad monetaria
+            if resultado[4] is not None:
+                EM5.insert(0, resultado[4])
+            EM6.delete(0, tk.END)              # Validez
+            if resultado[5] is not None:
+                EM6.insert(0, resultado[5])
+            EM7.delete(0, tk.END)              # Unidad de medida
+            if resultado[6] is not None:
+                EM7.insert(0, resultado[6])
+            BM2['state'] = tk.NORMAL 
+        except Exception as e:
+            print("error 5498", e)
+    else:
+        messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema") 
+
+############# Botón nuevo recurso #########################################################
+def B_nuevoRecurso():
+    try:
+        my_cursor = my_conn.cursor()
+        statement = "INSERT INTO recursos (tipo, categoria) VALUES('Nuevo_tipo', 'Nueva_categoria' )"
+        my_cursor.execute(statement)
+        my_conn.commit()
+    except Exception as e:
+        print("error 5109", e)
+    win_geometry = wM.winfo_geometry()
+    wM.destroy() 
+    V_recursos(win_geometry)   
+
+############# Botón eliminar empleo #####################################################
+def B_elimRecurso():
+    curItem = wM.tabla.focus()
+    numRec = wM.tabla.item(curItem).get('text')
+    if len(str(numRec)) != 0:
+        if (messagebox.askokcancel(message="Eliminar recurso?", title="Confirmación de acción")):
+            refresh_conn(my_conn)
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "DELETE FROM recursos WHERE ID_recurso = %s"
+                val = (numRec,)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5527", e)
+            win_geometry = wM.winfo_geometry()
+            wM.destroy() 
+            V_recursos(win_geometry)
+    else:
+        messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema")   
+
+############################### Función del botón Modificar recurso ############################################
+def B_modRecurso():
+    curItem = wM.tabla.focus()
+    numRec = wM.tabla.item(curItem).get('text')
+    if len(str(numRec)) != 0:
+        refresh_conn(my_conn)
+        ######### Actualización del tipo de recurso
+        tipo = CM1.get()
+        if len(tipo) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE recursos SET tipo = %s WHERE ID_recurso = %s"
+                val = (tipo, numRec)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5550", e)
+        ######### Actualización de la categoria del recurso
+        categoria = CM2.get()
+        if len(categoria) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE recursos SET categoria = %s WHERE ID_recurso = %s"
+                val = (categoria, numRec)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5561", e)
+        ######### Actualización de la cantidad
+        precio = EM3.get()
+        if len(precio) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE recursos SET precio_unitario = %s WHERE ID_recurso = %s"
+                val = (precio, numRec)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5221", e)
+        ######### Actualización de la unidad de medida
+        uniMone = EM5.get()
+        if len(uniMone) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE recursos SET unidad_monetaria = %s WHERE ID_recurso = %s"
+                val = (uniMone, numRec)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5584", e)
+        ######### Actualización de detalle
+        validez = EM6.get()
+        if len(validez) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE recursos SET validez = %s WHERE ID_recurso = %s"
+                val = (validez, numRec)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5595", e)
+        ######### Actualización de la fecha
+        uniMed = EM7.get()
+        if len(uniMed) != 0:
+            try:
+                my_cursor = my_conn.cursor()
+                statement = "UPDATE recursos SET unidad_Medida = %s WHERE ID_recurso = %s"
+                val = (uniMed, numRec)
+                my_cursor.execute(statement,val)
+                my_conn.commit()
+            except Exception as e:
+                print("error 5606", e)
+        win_geometry = wM.winfo_geometry()
+        wM.destroy()
+        V_recursos(win_geometry)
+    else:
+        messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema")
 
 ########################################################################################################################
 LOG_FILENAME = 'SUGUS_log.out'
