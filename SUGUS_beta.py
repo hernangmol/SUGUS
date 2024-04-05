@@ -38,6 +38,12 @@ import math
 # wJ - Modificación de muestras
 # wK - Ventana de ingreso de ordenes internas
 # wL - Ventana de gestión de recursos
+'''
+error 5119 Unread result found
+error 5550 Unread result found
+error 5561 Unread result found
+error 5312 Unread result found
+'''
 ###########################################################################
 def main():
     global my_conn
@@ -1669,6 +1675,7 @@ def B_assign():
                 try:    
                     my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Proyectos', 'En curso', 0)
+                    #statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}') ON DUPLICATE KEY UPDATE numero_cdf = numero_cdf - 1.format(idSol, responsable, 'Proyectos', 'En curso', 0)'''
                     my_cursor.execute(statement)
                     my_conn.commit() 
 
@@ -3445,15 +3452,19 @@ def F_actualizarAgenda(num_tar):
                 print("error3291", e)
 
 def refresh_conn(conn):
-    if (conn.is_connected()):
-        #print("Connected")
-        pass
+    
+    #pass
+    try:
+        cursor = my_conn.cursor() 
+        statement = "SELECT 1"
+        cursor.execute(statement)
+        cursor.fetchall()
+    except:
+        conn.reconnect(attempts=3, delay=0)
+        #print('Reconnect')
     else:
-        try:
-            conn.reconnect(attempts=1, delay=0)
-        except:
-
-            w1.quit    ################## NO FUNCIONA ##################################################
+        pass
+        #print('Conn OK -')
 
 def V_modLab(tipo, geom = ''):
     w1.withdraw()
@@ -4720,13 +4731,13 @@ def ingresar_oInt():
     win_geometry = wK.winfo_geometry()
     wK.destroy() 
     V_modLab('I', win_geometry)
-
+############### Función de boton Salir #############################################################
 def salirConAviso():
-    if (messagebox.askokcancel(message="Desea cerrar el programa?", title="Confirmación de acción")):  
+    if (messagebox.askokcancel(message="Desea cerrar el programa?", title="Confirmación de acción")):   
+        my_conn.close()
         w1.quit()
     else:
         return
-
 ############# Ventana de gestión de empleos ##########################################
 def V_empleos(modo, geom = ''):
     if modo == 'tar':
@@ -5301,7 +5312,10 @@ def V_recursos( geom = ''):
 #    numOrd = wH.tabla.item(curItem).get('text')
 #    if len(numOrd)!=0:
     ### esconde la pantalla de llamado
-    w1.withdraw()
+    try:
+        w1.withdraw()
+    except:
+        pass
     global wM
     wM=tk.Toplevel()
     if len(geom)==0:
@@ -5613,6 +5627,7 @@ def B_modRecurso():
 ########################################################################################################################
 LOG_FILENAME = 'SUGUS_log.out'
 logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.ERROR)
+#logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.INFO)
 
 if __name__ == "__main__":
     try:
