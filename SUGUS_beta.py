@@ -2031,7 +2031,9 @@ def B_selProy(modo):
     curItem = wF.tabla.focus() # diccionario de la fila seleccionada en la tabla
     #print(wF.tabla.item(curItem))
     aux = wF.tabla.item(curItem).get('values')
-    #print(aux)
+    #global currNcdf ##########################################################################
+    #currNcdf = wF.tabla.item(curItem).get('text') ############################################
+    #print(currProy)
     refresh_conn(my_conn)
     if len(aux)!=0:
         try:
@@ -2092,8 +2094,9 @@ def B_modProy(modo):
         area = 'Desarrollos'
     if modo == 'ate':
         area = 'Asistencias'
-    curItem = wF.tabla.focus()
-    numCDF = wF.tabla.item(curItem).get('text')
+    curItem = wF.tabla.focus()  ##########################################################
+    numCDF = wF.tabla.item(curItem).get('text') ##########################################
+    #numCDF = currNcdf
     refresh_conn(my_conn)
     if len(numCDF)!=0:
         ######### Actualización del numero de proyecto
@@ -2874,7 +2877,9 @@ def B_nuevaTar(proy, modo):
 ############# Botón seleccionar tarea #####################################################
 def B_selTar(modo):
     curItem = wG.tabla2.focus()
+    global numTar
     numTar = wG.tabla2.item(curItem).get('text')
+    #print(numTar)
     if len(numTar)!=0:
         #gantt(numpro, wF)
         refresh_conn(my_conn)
@@ -2946,8 +2951,9 @@ def B_selTar(modo):
 
 ############################### Función del botón Modificar tarea ############################################
 def B_modTar(modo):
-    curItem = wG.tabla2.focus()
-    numTar = wG.tabla2.item(curItem).get('text')
+    #curItem = wG.tabla2.focus()
+    #numTar = wG.tabla2.item(curItem).get('text')
+
     if len(numTar)!=0:
         refresh_conn(my_conn)
         ######### Actualización del nombre de tarea
