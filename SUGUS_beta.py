@@ -16,6 +16,7 @@ import BDNP as bd
 from datetime import datetime
 import datetime as dt
 import math
+import SUGUS_conn as sc
 ############################################ Ventanas ##########################################
 # w1 - Menú principal
 # w2 - Inicio de sesión
@@ -37,34 +38,20 @@ import math
 # wI - Modificación de ordenes de servicio
 # wJ - Modificación de muestras
 # wK - Ventana de ingreso de ordenes internas
-# wL - Ventana de gestión de recursos
-'''
-error 5119 Unread result found
-error 5550 Unread result found
-error 5561 Unread result found
-error 5312 Unread result found
-'''
+# wL - Ventana de gestión de empleos
+# wM - Ventana de gestión de recursos
+
 ###########################################################################
 def main():
     global my_conn
     while True:
-        try:
-            my_conn = mysql.connector.connect(host = '192.168.100.105',
-                                            port = 3306,
-                                            #database = "BDNP",  # base de produccion
-                                            database = "BDNP_t",  # base de test
-                                            user = "admin",
-                                            password = "cenadif2023")
+        connList = sc.connect_db()
+        conn = connList [0]
+        cursor = connList[1]
+        if cursor is not None:
+            sc.disconnect_db(conn, cursor)
             break
-            #print("conexion OK!")
-        except Exception as e:
-            if messagebox.askretrycancel(message="Error de conexión con base de datos.", title="SUGUS - Frontend BDNP"):
-                pass
-            logging.error(e, exc_info=True)
-            exit(1)
-            #print("error", e)
-
-    refresh_conn(my_conn)
+    
     ######### ventana de MENU PRINCIPAL ###############################################################################
     global w1
     w1=tk.Tk()
@@ -269,12 +256,17 @@ def V_viewRequest(geom = ''):
 
     w3.tabla.delete(*w3.tabla.get_children())
 
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM solicitudes ORDER BY ID_solicitud DESC LIMIT 55"
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
+            sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error", e)
     
@@ -457,13 +449,17 @@ def assignment_form():
     B72=tk.Button(w7,text="Asignar", width=12, command=B_assign)
     B72.place(x=510, y=580)
 
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT * FROM solicitudes WHERE tipo_salida IS NULL "
         my_cursor.execute(statement, )
         resultados = my_cursor.fetchall()
-#       print(resultados) 
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error", e)
     
@@ -534,25 +530,34 @@ def viewDocs():
 
     w9.tabla.delete(*w9.tabla.get_children())
 
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM solicitudes WHERE tipo_salida = 'documentacion' "
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
-#            print(resultados) 
+            sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error", e)
     
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     for fila in resultados:
         #w9.tabla.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [fila[10], fila[2], fila[1], fila[3], fila[5], fila[4]])
         try:
-            my_cursor = my_conn.cursor()
-            statement = "SELECT ID_trabajo FROM documentacion WHERE ID_solicitud = %s" 
+            #my_cursor = my_conn.cursor()
+            statement = "SELECT ID_trabaj o FROM documentacion WHERE ID_solicitud = %s" 
             values = (fila[0],)
             my_cursor.execute(statement, values)
             aux = my_cursor.fetchall()
+            sc.disconnect_db(my_conn, my_cursor)
             #print(aux) 
         except Exception as e:
             print("error", e)
@@ -743,13 +748,17 @@ def modDocs(geom = ''):
 
     w8.tabla.delete(*w8.tabla.get_children())
 
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT * FROM documentacion WHERE fecha_resolucion IS NULL"
         my_cursor.execute(statement)
         resultados = my_cursor.fetchall()
-        #print(resultados) 
+        #sc.disconnect_db(my_cursor)  #### más abajo
     except Exception as e:
         print("error", e)
     
@@ -757,7 +766,7 @@ def modDocs(geom = ''):
     for fila in resultados:
 
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT asunto FROM solicitudes WHERE ID_solicitud = %s"
             values = (fila[1],)
             my_cursor.execute(statement, values)
@@ -769,7 +778,7 @@ def modDocs(geom = ''):
         w8.tabla.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [pedido[0], fila[2], fila[8], fila[3], fila[4], fila[5], fila[6], fila[7], fila[11]])
 
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT * FROM documentacion WHERE fecha_resolucion = 0"
 #        values = (fila[1],)
         my_cursor.execute(statement)
@@ -781,7 +790,7 @@ def modDocs(geom = ''):
     for fila in resultados:
 
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT asunto FROM solicitudes WHERE ID_solicitud = %s"
             values = (fila[1],)
             my_cursor.execute(statement, values)
@@ -791,7 +800,7 @@ def modDocs(geom = ''):
             print("error", e)
 
         w8.tabla.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [pedido[0], fila[2], fila[8], fila[3], fila[4], fila[5], fila[6], fila[7], fila[11]])
-
+    sc.disconnect_db(my_conn, my_cursor)
     w8.after(1, lambda: w8.focus_force())
 
 ############# ventana de visualización de proyectos ##########################################
@@ -852,9 +861,13 @@ def V_viewPro(modo):
     wE.tabla.delete(*wE.tabla.get_children())
 
     # Contenido de la tabla (dependiente de modo)
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         if modo == 'proy':
             statement = "SELECT * FROM solicitudes WHERE tipo_salida = 'Proyectos' "
         if modo == 'des':
@@ -871,7 +884,7 @@ def V_viewPro(modo):
     for fila in resultados:
         #w9.tabla.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [fila[10], fila[2], fila[1], fila[3], fila[5], fila[4]])
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT numero_cdf, responsable FROM proyectos WHERE ID_solicitud = %s" 
             values = (fila[0],)
             #print(values)
@@ -881,7 +894,7 @@ def V_viewPro(modo):
         except Exception as e:
             print("error 1083", e)
         wE.tabla.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [aux[0], fila[2], fila[1], fila[9], fila[5], fila[4], aux[1]])    
-
+    sc.disconnect_db(my_conn, my_cursor)
     wE.after(1, lambda: wE.focus_force())
 
 ############# Ventana de modificación de proyectos ##########################################
@@ -1072,11 +1085,15 @@ def V_modPro(modo, geom =''):
     wF.tabla.delete(*wF.tabla.get_children())
 
     # proceso de los permisos
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if modo == 'proy':
         if actualRol & 16384: # modificación proyectos habilitado?
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'En curso' ORDER BY numero_cdf DESC" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
@@ -1085,7 +1102,7 @@ def V_modPro(modo, geom =''):
                 print("error 982", e)
         else:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado = 'En curso' and responsable = %s ORDER BY numero_cdf DESC" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
@@ -1095,7 +1112,7 @@ def V_modPro(modo, geom =''):
                 print("error 1004", e)
     if modo == 'proy_c':
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' AND estado <> 'En curso'ORDER BY numero_cdf DESC" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
@@ -1106,7 +1123,7 @@ def V_modPro(modo, geom =''):
     if modo == 'des':
         if actualRol & 64: # modificación desarrollos habilitado?
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'En curso' ORDER BY numero_cdf DESC" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
@@ -1115,7 +1132,7 @@ def V_modPro(modo, geom =''):
                 print("error 1020", e)
         else:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado = 'En curso' and responsable = %s ORDER BY numero_cdf DESC" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
@@ -1125,7 +1142,7 @@ def V_modPro(modo, geom =''):
                 print("error 1014", e)
     if modo == 'des_c':
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM proyectos WHERE area = 'Desarrollos' AND estado <> 'En curso' ORDER BY numero_cdf DESC" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
@@ -1135,7 +1152,7 @@ def V_modPro(modo, geom =''):
     if modo == 'ate':
         if actualRol & 256: # modificación asistencias habilitado?
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'En curso' ORDER BY numero_cdf DESC" # proyectos activos
                 my_cursor.execute(statement)
                 resultados = my_cursor.fetchall()
@@ -1144,7 +1161,7 @@ def V_modPro(modo, geom =''):
                 print("error 1029", e)
         else:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado = 'En curso' and responsable = %s ORDER BY numero_cdf DESC" # proyectos del usuario
                 values = (actualUser,)
                 my_cursor.execute(statement, values)
@@ -1154,7 +1171,7 @@ def V_modPro(modo, geom =''):
                 print("error 1014", e)
     if modo == 'ate_c':
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM proyectos WHERE area = 'Asistencias' AND estado <> 'En curso' ORDER BY numero_cdf DESC" # proyectos cerrados
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
@@ -1166,7 +1183,7 @@ def V_modPro(modo, geom =''):
 
         # muestra el nombre de la solicitud, por referencia
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT asunto FROM solicitudes WHERE ID_solicitud = %s"
             values = (fila[8],)
             my_cursor.execute(statement, values)
@@ -1176,6 +1193,7 @@ def V_modPro(modo, geom =''):
             print("error", e)
 
         wF.tabla.insert('',index = 'end', iid=None, text = str(fila[7]), values = [fila[3], fila[5], fila[1], fila[4], fila[6],fila[8], pedido[0]])
+    sc.disconnect_db(my_conn, my_cursor)
     wF.after(1, lambda: wF.focus_force())
 
 #################### Alta de usuario #########################################################
@@ -1536,9 +1554,13 @@ def V_accSchedule():
 
     wD.tabla.delete(*wD.tabla.get_children())
 
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM agenda WHERE nombre_usuario = %s "
             #values=(actualID)
             my_cursor.execute(statement, (actualUser,))
@@ -1549,7 +1571,7 @@ def V_accSchedule():
     
     for fila in resultados:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT estado FROM tareas WHERE ID_tarea = %s "
             #values=(actualID)
             my_cursor.execute(statement, (fila[3],))
@@ -1558,7 +1580,7 @@ def V_accSchedule():
             print("error", e)
         
         wD.tabla.insert('',index = fila[2], iid=None, values = [fila[1], fila[2], fila[5], estado[0], fila[6]])
-
+    sc.disconnect_db(my_conn, my_cursor)
     wD.after(1, lambda: wD.focus_force())
 
 ########################################################################################################
@@ -1581,6 +1603,7 @@ def OrdenesFrom(window, modo):
 
 ########################################################################################################
 def ingresar_pedido():
+    global conn
     fechaIng = E41.get()
     if date_check(fechaIng) == False:
         return
@@ -1592,14 +1615,18 @@ def ingresar_pedido():
     correo = E48.get()
     telefono = E49.get()
 
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList[0]
+    my_cursor = connList[1]
     if(len(cliente) != 0 and len(filiacion) != 0 and len(asunto) != 0 and len(correo) != 0 ):
         try:  
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = '''INSERT INTO solicitudes (asunto, fecha_ingreso, filiacion_cliente, cliente, descripcion_asunto, operador, correo, telefono) 
             VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')'''.format(asunto, fechaIng, filiacion, cliente, descripcion, operador, correo, telefono )
             my_cursor.execute(statement)
             my_conn.commit()
+            sc.disconnect_db(my_conn, my_cursor)
         #    my_conn.close()
             messagebox.showinfo(message="Nuevo pedido registrado.", title="Aviso del sistema")
 
@@ -1615,14 +1642,19 @@ def ingresar_pedido():
 
 ################### Función Lista desplegable de usuarios #############################
 def userList():
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
+    
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT nombre_usuario FROM usuarios WHERE nombre_usuario <> 'admin' ORDER BY nombre_usuario ASC"
         my_cursor.execute(statement)
         list = my_cursor.fetchall()
+        sc.disconnect_db(my_conn, my_cursor) 
         return list
-        #print(resultados) 
     except Exception as e:
         print("error", e)
 
@@ -1640,7 +1672,11 @@ def B_assign():
         responsable = C74.get()
 
         # chequeo de campos no nulos
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        #my_cursor = sc.connect_db()
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         if (len(tipoSal) != 0 and len(fechaSal) != 0 and (len(responsable)!=0 or (tipoSal != 'Proyectos') )):
         
             # Documentación
@@ -1648,7 +1684,7 @@ def B_assign():
                 #print('Tipo de salida Documentacion')
                 # crea entrada tabla documentación
                 try:    
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO documentacion (ID_solicitud) VALUES('{}')'''.format(idSol )
                     my_cursor.execute(statement)
                     my_conn.commit() 
@@ -1658,7 +1694,7 @@ def B_assign():
             
                 # actualiza tabla de pedidos
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE solicitudes SET tipo_salida = %s  , fecha_salida = %s , descripcion_salida = %s WHERE ID_solicitud = %s" 
                     values = (tipoSal, fechaSal, descripcion, idSol )
                     my_cursor.execute(statement, values)
@@ -1673,7 +1709,7 @@ def B_assign():
             elif tipoSal == 'Proyectos': 
                 # crea entrada tabla proyectos
                 try:    
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Proyectos', 'En curso', 0)
                     #statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}') ON DUPLICATE KEY UPDATE numero_cdf = numero_cdf - 1.format(idSol, responsable, 'Proyectos', 'En curso', 0)'''
                     my_cursor.execute(statement)
@@ -1684,7 +1720,7 @@ def B_assign():
             
                 # actualiza tabla de pedidos
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE solicitudes SET tipo_salida = %s  , fecha_salida = %s , descripcion_salida = %s WHERE ID_solicitud = %s" 
                     values = (tipoSal, fechaSal, descripcion, idSol )
                     my_cursor.execute(statement, values)
@@ -1699,7 +1735,7 @@ def B_assign():
             elif tipoSal == 'Desarrollos':
                 # crea entrada tabla proyectos
                 try:    
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Desarrollos', 'En curso', 0)
                     my_cursor.execute(statement)
                     my_conn.commit() 
@@ -1708,7 +1744,7 @@ def B_assign():
                     print("error 2424", e)
                 # actualiza tabla de pedidos
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE solicitudes SET tipo_salida = %s  , fecha_salida = %s , descripcion_salida = %s WHERE ID_solicitud = %s" 
                     values = (tipoSal, fechaSal, descripcion, idSol )
                     my_cursor.execute(statement, values)
@@ -1723,7 +1759,7 @@ def B_assign():
             elif tipoSal == 'Asistencias': 
                 # crea entrada tabla asistencias
                 try:    
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO proyectos (ID_solicitud, responsable, area, estado, numero_cdf) VALUES('{}', '{}','{}','{}','{}')'''.format(idSol, responsable, 'Asistencias', 'En curso', 0)
                     my_cursor.execute(statement)
                     my_conn.commit() 
@@ -1733,7 +1769,7 @@ def B_assign():
             
                 # actualiza tabla de pedidos
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE solicitudes SET tipo_salida = %s  , fecha_salida = %s , descripcion_salida = %s WHERE ID_solicitud = %s" 
                     values = (tipoSal, fechaSal, descripcion, idSol )
                     my_cursor.execute(statement, values)
@@ -1747,7 +1783,7 @@ def B_assign():
 
             elif tipoSal == 'Laboratorio':
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "SELECT numero_cdf FROM ordenes WHERE tipo = 'T'"
                     my_cursor.execute(statement)
                     num_OT = my_cursor.fetchall()
@@ -1767,7 +1803,7 @@ def B_assign():
                     pass # To Do manejo de error 
                 # crea entrada tabla ordenes
                 try:    
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = '''INSERT INTO ordenes (ID_solicitud, tipo, numero_cdf)
                         VALUES('{}', '{}','{}')'''.format(idSol, 'T', max )
                     my_cursor.execute(statement)
@@ -1778,7 +1814,7 @@ def B_assign():
             
                 # actualiza tabla de pedidos
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE solicitudes SET tipo_salida = %s  , fecha_salida = %s , descripcion_salida = %s WHERE ID_solicitud = %s" 
                     values = (tipoSal, fechaSal, descripcion, idSol )
                     my_cursor.execute(statement, values)
@@ -1794,7 +1830,7 @@ def B_assign():
             elif tipoSal == 'Cierre':  
                         # actualiza tabla de pedidos
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE solicitudes SET tipo_salida = %s  , fecha_salida = %s , descripcion_salida = %s WHERE ID_solicitud = %s" 
                     values = (tipoSal, fechaSal, descripcion, idSol )
                     my_cursor.execute(statement, values)
@@ -1810,6 +1846,7 @@ def B_assign():
                 print('Error de Tipo de salida')
         else:
             messagebox.showinfo(message="Campos obligatorios vacios.", title="Aviso del sistema")
+        sc.disconnect_db(my_conn, my_cursor)
     else:
         messagebox.showinfo(message="Seleccionar un pedido.", title="Aviso del sistema")
 
@@ -1834,10 +1871,14 @@ def B_modDoc():
     observ = T81.get("1.0",'end-1c')
     #print(tipoDoc)
     #print(len(tipoDoc))
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if len(tipoDoc) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET tipo_doc = %s WHERE ID_trabajo = %s"
             val = (tipoDoc, numDyN)
             my_cursor.execute(statement,val)
@@ -1849,7 +1890,7 @@ def B_modDoc():
 
     if len(numDoc) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET numero_doc = %s WHERE ID_trabajo = %s"
             val = (numDoc, numDyN)
             my_cursor.execute(statement,val)
@@ -1861,7 +1902,7 @@ def B_modDoc():
 
     if len(titulo) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET titulo = %s WHERE ID_trabajo = %s"
             val = (titulo, numDyN)
             my_cursor.execute(statement,val)
@@ -1873,7 +1914,7 @@ def B_modDoc():
     
     if len(fuente) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET fuente = %s WHERE ID_trabajo = %s"
             val = (fuente, numDyN)
             my_cursor.execute(statement,val)
@@ -1885,7 +1926,7 @@ def B_modDoc():
 
     if len(emisor) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET emisor = %s WHERE ID_trabajo = %s"
             val = (emisor, numDyN)
             my_cursor.execute(statement,val)
@@ -1897,7 +1938,7 @@ def B_modDoc():
 
     if len(fechaRes) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET fecha_resolucion = %s WHERE ID_trabajo = %s"
             val = (fechaRes, numDyN)
             my_cursor.execute(statement,val)
@@ -1910,7 +1951,7 @@ def B_modDoc():
     if len(cantDoc) != 0:
         #print('actualizando cantidad')
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET cantidad = %s WHERE ID_trabajo = %s"
             val = (cantDoc, numDyN)
             my_cursor.execute(statement,val)
@@ -1922,7 +1963,7 @@ def B_modDoc():
 
     if len(respo) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET respondio = %s WHERE ID_trabajo = %s"
             val = (respo, numDyN)
             my_cursor.execute(statement,val)
@@ -1934,7 +1975,7 @@ def B_modDoc():
 
     if len(precio) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET precio = %s WHERE ID_trabajo = %s"
             val = (precio, numDyN)
             my_cursor.execute(statement,val)
@@ -1946,7 +1987,7 @@ def B_modDoc():
 
     if len(uniMon) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET u_monetaria = %s WHERE ID_trabajo = %s"
             val = (uniMon, numDyN)
             my_cursor.execute(statement,val)
@@ -1958,7 +1999,7 @@ def B_modDoc():
 
     if len(observ) != 0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "UPDATE documentacion SET observaciones = %s WHERE ID_trabajo = %s"
             val = (observ, numDyN)
             my_cursor.execute(statement,val)
@@ -1968,6 +2009,7 @@ def B_modDoc():
         except Exception as e:
             print("error", e) 
     
+    sc.disconnect_db(my_conn, my_cursor)
     win_geometry = w8.winfo_geometry()
     w8.destroy()
     modDocs(win_geometry)
@@ -1975,17 +2017,19 @@ def B_modDoc():
 ############################### Precargar documento ############################################
 def precDoc():
     numDyN = E81.get()
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     # actualiza tabla de pedidos
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT * FROM documentacion WHERE ID_trabajo = %s" 
         values = (numDyN,)
         my_cursor.execute(statement, values)
         resultado = my_cursor.fetchone()
-        #print(resultado)
-        #my_conn.commit() 
-
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error", e)  
 
@@ -2034,15 +2078,19 @@ def B_selProy(modo):
     #global currNcdf ##########################################################################
     #currNcdf = wF.tabla.item(curItem).get('text') ############################################
     #print(currProy)
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if len(aux)!=0:
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM proyectos WHERE ID_solicitud = %s"
             values = (aux[5],)  # aux[5] es el ID_solicitud
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
-
+            sc.disconnect_db(my_conn, my_cursor)
             gantt(resultado[0], wF)
             # Precarga de los tk.entry
             EF1.delete(0, tk.END)              # N° Proy
@@ -2097,14 +2145,18 @@ def B_modProy(modo):
     curItem = wF.tabla.focus()  ##########################################################
     numCDF = wF.tabla.item(curItem).get('text') ##########################################
     #numCDF = currNcdf
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if len(numCDF)!=0:
         ######### Actualización del numero de proyecto
         NnumCDF = EF1.get()
         if numCDF != NnumCDF:
             # chequea que no exista NnumCDF
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "SELECT COUNT(numero_cdf) FROM proyectos WHERE area = %s and numero_cdf = %s "
                 val = (area, NnumCDF)
                 my_cursor.execute(statement,val)
@@ -2117,7 +2169,7 @@ def B_modProy(modo):
                 return(1)
             else:                
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE proyectos SET numero_cdf = %s WHERE area = %s and numero_cdf = %s"
                     val = (NnumCDF, area, numCDF)
                     my_cursor.execute(statement,val)
@@ -2129,7 +2181,7 @@ def B_modProy(modo):
         respo = CFB.get()
         if len(respo) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE proyectos SET responsable = %s WHERE area = %s and numero_cdf = %s"
                 val = (respo, area, numCDF)
                 my_cursor.execute(statement,val)
@@ -2140,7 +2192,7 @@ def B_modProy(modo):
         nomProy = EF4.get()
         if len(nomProy) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE proyectos SET nombre_proy = %s WHERE area = %s and numero_cdf = %s"
                 val = (nomProy, area, numCDF)
                 my_cursor.execute(statement,val)
@@ -2151,7 +2203,7 @@ def B_modProy(modo):
         estado = CF9.get()
         if len(estado) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE proyectos SET estado = %s WHERE area = %s and numero_cdf = %s"
                 val = (estado, area, numCDF)
                 my_cursor.execute(statement,val)
@@ -2162,7 +2214,7 @@ def B_modProy(modo):
         alcance = CF8.get()
         if len(alcance) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE proyectos SET alcance = %s WHERE area = %s and numero_cdf = %s"
                 val = (alcance, area, numCDF)
                 my_cursor.execute(statement,val)
@@ -2174,7 +2226,7 @@ def B_modProy(modo):
             prioridad = CFC.get()
             if len(prioridad) != 0:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE proyectos SET prioridad = %s WHERE area = %s and numero_cdf = %s"
                     val = (prioridad, area, numCDF)
                     my_cursor.execute(statement,val)
@@ -2185,7 +2237,7 @@ def B_modProy(modo):
             clasificacion = EFD.get()
             if len(clasificacion) != 0:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE proyectos SET clasificacion = %s WHERE area = %s and numero_cdf = %s"
                     val = (clasificacion, area, numCDF)
                     my_cursor.execute(statement,val)
@@ -2196,7 +2248,7 @@ def B_modProy(modo):
             NUM = EFE.get()
             if len(NUM) != 0:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE proyectos SET NUM = %s WHERE area = %s and numero_cdf = %s"
                     val = (NUM, area, numCDF)
                     my_cursor.execute(statement,val)
@@ -2207,7 +2259,7 @@ def B_modProy(modo):
         descr = TF1.get("1.0",'end-1c')
         if len(descr) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE proyectos SET descripcion = %s WHERE area = %s and numero_cdf = %s"
                 val = (descr, area, numCDF)
                 my_cursor.execute(statement,val)
@@ -2225,6 +2277,7 @@ def B_modProy(modo):
             messagebox.showinfo(message="Seleccione un desarrollo.", title="Aviso del sistema")
         if modo == 'ate':
             messagebox.showinfo(message="Seleccione una asistencia.", title="Aviso del sistema")
+    sc.disconnect_db(my_conn, my_cursor)
 
 ############# Ventana de modificación de tareas ##########################################
 def V_modTar(modo, geom = ''):
@@ -2245,14 +2298,18 @@ def V_modTar(modo, geom = ''):
         wG.geometry(geom)
     wG.iconphoto(False, photo)
     wG.title("CENADIF Base de datos - Tareas del proyecto ")
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if modo != 'user':
         # toma numero cenadif del proyecto seleccionado en la tabla de proyectos
         curItem = wF.tabla.focus()
         numCDF = wF.tabla.item(curItem).get('text')
         if len(numCDF)!=0:
             try:
-                my_cursor = my_conn.cursor(buffered=True)
+                #my_cursor = my_conn.cursor(buffered=True)
                 if modo == 'proy' or modo == 'proy_c':
                     statement = "SELECT * FROM proyectos WHERE area = 'Proyectos' and numero_cdf = %s" 
                 if modo == 'des' or modo == 'des_c':
@@ -2298,7 +2355,7 @@ def V_modTar(modo, geom = ''):
             gantt(proyData[0], wG)
 
             try:
-                my_cursor = my_conn.cursor(buffered=True)
+                #my_cursor = my_conn.cursor(buffered=True)
                 statement = "SELECT * FROM tareas WHERE ID_proyecto = %s" 
                 values = (proyData[0],)
                 my_cursor.execute(statement, values)
@@ -2322,18 +2379,20 @@ def V_modTar(modo, geom = ''):
             wF.state("zoomed")
             wF.deiconify()
             messagebox.showinfo(message="Seleccione un proyecto.", title="Aviso del sistema")
+
 ### Tabla de tareas ########################################################
     if modo == 'user' :
         #print('algo')
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM tareas WHERE responsable = %s" 
             values = (actualUser,)
             my_cursor.execute(statement, values)
             resultados = my_cursor.fetchall()
             #print(resultados) 
         except Exception as e:
-            print("error 480", e)
+            print("error 2394", e)
+    sc.disconnect_db(my_conn, my_cursor)
 
 #if modo == 'proy' or modo == 'user' or modo == 'des' or modo == 'ate' :
     wG.frame2 = tk.Frame(wG)
@@ -2548,11 +2607,15 @@ def userConfirm():
     email = (E65.get())
     rol = (E68.get())
 
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if (len(ID_user) != 0 and len(n_user) != 0 and len(name) != 0 and len(surname) != 0 and len(email) != 0 and len(rol) != 0):
         aux = bd.F_hash('1234')
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = '''INSERT INTO usuarios (ID_usuarios, nombre_usuario, nombres, apellidos, hash, correo, rol) 
             VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}')'''.format(ID_user, n_user, name, surname, aux, email, rol )
             my_cursor.execute(statement)
@@ -2564,21 +2627,25 @@ def userConfirm():
         messagebox.showinfo(message="Nuevo usuario ingresado. La contraseña por defecto es 1234", title="Aviso del sistema")
     else:
         messagebox.showinfo(message="Campos obligatorios vacios.", title="Aviso del sistema")
+    sc.disconnect_db(my_conn, my_cursor)
 
 ############################### precargar usuario ##############################################
 def precUsu():
     editUser = CEA1.get()
 
     # mySQL bajar rol del usuario
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT rol FROM usuarios WHERE nombre_usuario = %s" 
         values = (editUser,)
         my_cursor.execute(statement, values)
         resultado = my_cursor.fetchone()
-        #print(resultado)
-        #my_conn.commit() 
+        sc.disconnect_db(my_conn, my_cursor)
 
     except Exception as e:
         print("error", e)  
@@ -2663,15 +2730,20 @@ def modPriv():
         privileges |= 65536
     
 
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "UPDATE usuarios SET rol = %s WHERE nombre_usuario = %s" 
         values = (privileges, editUser)
         my_cursor.execute(statement, values)
         #resultado = my_cursor.fetchone()
         #print(resultado)
         my_conn.commit() 
+        sc.disconnect_db(my_conn, my_cursor)
         messagebox.showinfo(message="Permisos actualizados.", title="Aviso del sistema")
 
     except Exception as e:
@@ -2680,12 +2752,17 @@ def modPriv():
 ############################### resetear contraseña ##########################################
 def resetPW():
     editUser = CEA1.get()
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "UPDATE usuarios SET hash = %s WHERE nombre_usuario = %s"
         val = (bd.F_hash('1234'), editUser)
         my_cursor.execute(statement,val)
         my_conn.commit()
+        sc.disconnect_db(my_conn, my_cursor)
 
     except Exception as e:
         print("error", e)
@@ -2704,9 +2781,13 @@ def changeConfirm():
     elif newPass1 != newPass2:
         messagebox.showinfo(message="Entradas inconsistentes.", title="Aviso del sistema")
     else:
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        #my_cursor = sc.connect_db()
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT nombre_usuario, hash FROM usuarios WHERE nombre_usuario = %s"
             my_cursor.execute(statement, (actualUser,))
             resultados = my_cursor.fetchone()
@@ -2718,7 +2799,7 @@ def changeConfirm():
         #print(aux)
         if  aux == resultados:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE usuarios SET hash = %s WHERE nombre_usuario = %s"
                 val = (bd.F_hash(newPass1), actualUser)
                 my_cursor.execute(statement,val)
@@ -2729,13 +2810,17 @@ def changeConfirm():
             messagebox.showinfo(message="Contraseña actualizada.", title="Aviso del sistema")
         else:
             messagebox.showinfo(message="Contraseña incorrecta.", title="Aviso del sistema")
-
+        sc.disconnect_db(my_conn, my_cursor)
 ############# Función Gantt ################################################################
 def gantt(proy, window):
     # Create the data for the Gantt chart
     #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT nombre_proy FROM proyectos WHERE ID_proyecto = %s"
         values = (proy,) 
         my_cursor.execute(statement, values)
@@ -2745,7 +2830,7 @@ def gantt(proy, window):
         print("error", e)
     
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT nombre_tarea, fecha_inicio, fecha_fin, avance FROM tareas WHERE ID_proyecto = %s"
         values = (proy,) 
         my_cursor.execute(statement, values)
@@ -2753,6 +2838,7 @@ def gantt(proy, window):
         #print(resultados) 
     except Exception as e:
         print("error", e)
+    sc.disconnect_db(my_conn, my_cursor)
     tsk = [] # lista de tareas
     str = [] # lista de comienzos
     end = [] # lista de finales
@@ -2841,13 +2927,18 @@ def B_elimTar(modo):
     numTar = wG.tabla2.item(curItem).get('text')
     if len(numTar)!=0:
         if (messagebox.askokcancel(message="Eliminar tarea?", title="Confirmación de acción")):
-            refresh_conn(my_conn)
+            #refresh_conn(my_conn)
+            #my_cursor = sc.connect_db()
+            connList = sc.connect_db()
+            my_conn = connList [0]
+            my_cursor = connList[1]
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "DELETE FROM tareas WHERE ID_tarea = %s"
                 val = (numTar,)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
+                sc.disconnect_db(my_conn, my_cursor)
             except Exception as e:
                 print("error", e)
             
@@ -2861,13 +2952,18 @@ def B_elimTar(modo):
 ############################### Función del botón Nueva tarea ############################################
 def B_nuevaTar(proy, modo):
 #    print('nueva tarea')
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "INSERT INTO tareas SET nombre_tarea = %s, ID_proyecto = %s"
         val = ('Nueva tarea', proy)
         my_cursor.execute(statement,val)
         my_conn.commit()
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error", e)
     win_geometry = wG.winfo_geometry()
@@ -2882,14 +2978,18 @@ def B_selTar(modo):
     #print(numTar)
     if len(numTar)!=0:
         #gantt(numpro, wF)
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        #my_cursor = sc.connect_db()
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM tareas WHERE ID_tarea = %s"
             values = (numTar,) 
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
-            #print(resultado)
+            sc.disconnect_db(my_conn, my_cursor)
             # Precarga de los tk.entry
             EG1.delete(0, tk.END)              # Nombre de tarea
             if resultado[3] is not None:
@@ -2955,12 +3055,16 @@ def B_modTar(modo):
     #numTar = wG.tabla2.item(curItem).get('text')
 
     if len(numTar)!=0:
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        #my_cursor = sc.connect_db()
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         ######### Actualización del nombre de tarea
         nomTar = EG1.get()
         if len(nomTar) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET nombre_tarea = %s WHERE ID_tarea = %s"
                 val = (nomTar, numTar)
                 my_cursor.execute(statement,val)
@@ -2971,7 +3075,7 @@ def B_modTar(modo):
         estado = CG2.get()
         if len(estado) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET estado = %s WHERE ID_tarea = %s"
                 val = (estado, numTar)
                 my_cursor.execute(statement,val)
@@ -2982,7 +3086,7 @@ def B_modTar(modo):
         responsable = CG3.get()
         if len(responsable) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET responsable = %s WHERE ID_tarea = %s"
                 val = (responsable, numTar)
                 my_cursor.execute(statement,val)
@@ -2993,7 +3097,7 @@ def B_modTar(modo):
         inicio = EG4.get()
         if len(inicio) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET fecha_inicio = %s WHERE ID_tarea = %s"
                 val = (inicio, numTar)
                 my_cursor.execute(statement,val)
@@ -3004,7 +3108,7 @@ def B_modTar(modo):
         fin = EG5.get()
         if len(fin) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET fecha_fin = %s WHERE ID_tarea = %s"
                 val = (fin, numTar)
                 my_cursor.execute(statement,val)
@@ -3015,7 +3119,7 @@ def B_modTar(modo):
         avance = EG6.get()
         if len(avance) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET avance = %s WHERE ID_tarea = %s"
                 val = (avance, numTar)
                 my_cursor.execute(statement,val)
@@ -3026,7 +3130,7 @@ def B_modTar(modo):
         HH_prog = EG7.get()
         if len(HH_prog) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET HH_prog = %s WHERE ID_tarea = %s"
                 val = (HH_prog, numTar)
                 my_cursor.execute(statement,val)
@@ -3037,7 +3141,7 @@ def B_modTar(modo):
         HH_dedic = EG8.get()
         if len(HH_dedic) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET HH_dedicadas = %s WHERE ID_tarea = %s"
                 val = (HH_dedic, numTar)
                 my_cursor.execute(statement,val)
@@ -3048,7 +3152,7 @@ def B_modTar(modo):
         integ_1 = CG9.get()
         if len(integ_1) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET integrante_1 = %s WHERE ID_tarea = %s"
                 val = (integ_1, numTar)
                 my_cursor.execute(statement,val)
@@ -3060,7 +3164,7 @@ def B_modTar(modo):
             integ_2 = CGA.get()
             if len(integ_2) != 0:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE tareas SET integrante_2 = %s WHERE ID_tarea = %s"
                     val = (integ_2, numTar)
                     my_cursor.execute(statement,val)
@@ -3071,7 +3175,7 @@ def B_modTar(modo):
             integ_3 = CGB.get()
             if len(integ_3) != 0:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE tareas SET integrante_3 = %s WHERE ID_tarea = %s"
                     val = (integ_3, numTar)
                     my_cursor.execute(statement,val)
@@ -3083,7 +3187,7 @@ def B_modTar(modo):
             integ_4 = CGC.get()
             if len(integ_4) != 0:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE tareas SET integrante_4 = %s WHERE ID_tarea = %s"
                     val = (integ_4, numTar)
                     my_cursor.execute(statement,val)
@@ -3094,7 +3198,7 @@ def B_modTar(modo):
             integ_5 = CGD.get()
             if len(integ_5) != 0:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE tareas SET integrante_5 = %s WHERE ID_tarea = %s"
                     val = (integ_5, numTar)
                     my_cursor.execute(statement,val)
@@ -3105,7 +3209,7 @@ def B_modTar(modo):
             integ_6 = CGE.get()
             if len(integ_6) != 0:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE tareas SET integrante_6 = %s WHERE ID_tarea = %s"
                     val = (integ_6, numTar)
                     my_cursor.execute(statement,val)
@@ -3117,7 +3221,7 @@ def B_modTar(modo):
         descr = TG1.get("1.0",'end-1c')
         if len(descr) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE tareas SET descripcion = %s WHERE ID_tarea = %s"
                 val = (descr, numTar)
                 my_cursor.execute(statement,val)
@@ -3136,6 +3240,7 @@ def B_modTar(modo):
                 V_modTar(modo, win_geometry)
         except:         
             V_modTar('user', win_geometry)
+        sc.disconnect_db(my_conn, my_cursor)
     else:
         messagebox.showinfo(message="Seleccione una tarea.", title="Aviso del sistema")
 
@@ -3150,16 +3255,19 @@ def verify(event=None):
         actualUser = (E1.get()) 
         password = (E2.get())
         
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT hash, rol, ID_usuarios FROM usuarios WHERE nombre_usuario = %s"
             my_cursor.execute(statement, (actualUser,))
             resultados = my_cursor.fetchone()
+            sc.disconnect_db(my_conn, my_cursor)
         except Exception as e:
             print("error 3050", e)
-        #aux = tuple([user, password])
-        #print(aux)
+        
         try:
             if  bd.F_hash(password) == resultados[0]:
                 actualID = resultados[2]
@@ -3256,9 +3364,13 @@ def V_estad():
     areas = ["Documentación","Proyectos","Desarrollos","Asistencias","Laboratorio"]  
     pedidos = [0, 0, 0, 0, 0]                                                       
     
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT COUNT(*) AS count FROM documentacion;"
         my_cursor.execute(statement,)
         resultado = my_cursor.fetchall()
@@ -3274,7 +3386,7 @@ def V_estad():
         my_cursor.execute(statement,)
         resultado = my_cursor.fetchall()
         pedidos[4] = resultado[0][0]
-        #print(pedidos)
+        #sc.disconnect_db(my_cursor)
     except Exception as e:
         print("error 3157", e)
  
@@ -3288,7 +3400,7 @@ def V_estad():
     D_colors = ['limegreen', 'forestgreen', 'palegreen', 'springgreen']
     for i in range(4):
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT COUNT(*) AS count FROM proyectos where area = 'Desarrollos' and estado = %s;"
             values = (sql_estados[i],) 
             my_cursor.execute(statement,values)
@@ -3301,7 +3413,7 @@ def V_estad():
     A_colors = ['orange', 'goldenrod', 'antiquewhite', 'moccasin']
     for i in range(4):
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT COUNT(*) AS count FROM proyectos where area = 'Asistencias' and estado = %s;"
             values = (sql_estados[i],) 
             my_cursor.execute(statement,values)
@@ -3314,7 +3426,7 @@ def V_estad():
     P_colors = ['blue', 'navy', 'aquamarine', 'turquoise']
     for i in range(4):
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT COUNT(*) AS count FROM proyectos where area = 'Proyectos' and estado = %s;"
             values = (sql_estados[i],) 
             my_cursor.execute(statement,values)
@@ -3329,7 +3441,7 @@ def V_estad():
     lab_labels = ['Ord.Trab', 'Ord.Int']
     for i in range(2):
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT COUNT(*) AS count FROM ordenes where tipo = %s;"
             values = (lab_tipos[i],) 
             my_cursor.execute(statement,values)
@@ -3337,6 +3449,8 @@ def V_estad():
             laboratorio[i] = resultado[0][0]
         except Exception as e:
             print("error 3169", e)
+    sc.disconnect_db(my_conn, my_cursor)    
+    
     # gráficos ###########################
     fig1 = plt.figure() # create a figure object
     fig1.tight_layout(h_pad=3, w_pad=3)
@@ -3364,10 +3478,14 @@ def V_estad():
 ############################### Función de actualización de agenda #################################################
 
 def F_actualizarAgenda(num_tar):
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     ### Query de numero proyecto #############
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT ID_proyecto FROM tareas WHERE ID_tarea = %s "
         my_cursor.execute(statement,(num_tar,))
         proy_AT = my_cursor.fetchone()
@@ -3376,7 +3494,7 @@ def F_actualizarAgenda(num_tar):
             print("error 3207", e)
     ### Query de numero de AT #############
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT numero_cdf FROM proyectos WHERE ID_proyecto = %s "
         my_cursor.execute(statement,proy_AT)
         num_AT = my_cursor.fetchone()
@@ -3386,7 +3504,7 @@ def F_actualizarAgenda(num_tar):
     ### Query de fecha planificada #############
     
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT responsable, integrante_1, integrante_2, integrante_3, integrante_4, integrante_5, integrante_6, fecha_inicio FROM tareas WHERE ID_tarea = %s "
         my_cursor.execute(statement,(num_tar,))
         equipo = my_cursor.fetchone()
@@ -3396,7 +3514,7 @@ def F_actualizarAgenda(num_tar):
     ### Query de la agenda ##############################################
     
     try: 
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT nombre_usuario, fecha_programada FROM agenda WHERE ID_tarea = %s "
         my_cursor.execute(statement, (num_tar,))
         agenda = my_cursor.fetchall()
@@ -3414,7 +3532,7 @@ def F_actualizarAgenda(num_tar):
                 #print (equipo[6], registro[1])
                 if equipo[7] != registro[1]: # si la fecha de inicio (tarea) es distinta a fecha programda (agenda)
                     try:
-                        my_cursor = my_conn.cursor()
+                        #my_cursor = my_conn.cursor()
                         statement = "UPDATE agenda SET fecha_programada = %s WHERE ID_tarea = %s AND nombre_usuario = %s "
                         values = (equipo[7], num_tar, equipo[i])
                         my_cursor.execute(statement, values)
@@ -3428,7 +3546,7 @@ def F_actualizarAgenda(num_tar):
             #print('no encontrado')
             # elimino el registro de la agenda
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "DELETE FROM agenda WHERE ID_tarea = %s AND nombre_usuario = %s "
                 values = (num_tar, registro[0])
                 my_cursor.execute(statement, values)
@@ -3447,7 +3565,7 @@ def F_actualizarAgenda(num_tar):
         if flag_found == 0 and equipo[i] != None:
             #print('INSERT INTO, %s', equipo[i])
             try:  
-                my_cursor = my_conn.cursor() 
+                #my_cursor = my_conn.cursor() 
                 statement = '''INSERT INTO agenda (nombre_usuario, tipo, numero, ID_tarea, fecha_programada)
                   VALUES('{}', '{}', '{}', '{}', '{}')'''.format(equipo[i], 'ATE', num_AT[0], num_tar, equipo[7] )
                 my_cursor.execute(statement)
@@ -3456,6 +3574,7 @@ def F_actualizarAgenda(num_tar):
 
             except Exception as e:
                 print("error3291", e)
+    sc.disconnect_db(my_conn, my_cursor)
 
 def refresh_conn(conn):
     
@@ -3623,10 +3742,14 @@ def V_modLab(tipo, geom = ''):
 
     wH.tabla.delete(*wH.tabla.get_children())
     # preparacion de los datos
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if tipo == 'T':    
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM ordenes WHERE tipo = 'T' ORDER BY numero_cdf DESC LIMIT 50" # ordenes de trabajo
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
@@ -3635,7 +3758,7 @@ def V_modLab(tipo, geom = ''):
             print("error 3430", e)
         for fila in resultados:
             try:
-                my_cursor = my_conn.cursor(buffered=True)
+                #my_cursor = my_conn.cursor(buffered=True)
                 statement = "SELECT filiacion_cliente, asunto FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
                 values = (fila[8],)
                 my_cursor.execute(statement, values)
@@ -3651,7 +3774,7 @@ def V_modLab(tipo, geom = ''):
             wH.tabla.insert('', index = 'end', iid=None, text = str(fila[2]), values = [fila[4], fila[3], fila[6],fila[5], fila[8], solic[0], solic[1]])
     elif tipo == 'I':    
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM ordenes WHERE tipo = 'I' ORDER BY numero_cdf DESC LIMIT 50 " # ordenes internas
             my_cursor.execute(statement)
             resultados = my_cursor.fetchall()
@@ -3663,20 +3786,25 @@ def V_modLab(tipo, geom = ''):
             wH.tabla.insert('',index = 'end', iid=None, text = str(fila[2]), values = [fila[4], fila[9], fila[10], fila[6], fila[5], fila[3]])
     else:
         pass # To Do: insertar manejo de error de tipo 
+    sc.disconnect_db(my_conn, my_cursor)
     wH.tabla.bind("<Double-1>", lambda evt, x = tipo: B_selecOrden(x)) # habilita doble click para seleccionar
 
 def B_selecOrden(modo):
     curItem = wH.tabla.focus()
     numOrd = wH.tabla.item(curItem).get('text')
     if len(numOrd)!=0:
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        #my_cursor = sc.connect_db()
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM ordenes WHERE tipo = %s AND numero_cdf = %s"
             values = (modo, numOrd,) 
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
-            #print(resultado)
+            sc.disconnect_db(my_conn, my_cursor)
         except Exception as e:
             print("error", e)
             # Precarga de los tk.entry
@@ -3707,14 +3835,18 @@ def B_selecOrden(modo):
 def B_modOrden(modo):
     curItem = wH.tabla.focus()
     numOrd = wH.tabla.item(curItem).get('text')
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    #my_cursor = sc.connect_db()
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if len(numOrd)!=0:
         ######### Actualización del numero de proyecto
         NnumOrd = EH6.get()
         if NnumOrd != numOrd:
             # chequea si el ID elegido existe
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "SELECT COUNT(numero_cdf) FROM ordenes WHERE tipo = %s and numero_cdf = %s "
                 val = (modo, NnumOrd)
                 my_cursor.execute(statement,val)
@@ -3727,7 +3859,7 @@ def B_modOrden(modo):
                 return(1)
             else:
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE ordenes SET numero_cdf = %s WHERE tipo = %s and numero_cdf = %s"
                     val = (NnumOrd, modo, numOrd)
                     my_cursor.execute(statement,val)
@@ -3739,7 +3871,7 @@ def B_modOrden(modo):
         descOrd = EH1.get()
         if len(descOrd) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ordenes SET descripcion = %s WHERE tipo = %s and numero_cdf = %s"
                 val = (descOrd, modo, numOrd)
                 my_cursor.execute(statement,val)
@@ -3750,7 +3882,7 @@ def B_modOrden(modo):
         respo = CH3.get()
         if len(respo) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ordenes SET responsable = %s WHERE tipo= %s and numero_cdf = %s"
                 val = (respo, modo, numOrd)
                 my_cursor.execute(statement,val)
@@ -3761,7 +3893,7 @@ def B_modOrden(modo):
         fechaFin = EH5.get()
         if len(fechaFin) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ordenes SET fecha_fin = %s WHERE tipo = %s and numero_cdf = %s"
                 val = (fechaFin, modo, numOrd)
                 my_cursor.execute(statement,val)
@@ -3772,7 +3904,7 @@ def B_modOrden(modo):
         infor = EH4.get()
         if len(infor) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ordenes SET informe = %s WHERE tipo = %s and numero_cdf = %s"
                 val = (infor, modo, numOrd)
                 my_cursor.execute(statement,val)
@@ -3783,7 +3915,7 @@ def B_modOrden(modo):
         observ = TH1.get("1.0",'end-1c')
         if len(observ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ordenes SET observaciones = %s WHERE tipo =%s and numero_cdf = %s"
                 val = (observ, modo, numOrd)
                 my_cursor.execute(statement,val)
@@ -3796,6 +3928,8 @@ def B_modOrden(modo):
         V_modLab(modo, win_geometry)
     else:
         messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
+    sc.disconnect_db(my_conn, my_cursor)    
+
 ############################################# Ventana de modificación de ordenes de servicio #######################################################
 def V_modServ(modo, geom = ''):
     curItem = wH.tabla.focus()
@@ -3811,10 +3945,14 @@ def V_modServ(modo, geom = ''):
             wI.geometry(geom)
         wI.iconphoto(False, photo)
         wI.title("CENADIF Base de datos - Ordenes de servicio ")
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        #my_cursor = sc.connect_db()
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         
         try:
-            my_cursor = my_conn.cursor(buffered=True)            
+            #my_cursor = my_conn.cursor(buffered=True)            
             statement = "SELECT * FROM ordenes WHERE tipo = %s and numero_cdf = %s" 
             values = (modo, numOrd,)
             my_cursor.execute(statement, values)
@@ -3825,7 +3963,7 @@ def V_modServ(modo, geom = ''):
             print("error 3624", e)
 
         try:
-            my_cursor = my_conn.cursor(buffered=True)
+            #my_cursor = my_conn.cursor(buffered=True)
             statement = "SELECT filiacion_cliente FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
             values = (ordData[8],)
             my_cursor.execute(statement, values)
@@ -3833,6 +3971,7 @@ def V_modServ(modo, geom = ''):
             #print(cliente)
         except Exception as e:
             print("error 3634", e)
+        sc.disconnect_db(my_conn, my_cursor)
 
         wI.frame = tk.Frame(wI)
         wI.frame.grid(rowspan=2, column=1, row=1)
@@ -3873,13 +4012,17 @@ def V_modServ(modo, geom = ''):
         wI.tabla.insert('',index = 'end', iid=None, text = str(ordData[2]), values = [ordData[4], ordData[3], ordData[6], ordData[5], ordData[8], cliente,])
         
         ### Tabla de ordenes de servicio ########################################################
+        #my_cursor = sc.connect_db()
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM ord_serv WHERE ID_orden = %s" 
             values = (ordData[0],)
             my_cursor.execute(statement, values)
             resultados = my_cursor.fetchall()
-            #print(resultados) 
+            sc.disconnect_db(my_conn, my_cursor)
         except Exception as e:
             print("error 3683", e)
 
@@ -4043,18 +4186,22 @@ def V_modServ(modo, geom = ''):
 
     else:
         messagebox.showinfo(message="Seleccione una orden.", title="Aviso del sistema")
-
+#############################################################################################################################
 def B_selServ(modo):
     curItem = wI.tabla2.focus()
     numServ = wI.tabla2.item(curItem).get('text')
     if len(numServ)!=0:
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM ord_serv WHERE ID_servicio = %s"
             values = (numServ,) 
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
+            sc.disconnect_db(my_conn, my_cursor)
         except Exception as e:
             print("error", e)
         # Precarga de los tk.entry
@@ -4093,13 +4240,16 @@ def B_selServ(modo):
 def B_modServ(modo): 
     curItem = wI.tabla2.focus()
     numServ = wI.tabla2.item(curItem).get('text')
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     if len(numServ)!=0:
         ######### Actualización de la tarea
         tareaServ = EI1.get()
         if len(tareaServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET tarea = %s WHERE ID_servicio = %s"
                 val = (tareaServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4110,7 +4260,7 @@ def B_modServ(modo):
         respoServ = CI3.get()
         if len(respoServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET responsable = %s WHERE ID_servicio = %s"
                 val = (respoServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4121,7 +4271,7 @@ def B_modServ(modo):
         iniServ = EI4.get()
         if len(iniServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET fecha_inicio = %s WHERE ID_servicio = %s"
                 val = (iniServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4132,7 +4282,7 @@ def B_modServ(modo):
         finServ = EI5.get()
         if len(finServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET fecha_fin = %s WHERE ID_servicio = %s"
                 val = (finServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4143,7 +4293,7 @@ def B_modServ(modo):
         horasServ = EI7.get()
         if len(horasServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET horas = %s WHERE ID_servicio = %s"
                 val = (horasServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4154,7 +4304,7 @@ def B_modServ(modo):
         operServ = CI9.get()
         if len(operServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET operador = %s WHERE ID_servicio = %s"
                 val = (operServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4165,7 +4315,7 @@ def B_modServ(modo):
         tipoServ = CI2.get()
         if len(tipoServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET tipo = %s WHERE ID_servicio = %s"
                 val = (tipoServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4176,7 +4326,7 @@ def B_modServ(modo):
         equipServ = EIA.get()
         if len(equipServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET equipos = %s WHERE ID_servicio = %s"
                 val = (equipServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4187,7 +4337,7 @@ def B_modServ(modo):
         obsServ = TI1.get("1.0",'end-1c')
         if len(obsServ) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE ord_serv SET observaciones = %s WHERE ID_servicio = %s"
                 val = (obsServ, numServ)
                 my_cursor.execute(statement,val)
@@ -4202,19 +4352,25 @@ def B_modServ(modo):
 
     else:
         messagebox.showinfo(message="Seleccione una orden de servicio.", title="Aviso del sistema")
+    sc.disconnect_db(my_conn, my_cursor)
 
+##################################################################################################################
 def B_elimServ(modo):
     curItem = wI.tabla2.focus()
     numServ = wI.tabla2.item(curItem).get('text')
     if len(numServ)!=0:
         if (messagebox.askokcancel(message="Eliminar orden?", title="Confirmación de acción")):
-            refresh_conn(my_conn)
+            #refresh_conn(my_conn)
+            connList = sc.connect_db()
+            my_conn = connList [0]
+            my_cursor = connList[1]
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "DELETE FROM ord_serv WHERE ID_servicio = %s"
                 val = (numServ,)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
+                sc.disconnect_db(my_conn, my_cursor)
             except Exception as e:
                 print("error", e)
             win_geometry = wI.winfo_geometry()
@@ -4226,14 +4382,17 @@ def B_elimServ(modo):
 
 ############################### Función del botón Nueva orden de servicio ############################################
 def B_nuevoServ(orden, modo):
-#    print('nueva tarea')
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "INSERT INTO ord_serv SET tarea = %s, ID_orden = %s"
         val = ('Nueva orden de servicio', orden)
         my_cursor.execute(statement,val)
         my_conn.commit()
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error", e)
     win_geometry = wI.winfo_geometry()
@@ -4254,10 +4413,12 @@ def V_modMue(modo, geom = ''):
             wJ.geometry(geom)
         wJ.iconphoto(False, photo)
         wJ.title("CENADIF Base de datos - Muestras ")
-        refresh_conn(my_conn)
-
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor(buffered=True)            
+            #my_cursor = my_conn.cursor(buffered=True)            
             statement = "SELECT * FROM ordenes WHERE tipo = %s and numero_cdf = %s" 
             values = (modo, numOrd,)
             my_cursor.execute(statement, values)
@@ -4268,7 +4429,7 @@ def V_modMue(modo, geom = ''):
             print("error 3624", e)
 
         try:
-            my_cursor = my_conn.cursor(buffered=True)
+            #my_cursor = my_conn.cursor(buffered=True)
             statement = "SELECT filiacion_cliente FROM solicitudes WHERE ID_solicitud = %s" # ordenes de trabajo
             values = (ordData[4],)
             my_cursor.execute(statement, values)
@@ -4317,7 +4478,7 @@ def V_modMue(modo, geom = ''):
 
         ### Tabla de muestras ########################################################
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM muestras WHERE ID_orden = %s" 
             values = (ordData[0],)
             my_cursor.execute(statement, values)
@@ -4325,7 +4486,7 @@ def V_modMue(modo, geom = ''):
             #print(resultados) 
         except Exception as e:
             print("error 3683", e)
-
+        sc.disconnect_db(my_conn, my_cursor)
         wJ.frame2 = tk.Frame(wJ)
         wJ.frame2.grid(rowspan=2, column=1, row=2)
         wJ.frame2.place(y=70)
@@ -4433,14 +4594,17 @@ def B_selMue():
     curItem = wJ.tabla2.focus()
     numMue = wJ.tabla2.item(curItem).get('values')
     if len(numMue)!=0:
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM muestras WHERE ID_muestra = %s"
             values = (numMue[0],) 
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
-            #print(resultado[5])
+            sc.disconnect_db(my_conn, my_cursor)
         except Exception as e:
             print("error", e)
             # Precarga de los tk.entry
@@ -4465,12 +4629,15 @@ def B_modMue(modo):
     curItem = wJ.tabla2.focus()
     numMue = wJ.tabla2.item(curItem).get('values')
     if len(numMue)!=0:
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         ######### Actualización del tipo de muestra
         tipoMue = CJ3.get()
         if len(tipoMue) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE muestras SET tipo = %s WHERE ID_muestra = %s"
                 val = (tipoMue, numMue[0])
                 my_cursor.execute(statement,val)
@@ -4481,7 +4648,7 @@ def B_modMue(modo):
         obsMue = EJ1.get()
         if len(obsMue) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE muestras SET observaciones = %s WHERE ID_muestra = %s"
                 val = (obsMue, numMue[0])
                 my_cursor.execute(statement,val)
@@ -4492,7 +4659,7 @@ def B_modMue(modo):
         corMue = EJ4.get()
         if len(corMue) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE muestras SET correspondencia = %s WHERE ID_muestra = %s"
                 val = (corMue, numMue[0])
                 my_cursor.execute(statement,val)
@@ -4505,7 +4672,7 @@ def B_modMue(modo):
             if date_check(fechaMue) == True:
             #    return
                 try:
-                    my_cursor = my_conn.cursor()
+                    #my_cursor = my_conn.cursor()
                     statement = "UPDATE muestras SET ingreso = %s WHERE ID_muestra = %s"
                     val = (fechaMue, numMue[0])
                     my_cursor.execute(statement,val)
@@ -4516,19 +4683,24 @@ def B_modMue(modo):
         win_geometry = wJ.winfo_geometry()
         wJ.destroy() 
         V_modMue(modo, win_geometry)
+        sc.disconnect_db(my_conn, my_cursor)
     else:
         messagebox.showinfo(message="Seleccione una muestra.", title="Aviso del sistema")
 
 ############################### Función del botón Nueva muestra ############################################
 def B_nuevaMue(modo, orden):
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         #statement = "INSERT INTO muestras SET tipo = 'XX', observaciones = 'Nueva muestra', ID_orden = %s"
         statement = "INSERT INTO muestras (ID_orden, tipo, observaciones) VALUES(%s, %s, %s)"
         val = (orden, 'XX', 'Nueva muestra')
         my_cursor.execute(statement,val)
         my_conn.commit()
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error", e)
     win_geometry = wJ.winfo_geometry()
@@ -4540,13 +4712,17 @@ def B_elimMue(modo):
     numMue = wJ.tabla2.item(curItem).get('values')
     if len(numMue)!=0:
         if (messagebox.askokcancel(message="Eliminar muestra?", title="Confirmación de acción")):
-            refresh_conn(my_conn)
+            #refresh_conn(my_conn)
+            connList = sc.connect_db()
+            my_conn = connList [0]
+            my_cursor = connList[1]
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "DELETE FROM muestras WHERE ID_muestra = %s"
                 val = (numMue[0],)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
+                sc.disconnect_db(my_conn, my_cursor)
             except Exception as e:
                 print("error", e)
             win_geometry = wJ.winfo_geometry()
@@ -4656,14 +4832,16 @@ def V_viewSamples():
 
     wB.tabla.delete(*wB.tabla.get_children())
 
-    refresh_conn(my_conn)
-    
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT ordenes.ID_orden, ordenes.tipo, ordenes.numero_cdf, muestras.ID_muestra, muestras.ingreso, muestras.correspondencia, muestras.observaciones, muestras.tipo FROM ordenes INNER JOIN muestras ON ordenes.ID_orden = muestras.ID_orden ORDER BY muestras.ID_muestra DESC"        
         my_cursor.execute(statement)
         resultados = my_cursor.fetchall()
-        #print(resultados) 
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error", e)
     
@@ -4703,9 +4881,12 @@ def ingresar_oInt():
     if date_check(fecha) == False:
         return
     # update de BDNP
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT numero_cdf FROM ordenes WHERE tipo = 'I'"
         #val = ('I')
         #my_cursor.execute(statement,val)
@@ -4727,20 +4908,21 @@ def ingresar_oInt():
         pass # To Do manejo de error
 
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "INSERT INTO ordenes (tipo, descripcion, solicitante, fecha_inicio, numero_cdf) VALUES(%s, %s, %s, %s, %s )"
         val = ('I', desc, solic, fecha, max)
         my_cursor.execute(statement,val)
         my_conn.commit()
     except Exception as e:
         print("error 4506", e)
+    sc.disconnect_db(my_conn, my_cursor)
     win_geometry = wK.winfo_geometry()
     wK.destroy() 
     V_modLab('I', win_geometry)
 ############### Función de boton Salir #############################################################
 def salirConAviso():
     if (messagebox.askokcancel(message="Desea cerrar el programa?", title="Confirmación de acción")):   
-        my_conn.close()
+        #conn.close()
         w1.quit()
     else:
         return
@@ -4772,11 +4954,14 @@ def V_empleos(modo, geom = ''):
         except:
             pass
         ### Preparación de datos para tabla 1
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         global wL
         if modo == 'tar':
             try:
-                my_cursor = my_conn.cursor(buffered=True)
+                #my_cursor = my_conn.cursor(buffered=True)
                 statement = "SELECT proyectos.area, proyectos.numero_cdf, tareas.nombre_tarea FROM proyectos INNER JOIN tareas ON proyectos.ID_proyecto = tareas.ID_proyecto WHERE ID_tarea = %s" 
                 values = (numTar,)
                 my_cursor.execute(statement, values)
@@ -4785,14 +4970,14 @@ def V_empleos(modo, geom = ''):
             except Exception as e:
                 print("error 4755", e)
             try:
-                my_cursor = my_conn.cursor(buffered=True)
-                statement = "SELECT * FROM empleos WHERE tipo_contexto = %s and ID_contexto = %s" 
+                #my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT empleos.ID_empleo, empleos.tipo_contexto, empleos.ID_contexto, recursos.tipo, recursos.categoria, empleos.cantidad, recursos.unidad_medida, empleos.detalle, empleos.fecha, empleos.responsable FROM empleos INNER JOIN recursos ON empleos.ID_recurso = recursos.ID_recurso WHERE tipo_contexto = %s and ID_contexto = %s" 
                 values = (modo, numTar,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
                 #print(proyData[0]) 
             except Exception as e:
-                print("error 4761", e)
+                print("error 4796", e)
             ### Generación de la ventana 
             wL=tk.Toplevel()
             if len(geom)==0:
@@ -4828,7 +5013,7 @@ def V_empleos(modo, geom = ''):
 
         elif modo == 'doc':
             try:
-                my_cursor = my_conn.cursor(buffered=True)
+                #my_cursor = my_conn.cursor(buffered=True)
                 statement = "SELECT * FROM documentacion WHERE ID_trabajo = %s" 
                 values = (numTar,)
                 my_cursor.execute(statement, values)
@@ -4837,8 +5022,9 @@ def V_empleos(modo, geom = ''):
             except Exception as e:
                 print("error 4755", e)
             try:
-                my_cursor = my_conn.cursor(buffered=True)
-                statement = "SELECT * FROM empleos WHERE tipo_contexto = %s and ID_contexto = %s" 
+                #my_cursor = my_conn.cursor(buffered=True)
+                # statement = "SELECT * FROM empleos WHERE tipo_contexto = %s and ID_contexto = %s"
+                statement = "SELECT empleos.ID_empleo, empleos.tipo_contexto, empleos.ID_contexto, recursos.tipo, recursos.categoria, empleos.cantidad, recursos.unidad_medida, empleos.detalle, empleos.fecha, empleos.responsable FROM empleos INNER JOIN recursos ON empleos.ID_recurso = recursos.ID_recurso WHERE tipo_contexto = %s and ID_contexto = %s"  
                 values = (modo, numTar,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
@@ -4888,7 +5074,7 @@ def V_empleos(modo, geom = ''):
             wL.tabla.insert('',index = 'end', iid=None, text = str(docData[0]), values = [docData[2], docData[8], docData[3], docData[4], docData[5], docData[6], docData[7], docData[11]])
         elif modo == 'o_serv':
             try:
-                my_cursor = my_conn.cursor(buffered=True)
+                #my_cursor = my_conn.cursor(buffered=True)
                 statement = "SELECT * FROM ord_serv WHERE ID_servicio = %s" 
                 values = (numTar,)
                 my_cursor.execute(statement, values)
@@ -4897,14 +5083,14 @@ def V_empleos(modo, geom = ''):
             except Exception as e:
                 print("error 4755", e)
             try:
-                my_cursor = my_conn.cursor(buffered=True)
-                statement = "SELECT * FROM empleos WHERE tipo_contexto = %s and ID_contexto = %s" 
+                #my_cursor = my_conn.cursor(buffered=True)
+                statement = "SELECT empleos.ID_empleo, empleos.tipo_contexto, empleos.ID_contexto, recursos.tipo, recursos.categoria, empleos.cantidad, recursos.unidad_medida, empleos.detalle, empleos.fecha, empleos.responsable FROM empleos INNER JOIN recursos ON empleos.ID_recurso = recursos.ID_recurso WHERE tipo_contexto = %s and ID_contexto = %s"  
                 values = (modo, numTar,)
                 my_cursor.execute(statement, values)
                 resultados = my_cursor.fetchall()
                 #print(proyData[0]) 
             except Exception as e:
-                print("error 4761", e)
+                print("error 4908", e)
             ### Generación de la ventana 
             wL=tk.Toplevel()
             if len(geom)==0:
@@ -4947,12 +5133,12 @@ def V_empleos(modo, geom = ''):
         else:
             print('error de modo')
             return           
-
+        sc.disconnect_db(my_conn, my_cursor)
         ### Tabla 2
         wL.frame2 = tk.Frame(wL)
         wL.frame2.grid(rowspan=2, column=1, row=2)
         wL.frame2.place(y=70)
-        wL.tabla2 = ttk.Treeview(wL.frame2, height=12)
+        wL.tabla2 = ttk.Treeview(wL.frame2, height=14)
         wL.tabla2.grid(column=1, row=1)
 
         ladox2 = tk.Scrollbar(wL.frame2, orient = tk.VERTICAL, command= wL.tabla2.yview)
@@ -4982,63 +5168,32 @@ def V_empleos(modo, geom = ''):
         for fila in resultados:
             wL.tabla2.insert('',index = 'end', iid=None, text = str(fila[0]), values = [fila[3], fila[4], fila[5], fila[6], fila[7], fila[8], fila[9]])
        
-        # boton Volver
-        BL2=tk.Button(wL, text="Volver", width=12, command=lambda: menuFrom(wL))
-        BL2.place(x=375, y=750)
-        # boton Salir
-        BL1=tk.Button(wL, text="Salir", width=12, command = lambda: salirConAviso())
-        BL1.place(x=505, y=750)
-        # boton Eliminar
-        global BL3
-        BL3=tk.Button(wL, text="Eliminar", width=12, command = lambda: B_elimEmpleo(modo))
-        BL3.place(x=375, y=705)
-        # boton Nueva
-        BL4=tk.Button(wL, text="Nuevo", width=12, command = lambda: B_nuevoEmpleo(modo, numTar))
-        BL4.place(x=505, y=705)
-        
     #   BOTONES #####################
-        # boton Precarga
+        # boton Seleccionar
         global BL5
         BL5=tk.Button(wL, text="Seleccionar", width=12, command = lambda: B_selEmpleo(modo))
-        BL5.place(x=115, y=705)
-
+        BL5.place(x=155, y=605)
         # boton Modificar
         global BL6
         BL6=tk.Button(wL,text="Modificar", width=12, command = lambda: B_modEmpleo(modo, numTar), state = tk.DISABLED)
-        BL6.place(x=245, y=705)
-    ## PRIMER PISO ##########################
-    # Tipo de recurso
-        LL1 = tk.Label(wL, text = "Tipo")
-        LL1.place(x=20, y=380)
+        BL6.place(x=285, y=605)
+        # boton Eliminar
+        global BL3
+        BL3=tk.Button(wL, text="Eliminar", width=12, command = lambda: B_elimEmpleo(modo))
+        BL3.place(x=415, y=605)
+        # boton Nuevo
+        BL4=tk.Button(wL, text="Nuevo", width=12, command = lambda: B_nuevoEmpleo(modo, numTar))
+        BL4.place(x=545, y=605)
+        # boton Volver
+        BL2=tk.Button(wL, text="Volver", width=12, command=lambda: menuFrom(wL))
+        BL2.place(x=415, y=650)
+        # boton Salir
+        BL1=tk.Button(wL, text="Salir", width=12, command = lambda: salirConAviso())
+        BL1.place(x=545, y=650)
+        
 
-        refresh_conn(my_conn)
-        try:
-            my_cursor = my_conn.cursor()
-            statement = "SELECT DISTINCT tipo FROM recursos "
-            my_cursor.execute(statement)
-            list = my_cursor.fetchall()
-            #print(list) 
-        except Exception as e:
-            print("error 4994", e)
-        # registro del observador
-        rec_tipo = tk.StringVar()
-        rec_tipo.trace('w', lambda *_ , var = rec_tipo : traceCB1(*_,var=var))
-        global CL1
-        CL1 = ttk.Combobox(wL, state="readonly", textvariable = rec_tipo, width = 17, values = list)
-        CL1.place(x=110, y=380)
-
-    # Categoría
-        LL2 = tk.Label(wL, text = "Categoría")
-        LL2.place(x=390, y=380)
-
-        rec_cat = tk.StringVar()
-        rec_cat.trace('w', lambda *_ , var = rec_cat : traceCB2(*_,var=var))
-
-        global CL2
-        CL2 = ttk.Combobox(wL, state="readonly", textvariable = rec_cat, width = 17)
-        CL2.place(x=480, y=380)
-
-        ## SEGUNDO PISO #########################
+        
+        ## PRIMER PISO ##########################
         # Cantidad
         LL3 = tk.Label(wL, text = "Cantidad")
         LL3.place(x=20, y=430)
@@ -5047,41 +5202,34 @@ def V_empleos(modo, geom = ''):
         EL3 = tk.Entry(wL)
         EL3.place(x=110, y=430)
 
-    # Unidad de medida 
-        LL5 = tk.Label(wL, text = "Un. Medida")
-        LL5.place(x=390, y=430)
+        # Fecha
+        LL7 = tk.Label(wL, text = "Fecha")
+        LL7.place(x=270, y=430)
 
-        global EL5
-        EL5 = tk.Entry(wL)
-        EL5.place(x=480, y=430)
+        global EL7
+        EL7 = tk.Entry(wL)
+        EL7.place(x=330, y=430)
         
+    # Responsable
+        LL8 = tk.Label(wL, text = "Responsable")
+        LL8.place(x=470, y=430)
+
+        list = userList()
+        global CL8
+        CL8 = ttk.Combobox(wL, state="readonly", width = 17, values = list)
+        CL8.place(x=570, y=430)
         ## TERCER PISO #########################
         
     # Detalle
         LL6 = tk.Label(wL, text = "Detalle: ")
         LL6.place(x=20, y=480)
         global TL6
-        TL6 = tk.Text(wL, width = 61, height = 3)
+        TL6 = tk.Text(wL, width = 72, height = 5)
         TL6.place(x=110, y=480)
         
         
     ## TERCER PISO #########################
-        # Fecha
-        LL7 = tk.Label(wL, text = "Fecha")
-        LL7.place(x=20, y=560)
 
-        global EL7
-        EL7 = tk.Entry(wL)
-        EL7.place(x=110, y=560)
-
-    # Responsable
-        LL8 = tk.Label(wL, text = "Responsable")
-        LL8.place(x=390, y=560)
-
-        list = userList()
-        global CL8
-        CL8 = ttk.Combobox(wL, state="readonly", width = 17, values = list)
-        CL8.place(x=480, y=560)
 
     else:
         if modo == 'tar':
@@ -5100,21 +5248,24 @@ def V_empleos(modo, geom = ''):
 def traceCB1(*args, var):
     # busca la lista de tipos de recurso
     tipoRec = var.get()
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT DISTINCT categoria FROM recursos WHERE tipo = %s"
         values = (tipoRec,)
         my_cursor.execute(statement, values)
         list = my_cursor.fetchall()
-        #print(list) 
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error 5094", e)
     # pone la lista en el combobox si existe
-    try:    
-        CL2['values'] = list
-    except:
-        pass
+#    try:    
+#        CL2['values'] = list
+#    except:
+#        pass
     try:
         CM2['values'] = list
     except:
@@ -5124,39 +5275,145 @@ def traceCB1(*args, var):
 def traceCB2(*args, var):
     catRec = var.get()
     #print(catRec)
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT unidad_medida FROM recursos WHERE categoria = %s"
         values = (catRec,)
         my_cursor.execute(statement, values)
         uniMed = my_cursor.fetchone()
-        #print(uniMed)
+        sc.disconnect_db(my_conn, my_cursor)
         ### Solo busca por categoria, si existiesen dos tipos de recursos con una categoria que se llame igual generaría conflicto #### To Do 
     except Exception as e:
-        print("error 5119", e)
+        print("error 5291", e)
     
-    try:
-        EL5.delete(0, 'end')
-        if uniMed is not None:
-            EL5.insert(0, uniMed[0])
-    except:
-        pass
-
 ############# Botón nuevo empleo #########################################################
 def B_nuevoEmpleo(tipo, ID):
-    try:
-        my_cursor = my_conn.cursor()
-        statement = "INSERT INTO empleos (tipo_contexto, ID_contexto, fecha) VALUES(%s, %s, %s )"
-        val = (tipo, ID, date.today())
-        my_cursor.execute(statement,val)
-        my_conn.commit()
-    except Exception as e:
-        print("error 5109", e)
-    win_geometry = wL.winfo_geometry()
-    wL.destroy() 
-    V_empleos(tipo, win_geometry)   
+    global wN 
+    wN=tk.Toplevel()
+    wN.iconphoto(False, photo)
+    wN.geometry("1240x450")
+    wN.title("CENADIF Base de datos - Seleccionar recurso ")
+    hoy = date.today()
 
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
+    try:
+        #my_cursor = my_conn.cursor(buffered=True)            
+        statement = "SELECT * FROM recursos where actualizable = TRUE and ultimo = TRUE and validez >= %s" 
+        values = (hoy,)
+        my_cursor.execute(statement, values)
+        resultados = my_cursor.fetchall()
+        sc.disconnect_db(my_conn, my_cursor)
+    except Exception as e:
+        print("error 5314", e)
+
+    ### Tabla 1 (modo doc)
+    wN.frame = tk.Frame(wN)
+    wN.frame.grid(rowspan=2, column=1, row=1)
+    wN.tabla = ttk.Treeview(wN.frame, height=15)
+    wN.tabla.grid(column=1, row=1)
+
+    ladox = tk.Scrollbar(wN.frame, orient = tk.VERTICAL, command= wN.tabla.yview)
+    ladox.grid(column=0, row = 2, sticky='ew')
+    ladoy = tk.Scrollbar(wN.frame, orient =tk.HORIZONTAL, command = wN.tabla.xview)
+    ladoy.grid(column = 1, row = 0, sticky='ns')
+    wN.tabla.configure(xscrollcommand = ladox.set, yscrollcommand = ladoy.set)
+
+    wN.tabla['columns'] = ('tipo', 'categoria', 'precio_unitario', 'unidad_monetaria', 'validez','unidad_medida')
+    wN.tabla.column('#0', minwidth=50, width=60, anchor='center')
+    wN.tabla.column('tipo', minwidth=100, width=225, anchor='center')
+    wN.tabla.column('categoria', minwidth=80, width=225 , anchor='center')
+    wN.tabla.column('precio_unitario', minwidth=100, width=175 , anchor='center')
+    wN.tabla.column('unidad_monetaria', minwidth=100, width=175, anchor='center' )
+    wN.tabla.column('validez', minwidth=100, width=175 , anchor='center')
+    wN.tabla.column('unidad_medida', minwidth=100, width=175, anchor='center') 
+     
+    wN.tabla.heading('#0', text='ID', anchor ='e')
+    # Parte común a todos los modos
+    wN.tabla.heading('tipo', text='Tipo', anchor ='center')
+    wN.tabla.heading('categoria', text='Categoria', anchor ='center')
+    wN.tabla.heading('precio_unitario', text='Precio unitario', anchor ='center')
+    wN.tabla.heading('unidad_monetaria', text='Unidad monetaria', anchor ='center')
+    wN.tabla.heading('validez', text='Validez', anchor ='center')
+    wN.tabla.heading('unidad_medida', text='U. medida', anchor ='center')
+    # muestra de los datos
+    for rec in resultados:
+        #print(rec)
+        wN.tabla.insert('',index = 'end', iid=None, text = rec[0], values = [rec[1], rec[2], rec[3], rec[4], rec[5], rec[6]])
+
+    #   BOTONES #####################
+
+    # boton Especiales
+    global BN3
+    BN3=tk.Button(wN, text="Especiales", width=12, command = lambda: B_recEspeciales(wN.tabla))
+    BN3.place(x= 1*120, y=375)
+
+    # boton Vencidos
+    global BN4
+    BN4=tk.Button(wN, text="Vencidos", width=12, command = lambda: B_recVencidos(wN.tabla))
+    BN4.place(x= 2*120, y=375)
+
+    # boton Seleccionar
+    global BN1
+    BN1=tk.Button(wN, text="Seleccionar", width=12, command = lambda: B_selRecNuevo(tipo, ID))
+    BN1.place(x= 8*120, y=375)
+
+    # boton Modificar
+    global BN2
+    BN2=tk.Button(wN,text="Cancelar", width=12, command = lambda: B_cancelRecNuevo())
+    #BN2.place(x=245, y=375)
+    BN2.place(x=9*120, y=375)
+
+##########################################################################
+def B_selRecNuevo(tipo, ID):
+    curItem = wN.tabla.focus()
+    numRec = wN.tabla.item(curItem).get('text')
+    if numRec is not None:
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
+        try:
+            #my_cursor = my_conn.cursor()
+            statement = "INSERT INTO empleos (tipo_contexto, ID_contexto, ID_recurso, fecha) VALUES(%s, %s, %s, %s )"
+            val = (tipo, ID, numRec, date.today())
+            my_cursor.execute(statement,val)
+            my_conn.commit()
+        except Exception as e:
+            print("error 5188", e)
+        else:
+            try:
+                #my_cursor = my_conn.cursor()
+                statement = "SELECT actualizable FROM recursos WHERE ID_recurso = %s"
+                val = (numRec,)
+                my_cursor.execute(statement, val)
+                resultado = my_cursor.fetchone()
+                #print('actualizable =', resultado[0])
+                if resultado[0] == 0:
+                    statement = "UPDATE recursos SET ultimo = 0 WHERE ID_recurso = %s"
+                    val = (numRec,)
+                    my_cursor.execute(statement,val)
+                    my_conn.commit()
+            except Exception as e:
+                print("error 5197", e)
+        sc.disconnect_db(my_conn, my_cursor)
+        wN.destroy()
+        win_geometry = wL.winfo_geometry()
+        wL.destroy() 
+        V_empleos(tipo, win_geometry)   
+    else:
+        messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema")     
+##########################################################################
+def B_cancelRecNuevo():
+    #print('Boton de cancelar recurso nuevo')
+    wN.destroy()
+    
 ############# Botón eliminar empleo #####################################################
 def B_elimEmpleo(tipo):
     curItem = wL.tabla2.focus()
@@ -5164,13 +5421,17 @@ def B_elimEmpleo(tipo):
     #print(numEmp)
     if len(numEmp)!=0:
         if (messagebox.askokcancel(message="Eliminar recurso?", title="Confirmación de acción")):
-            refresh_conn(my_conn)
+            #refresh_conn(my_conn)
+            connList = sc.connect_db()
+            my_conn = connList [0]
+            my_cursor = connList[1]
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "DELETE FROM empleos WHERE ID_empleo = %s"
                 val = (numEmp,)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
+                sc.disconnect_db(my_conn, my_cursor)
             except Exception as e:
                 print("error 5127", e)
             win_geometry = wL.winfo_geometry()
@@ -5185,35 +5446,30 @@ def B_selEmpleo(modo):
     numEmp = wL.tabla2.item(curItem).get('text')
     if len(numEmp)!=0:
         #gantt(numpro, wF)
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM empleos WHERE ID_empleo = %s"
             values = (numEmp,) 
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
+            sc.disconnect_db(my_conn, my_cursor)
             # Precarga de los tk.entry
-            CL1.set('')                     # Tipo de recurso
-            if resultado[3] is not None:
-                CL1.set( resultado[3])
-            CL2.set('')                     # Categoría
-            if resultado[4] is not None:
-                CL2.set( resultado[4])
             EL3.delete(0, tk.END)           # Cantidad
+            if resultado[4] is not None:
+                EL3.insert(0, resultado[4])
+            TL6.delete("1.0","end")             # Detalle
             if resultado[5] is not None:
-                EL3.insert(0, resultado[5])
-            EL5.delete(0, tk.END)              # Unidad de medida
-            if resultado[6] is not None:
-                EL5.insert(0, resultado[6])
-            TL6.delete("1.0","end")             # Descripción
-            if resultado[7] is not None:
-                TL6.insert("1.0", resultado[7])
+                TL6.insert("1.0", resultado[5])
             EL7.delete(0, tk.END)              # Fecha
-            if resultado[8] is not None:
-                EL7.insert(0, resultado[8])
+            if resultado[6] is not None:
+                EL7.insert(0, resultado[6])
             CL8.set('')                     # Responsable
-            if resultado[9] is not None:
-                CL8.set(resultado[9])
+            if resultado[7] is not None:
+                CL8.set(resultado[7])
             BL6['state'] = tk.NORMAL # habilitación del botón Eliminar
         except Exception as e:
             print("error 5173", e)
@@ -5225,59 +5481,25 @@ def B_modEmpleo(modo, ID):
     curItem = wL.tabla2.focus()
     numEmp = wL.tabla2.item(curItem).get('text')
     if len(numEmp)!=0:
-        refresh_conn(my_conn)
-        #print(modo)
-        #print(ID)
-        #print(numEmp)
-        ######### Actualización del tipo de recurso
-        tipo = CL1.get()
-        if len(tipo) != 0:
-            try:
-                my_cursor = my_conn.cursor()
-                statement = "UPDATE empleos SET tipo = %s WHERE ID_empleo = %s"
-                val = (tipo, numEmp)
-                my_cursor.execute(statement,val)
-                my_conn.commit()
-            except Exception as e:
-                print("error 5199", e)
-        ######### Actualización de la categoria del recurso
-        categoria = CL2.get()
-        if len(categoria) != 0:
-            try:
-                my_cursor = my_conn.cursor()
-                statement = "UPDATE empleos SET categoria = %s WHERE ID_empleo = %s"
-                val = (categoria, numEmp)
-                my_cursor.execute(statement,val)
-                my_conn.commit()
-            except Exception as e:
-                print("error 5210", e)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         ######### Actualización de la cantidad
         cantidad = EL3.get()
         if len(cantidad) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE empleos SET cantidad = %s WHERE ID_empleo = %s"
                 val = (cantidad, numEmp)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
             except Exception as e:
                 print("error 5221", e)
-        ######### Actualización de la unidad de medida
-        uniMedida = EL5.get()
-        if len(uniMedida) != 0:
-            try:
-                my_cursor = my_conn.cursor()
-                statement = "UPDATE empleos SET unidad_medida = %s WHERE ID_empleo = %s"
-                val = (uniMedida, numEmp)
-                my_cursor.execute(statement,val)
-                my_conn.commit()
-            except Exception as e:
-                print("error 5232", e)
-        ######### Actualización de detalle
         detalle = TL6.get("1.0",'end-1c')
         if len(detalle) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE empleos SET detalle = %s WHERE ID_empleo = %s"
                 val = (detalle, numEmp)
                 my_cursor.execute(statement,val)
@@ -5288,7 +5510,7 @@ def B_modEmpleo(modo, ID):
         fecha = EL7.get()
         if len(fecha) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE empleos SET fecha = %s WHERE ID_empleo = %s"
                 val = (fecha, numEmp)
                 my_cursor.execute(statement,val)
@@ -5299,7 +5521,7 @@ def B_modEmpleo(modo, ID):
         responsable = CL8.get()
         if len(responsable) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE empleos SET responsable = %s WHERE ID_empleo = %s"
                 val = (responsable, numEmp)
                 my_cursor.execute(statement,val)
@@ -5307,16 +5529,64 @@ def B_modEmpleo(modo, ID):
             except Exception as e:
                 print("error 5265", e)
         ############ Refresco de la ventana
+        sc.disconnect_db(my_conn, my_cursor)
         win_geometry = wL.winfo_geometry()
         wL.destroy()
         V_empleos(modo, win_geometry)
     else:
         messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema")
+
+############################### Función del botón Especiales ###########################################################
+def B_recEspeciales(tabla):
+    # cambiar el titulo de la tabla
+    wN.title("CENADIF Base de datos - Recursos Especiales")
+    # vaciar la tabla
+    for item in tabla.get_children():
+      tabla.delete(item)
+    # query de recursos especiales
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
+    try:
+        #my_cursor = my_conn.cursor(buffered=True)            
+        statement = "SELECT * FROM recursos where actualizable = FALSE and ultimo = TRUE" 
+        my_cursor.execute(statement)
+        resultados = my_cursor.fetchall()
+        sc.disconnect_db(my_conn, my_cursor) 
+    except Exception as e:
+        print("error 5335", e)
+    # llenar la tabla
+    for rec in resultados:
+      wN.tabla.insert('',index = 'end', iid=None, text = rec[0], values = [rec[1], rec[2], rec[3], rec[4], rec[5], rec[6]])
+############### Botón Recursos vencidos ################################################################################
+def B_recVencidos(tabla):
+    # cambiar el titulo de la tabla
+    wN.title("CENADIF Base de datos - Recursos Vencidos")
+    # vaciar la tabla
+    for item in tabla.get_children():
+      tabla.delete(item)
+    hoy = date.today()
+    BN1['state'] = tk.DISABLED
+    # query de recursos vencidos (actualizables, últimos y validez < 'hoy')
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
+    try:
+        #my_cursor = my_conn.cursor(buffered=True)            
+        statement = "SELECT * FROM recursos where actualizable = TRUE and ultimo = TRUE and validez < %s" 
+        values = (hoy,)
+        my_cursor.execute(statement, values)
+        resultados = my_cursor.fetchall()
+        sc.disconnect_db(my_conn, my_cursor)
+    except Exception as e:
+        print("error 5364", e)
+    # llenar la tabla
+    for rec in resultados:
+      wN.tabla.insert('',index = 'end', iid=None, text = rec[0], values = [rec[1], rec[2], rec[3], rec[4], rec[5], rec[6]])
 ### Ventana de gestión de recursos #####################################################################################
 def V_recursos( geom = ''):
-#    curItem = wH.tabla.focus()
-#    numOrd = wH.tabla.item(curItem).get('text')
-#    if len(numOrd)!=0:
     ### esconde la pantalla de llamado
     try:
         w1.withdraw()
@@ -5330,13 +5600,16 @@ def V_recursos( geom = ''):
         wM.geometry(geom)
     wM.iconphoto(False, photo)
     wM.title("CENADIF Base de datos - Gestión de recursos ")
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor(buffered=True)            
+        #my_cursor = my_conn.cursor(buffered=True)            
         statement = "SELECT * FROM recursos" 
         my_cursor.execute(statement)
         resultados = my_cursor.fetchall()
-        #print(resultados) 
+        sc.disconnect_db(my_conn, my_cursor) 
     except Exception as e:
         print("error 5312", e)
 
@@ -5385,13 +5658,16 @@ def V_recursos( geom = ''):
     LM1 = tk.Label(wM, text = "Tipo")
     LM1.place(x=20, y=F3)
     
-    refresh_conn(my_conn)
+    #refresh_conn(my_conn)
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "SELECT DISTINCT tipo FROM recursos "
         my_cursor.execute(statement)
         list = my_cursor.fetchall()
-        #print(list) 
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
         print("error 5366", e)
 
@@ -5451,21 +5727,21 @@ def V_recursos( geom = ''):
     
 #   BOTONES #####################
     # boton Precarga
-    BM4=tk.Button(wM, text="Seleccionar", width=12, command = lambda: B_selRec())
+    BM4=tk.Button(wM, text="Seleccionar", width=12, command=lambda: B_selRec())
     BM4.place(x=700, y=F4)
 
     # boton Modificar
     global BM2
-    BM2=tk.Button(wM,text="Modificar", width=12, command = lambda: B_modRecurso(), state = tk.DISABLED)
+    BM2=tk.Button(wM,text="Modificar", width=12, command=lambda: B_modRecurso(), state = tk.DISABLED)
     BM2.place(x=830, y=F4)
 
     # boton Eliminar
     global BM6
-    BM6=tk.Button(wM, text="Eliminar", width=12, command = lambda: B_elimRecurso())
+    BM6=tk.Button(wM, text="Eliminar", width=12, command=lambda: B_elimRecurso())
     BM6.place(x=960, y=F4)
 
     # boton Nueva
-    BM3=tk.Button(wM, text="Nuevo", width=12, command = lambda: B_nuevoRecurso())
+    BM3=tk.Button(wM, text="Nuevo", width=12, command=lambda: B_nuevoRecurso())
     BM3.place(x=1090, y=F4)
 
     # boton Volver
@@ -5473,8 +5749,21 @@ def V_recursos( geom = ''):
     BM5.place(x=960, y=F5)
 
     # boton Salir
-    BM1=tk.Button(wM, text="Salir", width=12, command = lambda: salirConAviso())
+    BM1=tk.Button(wM, text="Salir", width=12, command=lambda: salirConAviso())
     BM1.place(x=1090, y=F5)
+
+    # Checkbutton "Actualizable"
+    global HM1
+    global actualizable
+    actualizable = tk.IntVar()
+    HM1 = tk.Checkbutton(wM, text="Actualizable", variable=actualizable, onvalue=1, offvalue=0)
+    HM1.place(x = 700, y = F3)
+
+    # Checkbutton "Último"
+    global HM2
+    ultimo = tk.IntVar()
+    HM2 = tk.Checkbutton(wM, text="Último", variable=ultimo, onvalue=1, offvalue=0)
+    HM2.place(x = 830, y = F3)
 
     #wI.tabla2.bind("<Double-1>", lambda evt, x = modo: B_selServ(x)) # habilita doble click para seleccionar
 #    else:
@@ -5485,14 +5774,17 @@ def B_selRec():
     curItem = wM.tabla.focus()
     numRec = wM.tabla.item(curItem).get('text')
     if len(str(numRec)) != 0:
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         try:
-            my_cursor = my_conn.cursor()
+            #my_cursor = my_conn.cursor()
             statement = "SELECT * FROM recursos WHERE ID_recurso = %s"
             values = (numRec,) 
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
-            #print(resultado)
+            sc.disconnect_db(my_conn, my_cursor)
             ### Precarga de los tk.entry
             CM1.set('')                     # Tipo de recurso
             if resultado[1] is not None:
@@ -5512,21 +5804,31 @@ def B_selRec():
             EM7.delete(0, tk.END)              # Unidad de medida
             if resultado[6] is not None:
                 EM7.insert(0, resultado[6])
-            BM2['state'] = tk.NORMAL 
+            BM2['state'] = tk.NORMAL
+            HM1.deselect()                       # actualizable
+            if resultado[7] == 1:
+                HM1.select()
+            HM2.deselect()                       # último
+            if resultado[8] == 1:
+                HM2.select()
         except Exception as e:
-            print("error 5498", e)
+            print("error 5810", e)
     else:
         messagebox.showinfo(message="Seleccione un recurso.", title="Aviso del sistema") 
 
 ############# Botón nuevo recurso #########################################################
 def B_nuevoRecurso():
+    connList = sc.connect_db()
+    my_conn = connList [0]
+    my_cursor = connList[1]
     try:
-        my_cursor = my_conn.cursor()
+        #my_cursor = my_conn.cursor()
         statement = "INSERT INTO recursos (tipo, categoria) VALUES('Nuevo_tipo', 'Nueva_categoria' )"
         my_cursor.execute(statement)
         my_conn.commit()
+        sc.disconnect_db(my_conn, my_cursor)
     except Exception as e:
-        print("error 5109", e)
+        print("error 5830", e)
     win_geometry = wM.winfo_geometry()
     wM.destroy() 
     V_recursos(win_geometry)   
@@ -5537,13 +5839,17 @@ def B_elimRecurso():
     numRec = wM.tabla.item(curItem).get('text')
     if len(str(numRec)) != 0:
         if (messagebox.askokcancel(message="Eliminar recurso?", title="Confirmación de acción")):
-            refresh_conn(my_conn)
+            #refresh_conn(my_conn)
+            connList = sc.connect_db()
+            my_conn = connList [0]
+            my_cursor = connList[1]
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "DELETE FROM recursos WHERE ID_recurso = %s"
                 val = (numRec,)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
+                sc.disconnect_db(my_conn, my_cursor)
             except Exception as e:
                 print("error 5527", e)
             win_geometry = wM.winfo_geometry()
@@ -5557,12 +5863,15 @@ def B_modRecurso():
     curItem = wM.tabla.focus()
     numRec = wM.tabla.item(curItem).get('text')
     if len(str(numRec)) != 0:
-        refresh_conn(my_conn)
+        #refresh_conn(my_conn)
+        connList = sc.connect_db()
+        my_conn = connList [0]
+        my_cursor = connList[1]
         ######### Actualización del tipo de recurso
         tipo = CM1.get()
         if len(tipo) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE recursos SET tipo = %s WHERE ID_recurso = %s"
                 val = (tipo, numRec)
                 my_cursor.execute(statement,val)
@@ -5573,7 +5882,7 @@ def B_modRecurso():
         categoria = CM2.get()
         if len(categoria) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE recursos SET categoria = %s WHERE ID_recurso = %s"
                 val = (categoria, numRec)
                 my_cursor.execute(statement,val)
@@ -5584,7 +5893,7 @@ def B_modRecurso():
         precio = EM3.get()
         if len(precio) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE recursos SET precio_unitario = %s WHERE ID_recurso = %s"
                 val = (precio, numRec)
                 my_cursor.execute(statement,val)
@@ -5595,7 +5904,7 @@ def B_modRecurso():
         uniMone = EM5.get()
         if len(uniMone) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE recursos SET unidad_monetaria = %s WHERE ID_recurso = %s"
                 val = (uniMone, numRec)
                 my_cursor.execute(statement,val)
@@ -5606,7 +5915,7 @@ def B_modRecurso():
         validez = EM6.get()
         if len(validez) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE recursos SET validez = %s WHERE ID_recurso = %s"
                 val = (validez, numRec)
                 my_cursor.execute(statement,val)
@@ -5617,13 +5926,25 @@ def B_modRecurso():
         uniMed = EM7.get()
         if len(uniMed) != 0:
             try:
-                my_cursor = my_conn.cursor()
+                #my_cursor = my_conn.cursor()
                 statement = "UPDATE recursos SET unidad_Medida = %s WHERE ID_recurso = %s"
                 val = (uniMed, numRec)
                 my_cursor.execute(statement,val)
                 my_conn.commit()
             except Exception as e:
                 print("error 5606", e)
+        ######### Actualización de campo actualizable
+        act = actualizable.get()
+        #if len(act) != 0:
+        try:
+            #my_cursor = my_conn.cursor()
+            statement = "UPDATE recursos SET actualizable = %s WHERE ID_recurso = %s"
+            val = (act, numRec)
+            my_cursor.execute(statement,val)
+            my_conn.commit()
+        except Exception as e:
+            print("error 5946", e)
+        sc.disconnect_db(my_conn, my_cursor)        
         win_geometry = wM.winfo_geometry()
         wM.destroy()
         V_recursos(win_geometry)
@@ -5632,8 +5953,8 @@ def B_modRecurso():
 
 ########################################################################################################################
 LOG_FILENAME = 'SUGUS_log.out'
-logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.ERROR)
-#logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.INFO)
+#logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.ERROR)
+logging.basicConfig(filename=LOG_FILENAME, filemode = 'w', level=logging.INFO)
 
 if __name__ == "__main__":
     try:
