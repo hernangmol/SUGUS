@@ -5,7 +5,7 @@ import time
 def connect_db():
     global conn
     try:
-        conn = mysql.connector.connect(host = '192.168.100.105',
+        conn = mysql.connector.connect(host = '192.168.5.92',
                                         port = 3306,
                                         database = "BDNP",  # base de produccion
                                         #database = "BDNP_t",  # base de test

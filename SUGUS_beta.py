@@ -553,7 +553,7 @@ def viewDocs():
         #w9.tabla.insert('',index = fila[0], iid=None, text = str(fila[0]), values = [fila[10], fila[2], fila[1], fila[3], fila[5], fila[4]])
         try:
             #my_cursor = my_conn.cursor()
-            statement = "SELECT ID_trabaj o FROM documentacion WHERE ID_solicitud = %s" 
+            statement = "SELECT ID_trabajo FROM documentacion WHERE ID_solicitud = %s" 
             values = (fila[0],)
             my_cursor.execute(statement, values)
             aux = my_cursor.fetchall()
@@ -2091,7 +2091,13 @@ def B_selProy(modo):
             my_cursor.execute(statement, values)
             resultado = my_cursor.fetchone()
             sc.disconnect_db(my_conn, my_cursor)
+        except Exception as e:
+            print("error 2095", e)
+        try:
             gantt(resultado[0], wF)
+        except Exception as e:
+            print("error 2099", e)
+        try:
             # Precarga de los tk.entry
             EF1.delete(0, tk.END)              # N° Proy
             if resultado[7] is not None:
@@ -2125,7 +2131,7 @@ def B_selProy(modo):
             if modo != 'proy_c' and modo != 'des_c' and modo != 'ate_c':
                 BF2['state'] = tk.NORMAL 
         except Exception as e:
-            print("error 890", e)
+            print("error 2134", e)
     else:
         if modo == 'proy':
             messagebox.showinfo(message="Seleccione un proyecto.", title="Aviso del sistema")
@@ -2813,6 +2819,14 @@ def changeConfirm():
         sc.disconnect_db(my_conn, my_cursor)
 ############# Función Gantt ################################################################
 def gantt(proy, window):
+
+    ###############################################
+    # Prueba
+    ###############################################
+    #proy = 1437
+    #window = wF
+    ###############################################
+
     # Create the data for the Gantt chart
     #refresh_conn(my_conn)
     #my_cursor = sc.connect_db()
@@ -3396,7 +3410,7 @@ def V_estad():
     # Gráfico 2.1 - Desarrollos
     desarrollos = [0, 0, 0, 0]
     P_estados = ["En curso","Finalizados","Cancelados","Pausados"]
-    sql_estados = ['En curso', 'Finalizado', 'Cancelado', 'Pausado']
+    sql_estados = ['En curso', 'Finalizado', 'Cancelado', 'En pausa']
     D_colors = ['limegreen', 'forestgreen', 'palegreen', 'springgreen']
     for i in range(4):
         try:

@@ -47,11 +47,11 @@ def F_hash(password):
     return(hashed.hexdigest())
 def main():
     ###### pruebas
-    '''
+    
     # display
     d = display()
     print(d.full_geometry)
-    '''
+
     pass
 
 if __name__  == "__main__":
